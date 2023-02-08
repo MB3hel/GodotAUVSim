@@ -1,13 +1,44 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
-[ext_resource path="res://objects/mat_4.material" type="Material" id=1]
-[ext_resource path="res://objects/mat_2.material" type="Material" id=2]
-[ext_resource path="res://objects/mat_3.material" type="Material" id=3]
-[ext_resource path="res://objects/mat_1.material" type="Material" id=4]
-[ext_resource path="res://objects/mat_0.material" type="Material" id=5]
 [ext_resource path="res://robot.gd" type="Script" id=6]
+[ext_resource path="res://simulation.gd" type="Script" id=7]
 
-[sub_resource type="ArrayMesh" id=1]
+[sub_resource type="SpatialMaterial" id=1]
+resource_name = "mat_0"
+vertex_color_use_as_albedo = true
+params_cull_mode = 2
+albedo_color = Color( 0, 1, 1, 1 )
+metallic = 1.0
+
+[sub_resource type="SpatialMaterial" id=2]
+resource_name = "mat_1"
+vertex_color_use_as_albedo = true
+params_cull_mode = 2
+albedo_color = Color( 1, 1, 0, 1 )
+metallic = 1.0
+
+[sub_resource type="SpatialMaterial" id=3]
+resource_name = "mat_2"
+vertex_color_use_as_albedo = true
+params_cull_mode = 2
+albedo_color = Color( 1, 0, 0, 1 )
+metallic = 1.0
+
+[sub_resource type="SpatialMaterial" id=4]
+resource_name = "mat_3"
+vertex_color_use_as_albedo = true
+params_cull_mode = 2
+albedo_color = Color( 0, 0.333333, 1, 1 )
+metallic = 1.0
+
+[sub_resource type="SpatialMaterial" id=5]
+resource_name = "mat_4"
+vertex_color_use_as_albedo = true
+params_cull_mode = 2
+albedo_color = Color( 0.262745, 0.823529, 0, 1 )
+metallic = 1.0
+
+[sub_resource type="ArrayMesh" id=6]
 resource_name = "temp-RealBody_RealBody"
 surfaces/0 = {
 "aabb": AABB( -0.005, -0.005, 0.0025, 0.01, 0.01, 1.00001e-05 ),
@@ -16,7 +47,7 @@ surfaces/0 = {
 "blend_shape_data": [  ],
 "format": 2194691,
 "index_count": 6,
-"material": ExtResource( 5 ),
+"material": SubResource( 1 ),
 "primitive": 4,
 "skeleton_aabb": [  ],
 "vertex_count": 4
@@ -28,7 +59,7 @@ surfaces/1 = {
 "blend_shape_data": [  ],
 "format": 2194691,
 "index_count": 6,
-"material": ExtResource( 4 ),
+"material": SubResource( 2 ),
 "primitive": 4,
 "skeleton_aabb": [  ],
 "vertex_count": 4
@@ -40,7 +71,7 @@ surfaces/2 = {
 "blend_shape_data": [  ],
 "format": 2194691,
 "index_count": 6,
-"material": ExtResource( 2 ),
+"material": SubResource( 3 ),
 "primitive": 4,
 "skeleton_aabb": [  ],
 "vertex_count": 4
@@ -52,7 +83,7 @@ surfaces/3 = {
 "blend_shape_data": [  ],
 "format": 2194691,
 "index_count": 3,
-"material": ExtResource( 3 ),
+"material": SubResource( 4 ),
 "primitive": 4,
 "skeleton_aabb": [  ],
 "vertex_count": 3
@@ -64,19 +95,19 @@ surfaces/4 = {
 "blend_shape_data": [  ],
 "format": 2194691,
 "index_count": 3,
-"material": ExtResource( 1 ),
+"material": SubResource( 5 ),
 "primitive": 4,
 "skeleton_aabb": [  ],
 "vertex_count": 3
 }
 
-[node name="Spatial" type="Spatial"]
+[node name="root" type="Spatial"]
+script = ExtResource( 7 )
 
 [node name="Camera+Light" type="Spatial" parent="."]
-transform = Transform( 1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, -3, 3 )
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, -5, 0 )
 
 [node name="Camera" type="Camera" parent="Camera+Light"]
-projection = 1
 fov = 50.0
 size = 5.0
 
@@ -86,13 +117,5 @@ size = 5.0
 script = ExtResource( 6 )
 
 [node name="RobotBody" type="MeshInstance" parent="Robot"]
-transform = Transform( 4.37114e-06, -100, -8.74228e-06, -100, -4.37114e-06, 0, -3.82137e-13, 8.74228e-06, -100, 0, 0, 0 )
-mesh = SubResource( 1 )
-skeleton = NodePath("../..")
-
-[node name="RefRobot" type="Spatial" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0 )
-
-[node name="RobotBody" type="MeshInstance" parent="RefRobot"]
-transform = Transform( 4.37114e-06, -100, -8.74228e-06, -100, -4.37114e-06, 0, -3.82137e-13, 8.74228e-06, -100, 0, 0, 0 )
-mesh = SubResource( 1 )
+transform = Transform( 3.27835e-06, -75, -6.55671e-06, -75, -3.27835e-06, 0, -2.86603e-13, 6.55671e-06, -75, 0, 0, 0 )
+mesh = SubResource( 6 )
