@@ -1,0 +1,87 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://objects/mat_4.material" type="Material" id=1]
+[ext_resource path="res://objects/mat_2.material" type="Material" id=2]
+[ext_resource path="res://objects/mat_3.material" type="Material" id=3]
+[ext_resource path="res://objects/mat_1.material" type="Material" id=4]
+[ext_resource path="res://objects/mat_0.material" type="Material" id=5]
+
+[sub_resource type="ArrayMesh" id=1]
+resource_name = "temp-RealBody_RealBody"
+surfaces/0 = {
+"aabb": AABB( -0.005, -0.005, 0.0025, 0.01, 0.01, 1.00001e-05 ),
+"array_data": PoolByteArray( 10, 215, 163, 187, 10, 215, 163, 187, 10, 215, 35, 59, 0, 0, 0, 0, 10, 215, 163, 187, 10, 215, 163, 59, 10, 215, 35, 59, 0, 0, 0, 0, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 59, 0, 0, 0, 0, 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 59, 0, 0, 0, 0 ),
+"array_index_data": PoolByteArray( 3, 0, 0, 0, 1, 0, 3, 0, 1, 0, 2, 0 ),
+"blend_shape_data": [  ],
+"format": 2194691,
+"index_count": 6,
+"material": ExtResource( 5 ),
+"primitive": 4,
+"skeleton_aabb": [  ],
+"vertex_count": 4
+}
+surfaces/1 = {
+"aabb": AABB( 0.005, -0.005, -0.0025, 1.00001e-05, 0.01, 0.00501 ),
+"array_data": PoolByteArray( 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 59, 255, 127, 0, 0, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 59, 255, 127, 0, 0, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 187, 255, 127, 0, 0, 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 187, 255, 127, 0, 0 ),
+"array_index_data": PoolByteArray( 3, 0, 0, 0, 1, 0, 3, 0, 1, 0, 2, 0 ),
+"blend_shape_data": [  ],
+"format": 2194691,
+"index_count": 6,
+"material": ExtResource( 4 ),
+"primitive": 4,
+"skeleton_aabb": [  ],
+"vertex_count": 4
+}
+surfaces/2 = {
+"aabb": AABB( -0.005, -0.005, -0.0025, 0.01001, 0.01, 0.005 ),
+"array_data": PoolByteArray( 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 187, 1, 128, 84, 85, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 187, 1, 128, 84, 85, 10, 215, 163, 187, 10, 215, 163, 59, 10, 215, 35, 59, 1, 128, 84, 85, 10, 215, 163, 187, 10, 215, 163, 187, 10, 215, 35, 59, 1, 128, 84, 85 ),
+"array_index_data": PoolByteArray( 3, 0, 0, 0, 1, 0, 3, 0, 1, 0, 2, 0 ),
+"blend_shape_data": [  ],
+"format": 2194691,
+"index_count": 6,
+"material": ExtResource( 2 ),
+"primitive": 4,
+"skeleton_aabb": [  ],
+"vertex_count": 4
+}
+surfaces/3 = {
+"aabb": AABB( -0.005, -0.005, -0.0025, 0.01, 1.00001e-05, 0.00501 ),
+"array_data": PoolByteArray( 10, 215, 163, 187, 10, 215, 163, 187, 10, 215, 35, 59, 0, 0, 1, 128, 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 59, 0, 0, 1, 128, 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 187, 0, 0, 1, 128 ),
+"array_index_data": PoolByteArray( 0, 0, 1, 0, 2, 0 ),
+"blend_shape_data": [  ],
+"format": 2194691,
+"index_count": 3,
+"material": ExtResource( 3 ),
+"primitive": 4,
+"skeleton_aabb": [  ],
+"vertex_count": 3
+}
+surfaces/4 = {
+"aabb": AABB( -0.005, 0.005, -0.0025, 0.01, 1.00001e-05, 0.00501 ),
+"array_data": PoolByteArray( 10, 215, 163, 187, 10, 215, 163, 59, 10, 215, 35, 59, 0, 0, 255, 127, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 59, 0, 0, 255, 127, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 187, 0, 0, 255, 127 ),
+"array_index_data": PoolByteArray( 0, 0, 2, 0, 1, 0 ),
+"blend_shape_data": [  ],
+"format": 2194691,
+"index_count": 3,
+"material": ExtResource( 1 ),
+"primitive": 4,
+"skeleton_aabb": [  ],
+"vertex_count": 3
+}
+
+[node name="Spatial" type="Spatial"]
+
+[node name="Camera+Light" type="Spatial" parent="."]
+transform = Transform( 1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, -3, 3 )
+
+[node name="Camera" type="Camera" parent="Camera+Light"]
+fov = 50.0
+
+[node name="DirectionalLight" type="DirectionalLight" parent="Camera+Light"]
+
+[node name="Robot" type="Spatial" parent="."]
+
+[node name="RobotBody" type="MeshInstance" parent="Robot"]
+transform = Transform( 4.37114e-06, -100, -8.74228e-06, -100, -4.37114e-06, 0, -3.82137e-13, 8.74228e-06, -100, 0, 0, 0 )
+mesh = SubResource( 1 )
+skeleton = NodePath("../..")
