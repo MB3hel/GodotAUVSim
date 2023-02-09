@@ -1,8 +1,9 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=13 format=2]
 
 [ext_resource path="res://fonts/viewport_label_font.tres" type="DynamicFont" id=1]
 [ext_resource path="res://fonts/status_label_font.tres" type="DynamicFont" id=2]
 [ext_resource path="res://fonts/status_value_font.tres" type="DynamicFont" id=3]
+[ext_resource path="res://ui.gd" type="Script" id=4]
 [ext_resource path="res://robot.gd" type="Script" id=6]
 [ext_resource path="res://simulation.gd" type="Script" id=7]
 
@@ -118,6 +119,7 @@ mesh = SubResource( 6 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color( 0, 0, 0, 1 )
+script = ExtResource( 4 )
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UIRoot"]
 anchor_right = 1.0
