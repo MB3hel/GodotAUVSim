@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://fonts/viewport_label_font.tres" type="DynamicFont" id=1]
 [ext_resource path="res://fonts/status_label_font.tres" type="DynamicFont" id=2]
@@ -8,118 +8,23 @@
 [ext_resource path="res://robot.gd" type="Script" id=6]
 [ext_resource path="res://simulation.gd" type="Script" id=7]
 
-[sub_resource type="SpatialMaterial" id=1]
-resource_name = "mat_0"
-vertex_color_use_as_albedo = true
-params_cull_mode = 2
-albedo_color = Color( 0, 1, 1, 1 )
-metallic = 1.0
-
-[sub_resource type="SpatialMaterial" id=2]
-resource_name = "mat_1"
-vertex_color_use_as_albedo = true
-params_cull_mode = 2
-albedo_color = Color( 1, 1, 0, 1 )
-metallic = 1.0
-
-[sub_resource type="SpatialMaterial" id=3]
-resource_name = "mat_2"
-vertex_color_use_as_albedo = true
-params_cull_mode = 2
-albedo_color = Color( 1, 0, 0, 1 )
-metallic = 1.0
-
-[sub_resource type="SpatialMaterial" id=4]
-resource_name = "mat_3"
-vertex_color_use_as_albedo = true
-params_cull_mode = 2
-albedo_color = Color( 0, 0.333333, 1, 1 )
-metallic = 1.0
-
-[sub_resource type="SpatialMaterial" id=5]
-resource_name = "mat_4"
-vertex_color_use_as_albedo = true
-params_cull_mode = 2
-albedo_color = Color( 0.262745, 0.823529, 0, 1 )
-metallic = 1.0
-
-[sub_resource type="ArrayMesh" id=6]
-resource_name = "temp-RealBody_RealBody"
-surfaces/0 = {
-"aabb": AABB( -0.005, -0.005, 0.0025, 0.01, 0.01, 1.00001e-05 ),
-"array_data": PoolByteArray( 10, 215, 163, 187, 10, 215, 163, 187, 10, 215, 35, 59, 0, 0, 0, 0, 10, 215, 163, 187, 10, 215, 163, 59, 10, 215, 35, 59, 0, 0, 0, 0, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 59, 0, 0, 0, 0, 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 59, 0, 0, 0, 0 ),
-"array_index_data": PoolByteArray( 3, 0, 0, 0, 1, 0, 3, 0, 1, 0, 2, 0 ),
-"blend_shape_data": [  ],
-"format": 2194691,
-"index_count": 6,
-"material": SubResource( 1 ),
-"primitive": 4,
-"skeleton_aabb": [  ],
-"vertex_count": 4
-}
-surfaces/1 = {
-"aabb": AABB( 0.005, -0.005, -0.0025, 1.00001e-05, 0.01, 0.00501 ),
-"array_data": PoolByteArray( 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 59, 255, 127, 0, 0, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 59, 255, 127, 0, 0, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 187, 255, 127, 0, 0, 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 187, 255, 127, 0, 0 ),
-"array_index_data": PoolByteArray( 3, 0, 0, 0, 1, 0, 3, 0, 1, 0, 2, 0 ),
-"blend_shape_data": [  ],
-"format": 2194691,
-"index_count": 6,
-"material": SubResource( 2 ),
-"primitive": 4,
-"skeleton_aabb": [  ],
-"vertex_count": 4
-}
-surfaces/2 = {
-"aabb": AABB( -0.005, -0.005, -0.0025, 0.01001, 0.01, 0.005 ),
-"array_data": PoolByteArray( 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 187, 1, 128, 84, 85, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 187, 1, 128, 84, 85, 10, 215, 163, 187, 10, 215, 163, 59, 10, 215, 35, 59, 1, 128, 84, 85, 10, 215, 163, 187, 10, 215, 163, 187, 10, 215, 35, 59, 1, 128, 84, 85 ),
-"array_index_data": PoolByteArray( 3, 0, 0, 0, 1, 0, 3, 0, 1, 0, 2, 0 ),
-"blend_shape_data": [  ],
-"format": 2194691,
-"index_count": 6,
-"material": SubResource( 3 ),
-"primitive": 4,
-"skeleton_aabb": [  ],
-"vertex_count": 4
-}
-surfaces/3 = {
-"aabb": AABB( -0.005, -0.005, -0.0025, 0.01, 1.00001e-05, 0.00501 ),
-"array_data": PoolByteArray( 10, 215, 163, 187, 10, 215, 163, 187, 10, 215, 35, 59, 0, 0, 1, 128, 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 59, 0, 0, 1, 128, 10, 215, 163, 59, 10, 215, 163, 187, 10, 215, 35, 187, 0, 0, 1, 128 ),
-"array_index_data": PoolByteArray( 0, 0, 1, 0, 2, 0 ),
-"blend_shape_data": [  ],
-"format": 2194691,
-"index_count": 3,
-"material": SubResource( 4 ),
-"primitive": 4,
-"skeleton_aabb": [  ],
-"vertex_count": 3
-}
-surfaces/4 = {
-"aabb": AABB( -0.005, 0.005, -0.0025, 0.01, 1.00001e-05, 0.00501 ),
-"array_data": PoolByteArray( 10, 215, 163, 187, 10, 215, 163, 59, 10, 215, 35, 59, 0, 0, 255, 127, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 59, 0, 0, 255, 127, 10, 215, 163, 59, 10, 215, 163, 59, 10, 215, 35, 187, 0, 0, 255, 127 ),
-"array_index_data": PoolByteArray( 0, 0, 2, 0, 1, 0 ),
-"blend_shape_data": [  ],
-"format": 2194691,
-"index_count": 3,
-"material": SubResource( 5 ),
-"primitive": 4,
-"skeleton_aabb": [  ],
-"vertex_count": 3
-}
+[sub_resource type="BoxShape" id=1]
+extents = Vector3( 0.45, 0.32, 0.21 )
 
 [node name="root" type="Spatial"]
 script = ExtResource( 7 )
 
-[node name="Robot" type="Spatial" parent="."]
+[node name="Robot" type="KinematicBody" parent="."]
 script = ExtResource( 6 )
-
-[node name="RobotBody" type="MeshInstance" parent="Robot"]
-transform = Transform( 3.27835e-06, -75, -6.55671e-06, -75, -3.27835e-06, 0, -2.86603e-13, 6.55671e-06, -75, 0, 0, 0 )
-visible = false
-mesh = SubResource( 6 )
 
 [node name="MeshInstance" type="MeshInstance" parent="Robot"]
 transform = Transform( 1, -8.74228e-08, -8.74228e-08, -8.74228e-08, -1, 0, -8.74228e-08, 7.64274e-15, -1, 0, 0, 0 )
 mesh = ExtResource( 5 )
+skeleton = NodePath("")
+
+[node name="CollisionShape" type="CollisionShape" parent="Robot"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.005, 0 )
+shape = SubResource( 1 )
 
 [node name="UIRoot" type="ColorRect" parent="."]
 anchor_right = 1.0
