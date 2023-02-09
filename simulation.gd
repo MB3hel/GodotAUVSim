@@ -3,12 +3,16 @@
 
 extends Spatial
 
+# Resousrces used during simulation
+onready var robot = get_node("Robot")
+onready var ui = get_node("UIRoot")
+onready var cboard = ControlBoard.new(robot)
+
+
 ####################################################################################################
 # Godot node functions
 ####################################################################################################
 
-onready var robot = get_node("Robot")
-onready var ui = get_node("UIRoot")
 
 func _ready():
 	# Setup robot parameters
@@ -17,7 +21,7 @@ func _ready():
 	
 	# Test move the robot in LOCAL mode
 	#                   x    y    z    p    r    y
-	robot.mc_set_local(0.0, 0.0, 0.3, 0.0, 0.0, 0.5)
+	cboard.mc_set_local(0.0, 0.0, 0.3, 0.0, 0.0, 0.5)
 
 
 func _process(_delta):
