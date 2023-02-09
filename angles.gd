@@ -2,10 +2,10 @@ extends Node
 
 ####################################################################################################
 # NOTE: Control board and godot use different euler angle conventions
-# Godot uses a "first Z, then X, and Y last" convention (doesn't explicitly 
-# state intrinsic vs extrinsic either).
+# Godot uses a "first Y, then X, and Z last" convention (doesn't explicitly 
+# state intrinsic vs extrinsic either). Note: This is composition order
 # Control board uses extrinsic angles. First around world X, then around world Y, 
-# then around world Z.
+# then around world Z. Note: this is composition order.
 #
 # When applying rotations to godot objects, the godot convention must be used
 # When passing angles to the control board script (and displaying in UIs)
