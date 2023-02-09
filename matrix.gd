@@ -144,5 +144,83 @@ func transpose() -> Matrix:
 			m.data[m.mat_idx(row, col)] = self.data[self.mat_idx(col, row)]
 	return m
 
+func det() -> float:
+	if self.rows != self.cols:
+		return -999999.0;
+	var det = 0.0;
+	if rows == 1:
+		det = data[mat_idx(0 ,0)];
+	elif rows == 2:
+		det = data[mat_idx(0, 0)] * data[mat_idx(1, 1)] - data[mat_idx(1, 0)] * data[mat_idx(0, 1)];
+	else:
+		for j1 in range(rows):
+			var subm = Matrix.new(rows - 1, rows - 1);
+			for i in range(rows):
+				var j2 = 0;
+				for j in range(rows):
+					if j == j1:
+						continue
+					subm.data[subm.mat_idx(i-1, j2)] = data[mat_idx(i, j)]
+					j2 += 1
+			var subdet = subm.det();
+			det += pow(-1, j1 + 2.0) * data[mat_idx(0, j1)] * subdet;
+	return det;
 
+func cofactor() -> Matrix:
+	if rows != cols:
+		return Matrix.new(0, 0)
+	var tmp = Matrix.new(rows - 1, rows - 1)
+	var dest = Matrix.new(rows, cols)
+	for j in range(rows):
+		for i in range(rows):
+			var i1 = 0;
+			for ii in range(rows):
+				if ii == i:
+					continue
+				var j1 = 0
+				for jj in range(rows):
+					if jj == j:
+						continue
+					tmp.data[tmp.mat_idx(i1, j1)] = data[mat_idx(ii, jj)]
+					j1 += 1
+				i1 += 1
+			var det = tmp.det()
+			dest.data[dest.mat_idx(i, j)] = pow(-1, i+j+2) * det;
+	return dest
 
+func inv() -> Matrix:
+	if rows != cols:
+		return Matrix.new(0, 0)
+	var dest = Matrix.new(rows, rows)
+	var det = det()
+	var cof = self.cofactor()
+	var adj = cof.transpose()
+	adj.sc_div(det);
+	return adj
+
+func vdot(other: Matrix) -> float:
+	# TODO
+	return 0.0
+
+func vcross(other: Matrix) -> Matrix:
+	# TODO
+	return Matrix.new(0, 0)
+
+func l2vnorm(other: Matrix) -> float:
+	# TODO
+	return 0.0
+
+# Returns location and value of largest magnitude value
+# [value, row, col]
+func absmax() -> Array:
+	var r = 0;
+	var c = 0;
+	var v = data[mat_idx(0, 0)];
+	for row in range(rows):
+		for col in range(cols):
+			var tmp = abs(data[mat_idx(row, col)]);
+			if tmp > v:
+				v = tmp;
+				r = row;
+				c = col;
+	return [v, r, c];
