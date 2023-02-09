@@ -14,9 +14,15 @@ config/name="Godot AUV Sim"
 run/main_scene="res://pool.tscn"
 config/icon="res://images/icon.png"
 
+[display]
+
+window/size/width=1536
+window/size/height=800
+
 [global]
 
 environment=false
+resolution=false
 
 [gui]
 
