@@ -23,6 +23,13 @@ func _process(_delta):
 # Motor Control
 ####################################################################################################
 
+func mc_set_global(x: float, y: float, z: float, pitch: float, roll: float, yaw: float, curr_quat: Quat):
+	# Current quaternion to gravity vector
+	var gravity_vector = Vector3(0, 0, 0)
+	gravity_vector[0] = 2.0 * (-curr_quat.x*curr_quat.z + curr_quat.w*curr_quat.y)
+	gravity_vector[1] = 2.0 * (-curr_quat.w*curr_quat.x - curr_quat.y*curr_quat.z)
+	gravity_vector[2] = -curr_quat.w*curr_quat.w + curr_quat.x*curr_quat.x + curr_quat.y*curr_quat.y - curr_quat.z*curr_quat.z
+
 # Motor control speed set in LOCAL mode (equivilent of control board LOCAL mode)
 func mc_set_local(x: float, y: float, z: float, pitch: float, roll: float, yaw: float):
 	# Base level of motion supported in simulator is LOCAL mode motion
@@ -55,4 +62,12 @@ func limit(v: float, lower: float, upper: float) -> float:
 		return lower
 	return v
 	
+func skew(v: Vector3) -> Basis:
+	# return np.matrix([
+	# 	[0, -v[2], v[1]],
+	# 	[v[2], 0, -v[0]],
+	# 	[-v[1], v[0], 0]
+	# ])
+	pass
+
 ####################################################################################################

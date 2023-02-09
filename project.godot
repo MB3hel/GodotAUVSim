@@ -13,9 +13,15 @@ _global_script_classes=[ {
 "class": "ControlBoard",
 "language": "GDScript",
 "path": "res://cboard.gd"
+}, {
+"base": "Reference",
+"class": "Matrix",
+"language": "GDScript",
+"path": "res://matrix.gd"
 } ]
 _global_script_class_icons={
-"ControlBoard": ""
+"ControlBoard": "",
+"Matrix": ""
 }
 
 [application]
