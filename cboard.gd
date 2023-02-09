@@ -25,6 +25,9 @@ func _process(_delta):
 
 # Motor control speed set in LOCAL mode (equivilent of control board LOCAL mode)
 func mc_set_local(x: float, y: float, z: float, pitch: float, roll: float, yaw: float):
+	# Base level of motion supported in simulator is LOCAL mode motion
+	# RAW mode is not supported. Thus, this function applies the desired motion to the
+	# provided robot object (see robot.gd)
 	x = limit(x, -1.0, 1.0)
 	y = limit(y, -1.0, 1.0)
 	z = limit(z, -1.0, 1.0)

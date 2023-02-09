@@ -27,7 +27,7 @@ func _ready():
 func _process(_delta):
 	ui.curr_translation = robot.curr_translation
 	ui.curr_rotation = robot.curr_rotation
-	ui.robot_euler = robot.rotation_degrees
 	ui.robot_quat = Quat(robot.rotation)
+	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) * 180.0 / PI
 	
 ####################################################################################################
