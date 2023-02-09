@@ -1,9 +1,10 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://fonts/viewport_label_font.tres" type="DynamicFont" id=1]
 [ext_resource path="res://fonts/status_label_font.tres" type="DynamicFont" id=2]
 [ext_resource path="res://fonts/status_value_font.tres" type="DynamicFont" id=3]
 [ext_resource path="res://ui.gd" type="Script" id=4]
+[ext_resource path="res://mesh/SeaWolf8-Simplified.obj" type="ArrayMesh" id=5]
 [ext_resource path="res://robot.gd" type="Script" id=6]
 [ext_resource path="res://simulation.gd" type="Script" id=7]
 
@@ -113,7 +114,12 @@ script = ExtResource( 6 )
 
 [node name="RobotBody" type="MeshInstance" parent="Robot"]
 transform = Transform( 3.27835e-06, -75, -6.55671e-06, -75, -3.27835e-06, 0, -2.86603e-13, 6.55671e-06, -75, 0, 0, 0 )
+visible = false
 mesh = SubResource( 6 )
+
+[node name="MeshInstance" type="MeshInstance" parent="Robot"]
+transform = Transform( 1, -8.74228e-08, -8.74228e-08, -8.74228e-08, -1, 0, -8.74228e-08, 7.64274e-15, -1, 0, 0, 0 )
+mesh = ExtResource( 5 )
 
 [node name="UIRoot" type="ColorRect" parent="."]
 anchor_right = 1.0
