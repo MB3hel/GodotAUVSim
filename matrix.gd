@@ -199,16 +199,52 @@ func inv() -> Matrix:
 	return adj
 
 func vdot(other: Matrix) -> float:
-	# TODO
-	return 0.0
+	var d = 0.0;
+	if self.rows == 1 and other.rows == 1:
+		# Row vector
+		if self.cols != other.cols:
+			return -999999.0
+		for i in range(self.cols):
+			d += self.data[mat_idx(0, i)] * other.data(other.mat_idx(0, i))
+		return d
+	elif self.cols == 1 and other.cols == 1:
+		# Column vector
+		if self.rows != other.rows:
+			return -999999.0
+		for i in range(self.rows):
+			d += self.data[mat_idx(i, 0)] * other.data(other.mat_idx(i, 0))
+		return d
+	else:
+		# Invalid (different dimensions)
+		return -999999.0
 
 func vcross(other: Matrix) -> Matrix:
-	# TODO
-	return Matrix.new(0, 0)
+	var m = Matrix.new(rows, cols)
+	if self.cols == 1 and self.rows == 3 and other.cols == 1 and other.rows == 3:
+		m.data[m.mat_idx(0, 0)] = self.data[self.mat_idx(1, 0)] * other.data[other.mat_idx(2, 0)] - self.data[self.mat_idx(2, 0)] * other.data[other.mat_idx(1, 0)];
+		m.data[m.mat_idx(1, 0)] = self.data[self.mat_idx(2, 0)] * other.data[other.mat_idx(0, 0)] - self.data[self.mat_idx(0, 0)] * other.data[other.mat_idx(2, 0)];
+		m.data[m.mat_idx(2, 0)] = self.data[self.mat_idx(0, 0)] * other.data[other.mat_idx(1, 0)] - self.data[self.mat_idx(1, 0)] * other.data[other.mat_idx(0, 0)];
+		return m
+	elif self.cols == 3 and self.rows == 1 and other.cols == 3 and other.rows == 1:
+		m.data[m.mat_idx(0, 0)] = self.data[self.mat_idx(0, 1)] * other.data[other.mat_idx(0, 2)] - self.data[self.mat_idx(0, 2)] * other.data[other.mat_idx(0, 1)];
+		m.data[m.mat_idx(0, 1)] = self.data[self.mat_idx(0, 2)] * other.data[other.mat_idx(0, 0)] - self.data[self.mat_idx(0, 0)] * other.data[other.mat_idx(0, 2)];
+		m.data[m.mat_idx(0, 2)] = self.data[self.mat_idx(0, 0)] * other.data[other.mat_idx(0, 1)] - self.data[self.mat_idx(0, 1)] * other.data[other.mat_idx(0, 0)];
+		return m
+	else:
+		return Matrix.new(0, 0)
 
-func l2vnorm(other: Matrix) -> float:
-	# TODO
-	return 0.0
+func l2vnorm() -> float:
+	var d = 0.0;
+	if self.cols == 1:
+		for row in range(rows):
+			d += pow(data[mat_idx(row, 0)], 2.0);
+		return sqrt(d);
+	elif self.rows == 1:
+		for col in range(cols):
+			d += pow(data[mat_idx(0, col)], 2.0);
+		return sqrt(d);
+	else:
+		return -99999.0;
 
 # Returns location and value of largest magnitude value
 # [value, row, col]
