@@ -159,6 +159,7 @@ func handle_command(cmd: String) -> String:
 		robot.rotation = robot_def_rotation
 		robot.max_translation = robot_def_max_translation
 		robot.max_rotation = robot_def_max_rotation
+		# TODO: Reset control board state too (periodic reads, last set speeds, etc)
 		return "0"
 	
 	# set_max_trans m -> EC
