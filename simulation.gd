@@ -62,8 +62,8 @@ func _process(_delta):
 		
 		# Handle data if any
 		if cboard_client.get_available_bytes() > 0:
-			var data = cboard_client.get_data(cboard_client.get_available_bytes())
-			cboard.handle_data(data)
+			var res = cboard_client.get_data(cboard_client.get_available_bytes())
+			cboard.handle_data(res[1])
 		
 		# Send data back from cboard if any
 		cboard.write_buffer_mutex.lock()
@@ -153,13 +153,13 @@ func handle_command(cmd: String) -> String:
 	if parts[0] == "reset_sim":
 		if len(parts) != 1:
 			return "1"
+		cboard.reset()
 		robot.curr_rotation = Vector3(0, 0, 0)
 		robot.curr_translation = Vector3(0, 0, 0)
 		robot.translation = robot_def_translation
 		robot.rotation = robot_def_rotation
 		robot.max_translation = robot_def_max_translation
 		robot.max_rotation = robot_def_max_rotation
-		# TODO: Reset control board state too (periodic reads, last set speeds, etc)
 		return "0"
 	
 	# set_max_trans m -> EC

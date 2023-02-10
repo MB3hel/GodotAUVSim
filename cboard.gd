@@ -10,10 +10,10 @@ var robot = null
 func _init(robot):
 	self.robot = robot
 
-func _ready():
-	pass
-
-func _process(_delta):
+func reset():
+	# TODO: Reset to default state
+	# Periodic sensor data reads disabled
+	# Local mode with all zeros for last speed
 	pass
 
 ####################################################################################################
@@ -36,13 +36,13 @@ var write_buffer = PoolByteArray([])
 var write_buffer_mutex = Mutex.new()
 
 func handle_data(data):
-	pass
+	print(data)
 
 ####################################################################################################
 
 # TODO: Implement command processing
 # TODO: Implement periodic speed sets in global and sassist modes
-
+# TODO: Enable simulated sensor data reads
 
 ####################################################################################################
 # Motor Control
