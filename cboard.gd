@@ -1,8 +1,14 @@
 class_name ControlBoard
 
 
+# TODO: Implement command processing
+# TODO: Implement periodic speed sets in global and sassist modes
+# TODO: Enable simulated sensor data reads
+# TODO: Motor watchdog simulation
+
+
 ####################################################################################################
-# Godot class stuff
+# Initialization & control of cboard simulation
 ####################################################################################################
 
 var robot = null
@@ -15,6 +21,20 @@ func reset():
 	# Periodic sensor data reads disabled
 	# Local mode with all zeros for last speed
 	pass
+
+func crc16_ccitt_false(data: Array, length: int, initial: int = 0xFFFF) -> int:
+	var crc = initial
+	var pos = 0
+	while(pos < length):
+		var b = data[pos]
+		for i in range(8):
+			var bit = ((b >> (7 - i) & 1))
+			var c15 = ((crc >> 15 & 1))
+			crc <<= 1;
+			if(c15 ^ bit):
+				crc ^= 0x1021
+		pos += 1
+	return crc & 0xFFFF
 
 ####################################################################################################
 
@@ -32,21 +52,100 @@ const START_BYTE = 253
 const END_BYTE = 254
 const ESCAPE_BYTE = 255
 
-var write_buffer = PoolByteArray([])
+var write_buffer = StreamPeerBuffer.new()
 var write_buffer_mutex = Mutex.new()
 
+var read_buffer = StreamPeerBuffer.new()
+
+var curr_msg_id = 0
+var parse_started = false;
+var parse_escaped = false;
+
+
+# Read bytes and decode message
 func handle_data(data):
-	print(data)
+	for byte in data:
+		if parse_escaped:
+			if byte == START_BYTE or byte == END_BYTE or byte == ESCAPE_BYTE:
+				read_buffer.put_8(byte)
+			parse_escaped = false
+		elif parse_started:
+			if byte == START_BYTE:
+				read_buffer.clear()
+			elif byte == END_BYTE:
+				parse_started = false
+				if read_buffer.get_size() < 4:
+					# Too short to contain msg_id and crc bytes. Invalid msg.
+					break
+				else:
+					var calc_crc = crc16_ccitt_false(read_buffer.data_array, read_buffer.get_size() - 2)
+					read_buffer.seek(read_buffer.get_size() - 2)
+					read_buffer.big_endian = true
+					var read_crc = read_buffer.get_u16()
+					if read_crc == calc_crc:
+						read_buffer.seek(0)
+						handle_msg(read_buffer)
+						read_buffer.clear()
+			elif byte == ESCAPE_BYTE:
+				parse_escaped = true
+			else:
+				read_buffer.put_8(byte)
+		elif byte == START_BYTE:
+			parse_started = true
+			read_buffer.clear()
+
+
+# Handle a single complete message
+func handle_msg(buf: StreamPeerBuffer):
+	buf.big_endian = true
+	var msg_id = buf.get_u16()
+	var msg_len = buf.get_size() - 4
+	buf.seek(2)
+	var msg_str = buf.get_string(msg_len)
+	buf.big_endian = false
+	
+	print(buf.data_array.subarray(2, buf.get_size() - 4))
+	if msg_str.begins_with("LOCAL"):
+		# L, O, C, A, L, [x], [y], [z], [pitch], [roll], [yaw]
+		buf.seek(2 + 5)
+		local_x = buf.get_float()
+		local_y = buf.get_float()
+		local_z = buf.get_float()
+		local_pitch = buf.get_float()
+		local_roll = buf.get_float()
+		local_yaw = buf.get_float()
+		mc_set_local(local_x, local_y, local_z, local_pitch, local_roll, local_yaw)
+
+
+func write_msg(data: Array):
+	pass
+
+
+func acknowledge(msg_id: int):
+	pass
 
 ####################################################################################################
 
-# TODO: Implement command processing
-# TODO: Implement periodic speed sets in global and sassist modes
-# TODO: Enable simulated sensor data reads
 
 ####################################################################################################
 # Motor Control
 ####################################################################################################
+
+const MODE_RAW = 0
+const MODE_LOCAL = 1
+const MODE_GLOBAL = 2
+const MODE_SASSIST = 3
+
+var mode = MODE_LOCAL
+
+# Cached local mode target
+var local_x = 0.0
+var local_y = 0.0
+var local_z = 0.0
+var local_pitch = 0.0
+var local_roll = 0.0
+var local_yaw = 0.0
+
 
 # Motor control speed set in GLOBAL mode
 func mc_set_global(x: float, y: float, z: float, pitch: float, roll: float, yaw: float, curr_quat: Quat):
