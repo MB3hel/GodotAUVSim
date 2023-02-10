@@ -85,11 +85,7 @@ func _process(_delta):
 # 1 = INVALID_ARGS
 # 2 = UNKNOWN_CMD
 func handle_command(cmd: String) -> String:
-	
-	# get_pos -> EC x y z
-	# set_rot w x y z -> EC
-	# get_rot -> EC w x y z
-	# reset_sim
+	# TODO: reset_sim
 	var parts = cmd.split(" ")
 	
 	# set_pos x y z -> EC
@@ -118,6 +114,32 @@ func handle_command(cmd: String) -> String:
 		var z = robot.translation.z
 		return "%d %f %f %f" % [0, x, y, z]
 		
+	# set_rot w x y z -> EC
+	if parts[0] == "set_rot":
+		if len(parts) != 5:
+			# Invalid args
+			return "1"
+		if not parts[1].is_valid_float() or \
+				not parts[2].is_valid_float() or \
+				not parts[3].is_valid_float() or \
+				not parts[4].is_valid_float():
+			# Invalid args
+			return "1"
+		var w = float(parts[1])
+		var x = float(parts[2])
+		var y = float(parts[3])
+		var z = float(parts[4])
+		robot.rotation = Angles.quat_to_godot_euler(Quat(x, y, z, w))
+		return "0"
+	
+	# get_rot -> EC [w x y z]
+	if parts[0] == "get_rot":
+		if len(parts) != 1:
+			# Invalid arts
+			return "1"
+		var q = Angles.godot_euler_to_quat(robot.rotation)
+		return "%d %f %f %f %f" % [0, q.w, q.x, q.y, q.z]
+	
 	# Unknown command
 	return "2"
 
