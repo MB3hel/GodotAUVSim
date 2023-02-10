@@ -107,6 +107,16 @@ func handle_command(cmd: String) -> String:
 		var z = float(parts[3])
 		robot.translation = Vector3(x, y, z)
 		return "0"
+	
+	# get_pos -> EC [x y z]
+	if parts[0] == "get_pos":
+		if len(parts) != 1:
+			# Invalid arts
+			return "1"
+		var x = robot.translation.x
+		var y = robot.translation.y
+		var z = robot.translation.z
+		return "%d %f %f %f" % [0, x, y, z]
 		
 	# Unknown command
 	return "2"
