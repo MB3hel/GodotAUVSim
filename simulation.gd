@@ -20,11 +20,12 @@ func _ready():
 	robot.max_translation = 1
 	
 	# Set initial robot orientation
-	robot.rotate_x(-90.0 * PI / 180.0)
+	robot.rotate_x(-45.0 * PI / 180.0)
+	robot.rotate_y(45.0 * PI / 180.0)
 	
 	# Test move the robot in LOCAL mode
 	#                     x    y    z    p    r    y
-	cboard.mc_set_global(0.0, 0.0, 0.3, 0.0, 0.0, 0.0, Angles.godot_euler_to_quat(robot.rotation))
+	cboard.mc_set_global(0.0, 0.0, 0.3, 0.0, 0.0, 0.5, Angles.godot_euler_to_quat(robot.rotation))
 
 
 func _process(_delta):
