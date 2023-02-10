@@ -24,11 +24,46 @@ func _process(_delta):
 ####################################################################################################
 
 func mc_set_global(x: float, y: float, z: float, pitch: float, roll: float, yaw: float, curr_quat: Quat):
-	# Current quaternion to gravity vector
-	var gravity_vector = Vector3(0, 0, 0)
-	gravity_vector[0] = 2.0 * (-curr_quat.x*curr_quat.z + curr_quat.w*curr_quat.y)
-	gravity_vector[1] = 2.0 * (-curr_quat.w*curr_quat.x - curr_quat.y*curr_quat.z)
-	gravity_vector[2] = -curr_quat.w*curr_quat.w + curr_quat.x*curr_quat.x + curr_quat.y*curr_quat.y - curr_quat.z*curr_quat.z
+	# Construct current gravity vector from quaternion
+	var gravity_vector = Matrix.new(3, 1)
+	gravity_vector.set_item(0 ,0, 2.0 * (-curr_quat.x*curr_quat.z + curr_quat.w*curr_quat.y))
+	gravity_vector.set_item(1, 0, 2.0 * (-curr_quat.w*curr_quat.x - curr_quat.y*curr_quat.z))
+	gravity_vector.set_item(2, 0, -curr_quat.w*curr_quat.w + curr_quat.x*curr_quat.x + curr_quat.y*curr_quat.y - curr_quat.z*curr_quat.z)
+
+	# b is unit gravity vector
+	var gravl2norm = gravity_vector.l2vnorm()
+	if gravl2norm < 0.1:
+		return # Invalid gravity vector. Norm should be 1
+	var b = gravity_vector.sc_div(gravl2norm);
+	
+	# Expected unit gravity vector when "level"
+	var a = Matrix.new(3, 1);
+	a.set_col(0, [0, 0, -1]);
+	
+	# Construct rotation matrix
+	var v = a.vcross(b);
+	var c = a.vdot(b);
+	var sk = skew3(v);
+	var I = Matrix.new(3, 3);
+	I.fill_ident();
+	var R = sk.mul(sk);
+	R = R.sc_div(1.0+c);
+	R = R.add(sk);
+	R = R.add(I);
+	
+	# Split and rotate translation and rotation targets
+	var tgtarget = Matrix.new(3, 1);		# tg = translation global
+	var rgtarget = Matrix.new(3, 1);		# rg = rotation global
+	tgtarget.set_col(0, [x, y, z]);
+	rgtarget.set_col(0, [pitch, roll, yaw]);
+	var tltarget = R.mul(tgtarget);			# tl = translation local
+	var rltarget = R.mul(rgtarget);			# rl = rotation local
+	
+	var ltranslation = tltarget.get_col(0);
+	var lrotation = rltarget.get_col(0);
+	
+	# Pass on to local mode
+	mc_set_local(ltranslation[0], ltranslation[1], ltranslation[2], lrotation[0], lrotation[1], lrotation[2]);
 
 # Motor control speed set in LOCAL mode (equivilent of control board LOCAL mode)
 func mc_set_local(x: float, y: float, z: float, pitch: float, roll: float, yaw: float):
@@ -62,12 +97,19 @@ func limit(v: float, lower: float, upper: float) -> float:
 		return lower
 	return v
 	
-func skew(v: Vector3) -> Basis:
-	# return np.matrix([
-	# 	[0, -v[2], v[1]],
-	# 	[v[2], 0, -v[0]],
-	# 	[-v[1], v[0], 0]
-	# ])
-	pass
+func skew3(invec: Matrix) -> Matrix:
+	var m = Matrix.new(3, 3);
+	var v = [];
+	if invec.rows == 1 and invec.cols == 3:
+		v = invec.get_row(0)
+	elif invec.cols == 1 and invec.rows == 3:
+		v = invec.get_col(0)
+	else:
+		return Matrix.new(0, 0)
+	m.set_row(0, [0.0, -v[2], v[1]]);
+	m.set_row(1, [v[2], 0.0, -v[0]]);
+	m.set_row(2, [-v[1], v[0], 0.0]);
+	return m;
+	
 
 ####################################################################################################

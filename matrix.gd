@@ -14,11 +14,20 @@ func _init(rows: int, cols: int):
 	for i in range(rows*cols):
 		self.data.append(0.0)
 
+func custom_new(rows: int, cols: int):
+	var m = self.copy()
+	m.rows = rows;
+	m.cols = cols;
+	m.data = [];
+	for i in range(rows*cols):
+		m.data.append(0.0)
+	return m
+
 func mat_idx(row: int, col: int) -> int:
 	return self.cols * row + col
 
 func copy() -> Matrix:
-	var m = Matrix.new(self.rows, self.cols)
+	var m = self.custom_new(self.rows, self.cols)
 	m.data = self.data.duplicate()
 	return m
 
@@ -78,8 +87,8 @@ func get_col(col: int) -> Array:
 
 func add(other: Matrix) -> Matrix:
 	if self.rows != other.rows || self.cols != other.cols:
-		return Matrix.new(0, 0);
-	var m = Matrix.new(self.rows, self.cols)
+		return self.custom_new(0, 0);
+	var m = self.custom_new(self.rows, self.cols)
 	for row in range(rows):
 		for col in range(cols):
 			m.data[mat_idx(row, col)] = self.data[mat_idx(row, col)] + other.data[mat_idx(row, col)]
@@ -87,8 +96,8 @@ func add(other: Matrix) -> Matrix:
 
 func sub(other: Matrix) -> Matrix:
 	if self.rows != other.rows || self.cols != other.cols:
-		return Matrix.new(0, 0);
-	var m = Matrix.new(self.rows, self.cols)
+		return self.custom_new(0, 0);
+	var m = self.custom_new(self.rows, self.cols)
 	for row in range(rows):
 		for col in range(cols):
 			m.data[mat_idx(row, col)] = self.data[mat_idx(row, col)] - other.data[mat_idx(row, col)]
@@ -96,8 +105,8 @@ func sub(other: Matrix) -> Matrix:
 
 func ew_mul(other: Matrix) -> Matrix:
 	if self.rows != other.rows || self.cols != other.cols:
-		return Matrix.new(0, 0);
-	var m = Matrix.new(self.rows, self.cols)
+		return self.custom_new(0, 0);
+	var m = self.custom_new(self.rows, self.cols)
 	for row in range(rows):
 		for col in range(cols):
 			m.data[mat_idx(row, col)] = self.data[mat_idx(row, col)] * other.data[mat_idx(row, col)]
@@ -105,22 +114,22 @@ func ew_mul(other: Matrix) -> Matrix:
 
 func ew_div(other: Matrix) -> Matrix:
 	if self.rows != other.rows || self.cols != other.cols:
-		return Matrix.new(0, 0);
-	var m = Matrix.new(self.rows, self.cols)
+		return self.custom_new(0, 0);
+	var m = self.custom_new(self.rows, self.cols)
 	for row in range(rows):
 		for col in range(cols):
 			m.data[mat_idx(row, col)] = self.data[mat_idx(row, col)] / other.data[mat_idx(row, col)]
 	return m;
 
 func sc_mul(other: float) -> Matrix:
-	var m = Matrix.new(self.rows, self.cols)
+	var m = self.custom_new(self.rows, self.cols)
 	for row in range(rows):
 		for col in range(cols):
 			m.data[mat_idx(row, col)] = self.data[mat_idx(row, col)] * other
 	return m;
 	
 func sc_div(other: float) -> Matrix:
-	var m = Matrix.new(self.rows, self.cols)
+	var m = self.custom_new(self.rows, self.cols)
 	for row in range(rows):
 		for col in range(cols):
 			m.data[mat_idx(row, col)] = self.data[mat_idx(row, col)] / other
@@ -128,8 +137,8 @@ func sc_div(other: float) -> Matrix:
 
 func mul(other: Matrix) -> Matrix:
 	if self.cols != other.rows:
-		return Matrix.new(0, 0)
-	var m = Matrix.new(rows, other.cols)
+		return self.custom_new(0, 0)
+	var m = self.custom_new(rows, other.cols)
 	m.fill_zeros()
 	for i in range(rows):
 		for j in range(other.cols):
@@ -138,7 +147,7 @@ func mul(other: Matrix) -> Matrix:
 	return m
 
 func transpose() -> Matrix:
-	var m = Matrix.new(cols, rows)
+	var m = self.custom_new(cols, rows)
 	for row in range(m.rows):
 		for col in range(m.cols):
 			m.data[m.mat_idx(row, col)] = self.data[self.mat_idx(col, row)]
@@ -154,7 +163,7 @@ func det() -> float:
 		det = data[mat_idx(0, 0)] * data[mat_idx(1, 1)] - data[mat_idx(1, 0)] * data[mat_idx(0, 1)];
 	else:
 		for j1 in range(rows):
-			var subm = Matrix.new(rows - 1, rows - 1);
+			var subm = self.custom_new(rows - 1, rows - 1);
 			for i in range(rows):
 				var j2 = 0;
 				for j in range(rows):
@@ -168,9 +177,9 @@ func det() -> float:
 
 func cofactor() -> Matrix:
 	if rows != cols:
-		return Matrix.new(0, 0)
-	var tmp = Matrix.new(rows - 1, rows - 1)
-	var dest = Matrix.new(rows, cols)
+		return self.custom_new(0, 0)
+	var tmp = self.custom_new(rows - 1, rows - 1)
+	var dest = self.custom_new(rows, cols)
 	for j in range(rows):
 		for i in range(rows):
 			var i1 = 0;
@@ -190,8 +199,8 @@ func cofactor() -> Matrix:
 
 func inv() -> Matrix:
 	if rows != cols:
-		return Matrix.new(0, 0)
-	var dest = Matrix.new(rows, rows)
+		return self.custom_new(0, 0)
+	var dest = self.custom_new(rows, rows)
 	var det = det()
 	var cof = self.cofactor()
 	var adj = cof.transpose()
@@ -219,7 +228,7 @@ func vdot(other: Matrix) -> float:
 		return -999999.0
 
 func vcross(other: Matrix) -> Matrix:
-	var m = Matrix.new(rows, cols)
+	var m = self.custom_new(rows, cols)
 	if self.cols == 1 and self.rows == 3 and other.cols == 1 and other.rows == 3:
 		m.data[m.mat_idx(0, 0)] = self.data[self.mat_idx(1, 0)] * other.data[other.mat_idx(2, 0)] - self.data[self.mat_idx(2, 0)] * other.data[other.mat_idx(1, 0)];
 		m.data[m.mat_idx(1, 0)] = self.data[self.mat_idx(2, 0)] * other.data[other.mat_idx(0, 0)] - self.data[self.mat_idx(0, 0)] * other.data[other.mat_idx(2, 0)];
@@ -231,7 +240,7 @@ func vcross(other: Matrix) -> Matrix:
 		m.data[m.mat_idx(0, 2)] = self.data[self.mat_idx(0, 0)] * other.data[other.mat_idx(0, 1)] - self.data[self.mat_idx(0, 1)] * other.data[other.mat_idx(0, 0)];
 		return m
 	else:
-		return Matrix.new(0, 0)
+		return self.custom_new(0, 0)
 
 func l2vnorm() -> float:
 	var d = 0.0;
