@@ -5,8 +5,8 @@ extends Spatial
 
 
 # Max speeds of robot
-var max_rotation = 0;				# Degrees per second
-var max_translation = 0;			# Translation units per second
+var max_rotation = 75;				# Degrees per second
+var max_translation = 1;			# Translation units per second
 
 
 # Current motion in robot-relative DoFs
