@@ -57,7 +57,7 @@ func _process(_delta):
 				else:
 					var res = handle_command(cmd_buffer + new_str.substr(0, idx))
 					cmd_client.put_data(("%s\n" % res).to_ascii())
-					print(res)
+
 					cmd_buffer = ""
 					new_str = new_str.substr(idx+1)
 		# TODO: Handle cboard data
@@ -147,7 +147,39 @@ func handle_command(cmd: String) -> String:
 		robot.curr_translation = Vector3(0, 0, 0)
 		robot.translation = robot_def_translation
 		robot.rotation = robot_def_rotation
+		robot.max_translation = robot_def_max_translation
+		robot.max_rotation = robot_def_max_rotation
 		return "0"
+	
+	# set_max_trans m -> EC
+	if parts[0] == "set_max_trans":
+		if len(parts) != 2:
+			return "1"
+		if not parts[1].is_valid_float():
+			return "1"
+		robot.max_translation = float(parts[1])
+		return "0"
+	
+	# get_max_trans -> EC [m]
+	if parts[0] == "get_max_trans":
+		if len(parts) != 1:
+			return "1"
+		return "%d %f" % [0, robot.max_translation]
+	
+	# set_max_rot m -> EC
+	if parts[0] == "set_max_rot":
+		if len(parts) != 2:
+			return "1"
+		if not parts[1].is_valid_float():
+			return "1"
+		robot.max_rotation = float(parts[1])
+		return "0"
+	
+	# get_max_rot -> EC [m]
+	if parts[0] == "get_max_rot":
+		if len(parts) != 1:
+			return "1"
+		return "%d %f" % [0, robot.max_rotation]
 	
 	# Unknown command
 	return "2"
