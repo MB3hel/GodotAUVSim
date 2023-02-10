@@ -18,6 +18,27 @@ func _process(_delta):
 
 ####################################################################################################
 
+####################################################################################################
+# Communication and command processing
+####################################################################################################
+
+const ACK_ERR_NONE = 0				# No error
+const ACK_ERR_UNKNOWN_MSG = 1		# Message is not recognized
+const ACK_ERR_INVALID_ARGS = 2		# Arguments are invalid
+const ACK_ERR_INVALID_CMD = 3		# Command is known, but invalid at this time 
+									# Also used for "not implemented in simulator"
+
+const START_BYTE = 253
+const END_BYTE = 254
+const ESCAPE_BYTE = 255
+
+var write_buffer = PoolByteArray([])
+var write_buffer_mutex = Mutex.new()
+
+func handle_data(data):
+	pass
+
+####################################################################################################
 
 # TODO: Implement command processing
 # TODO: Implement periodic speed sets in global and sassist modes

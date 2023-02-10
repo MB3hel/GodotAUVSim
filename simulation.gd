@@ -57,10 +57,20 @@ func _process(_delta):
 				else:
 					var res = handle_command(cmd_buffer + new_str.substr(0, idx))
 					cmd_client.put_data(("%s\n" % res).to_ascii())
-
 					cmd_buffer = ""
 					new_str = new_str.substr(idx+1)
-		# TODO: Handle cboard data
+		
+		# Handle data if any
+		if cboard_client.get_available_bytes() > 0:
+			var data = cboard_client.get_data(cboard_client.get_available_bytes())
+			cboard.handle_data(data)
+		
+		# Send data back from cboard if any
+		cboard.write_buffer_mutex.lock()
+		if len(cboard.write_buffer) > 0:
+			cboard_client.put_data(cboard.write_buffer)
+			cboard.write_buffer = PoolByteArray([])
+		cboard.write_buffer_mutex.unlock()
 	else:
 		# Check for and handle new connections
 		if cmd_server.is_connection_available() and cboard_server.is_connection_available():
