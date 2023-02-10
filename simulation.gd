@@ -55,7 +55,9 @@ func _process(_delta):
 					cmd_buffer += new_str
 					break
 				else:
-					handle_command(cmd_buffer + new_str.substr(0, idx))
+					var res = handle_command(cmd_buffer + new_str.substr(0, idx))
+					cmd_client.put_data(("%s\n" % res).to_ascii())
+					print(res)
 					cmd_buffer = ""
 					new_str = new_str.substr(idx+1)
 		# TODO: Handle cboard data
@@ -78,12 +80,34 @@ func _process(_delta):
 	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) * 180.0 / PI
 
 
-func handle_command(cmd: String):
-	# TODO: Actually handle commands
-	# set_pos x y z
-	# get_pos -> x y z
-	# set_rot w x y z
-	# get_rot w x y z
+# Error codes:
+# 0 = OK
+# 1 = INVALID_ARGS
+# 2 = UNKNOWN_CMD
+func handle_command(cmd: String) -> String:
+	
+	# get_pos -> EC x y z
+	# set_rot w x y z -> EC
+	# get_rot -> EC w x y z
 	# reset_sim
-	print(cmd)
+	var parts = cmd.split(" ")
+	
+	# set_pos x y z -> EC
+	if parts[0] == "set_pos":
+		if len(parts) != 4:
+			# Invalid args
+			return "1"
+		if not parts[1].is_valid_float() or \
+				not parts[2].is_valid_float() or \
+				not parts[3].is_valid_float():
+			# Invalid args
+			return "1"
+		var x = float(parts[1])
+		var y = float(parts[2])
+		var z = float(parts[3])
+		robot.translation = Vector3(x, y, z)
+		return "0"
+		
+	# Unknown command
+	return "2"
 
