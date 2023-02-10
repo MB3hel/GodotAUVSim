@@ -11,25 +11,25 @@ func _init(rows: int, cols: int):
 	self.rows = rows;
 	self.cols = cols;
 	self.data = [];
-	for i in range(rows*cols):
+	for _i in range(rows*cols):
 		self.data.append(0.0)
 
 func custom_new(rows: int, cols: int):
-	var m = self.copy()
+	var m = self.duplicate()
 	m.rows = rows;
 	m.cols = cols;
 	m.data = [];
-	for i in range(rows*cols):
+	for _i in range(m.rows*m.cols):
 		m.data.append(0.0)
 	return m
 
 func mat_idx(row: int, col: int) -> int:
 	return self.cols * row + col
 
-func copy() -> Matrix:
-	var m = self.custom_new(self.rows, self.cols)
-	m.data = self.data.duplicate()
-	return m
+func duplicate() -> Matrix:
+	var d = get_script().new(rows, cols);
+	d.data = self.data.duplicate()
+	return d;
 
 func fill_zeros():
 	for i in range(rows*cols):
@@ -72,7 +72,7 @@ func get_item(row: int, col: int) -> float:
 func get_row(row: int) -> Array:
 	if row >= rows:
 		return []
-	data = Array()
+	var data = Array()
 	for col in range(cols):
 		data.append(self.data[mat_idx(row, col)])
 	return data
@@ -80,7 +80,7 @@ func get_row(row: int) -> Array:
 func get_col(col: int) -> Array:
 	if col > cols:
 		return []
-	data = Array()
+	var data = Array()
 	for row in range(rows):
 		data.append(self.data[mat_idx(row, col)])
 	return data
@@ -200,7 +200,6 @@ func cofactor() -> Matrix:
 func inv() -> Matrix:
 	if rows != cols:
 		return self.custom_new(0, 0)
-	var dest = self.custom_new(rows, rows)
 	var det = det()
 	var cof = self.cofactor()
 	var adj = cof.transpose()
@@ -214,14 +213,14 @@ func vdot(other: Matrix) -> float:
 		if self.cols != other.cols:
 			return -999999.0
 		for i in range(self.cols):
-			d += self.data[mat_idx(0, i)] * other.data(other.mat_idx(0, i))
+			d += self.data[mat_idx(0, i)] * other.data[other.mat_idx(0, i)]
 		return d
 	elif self.cols == 1 and other.cols == 1:
 		# Column vector
 		if self.rows != other.rows:
 			return -999999.0
 		for i in range(self.rows):
-			d += self.data[mat_idx(i, 0)] * other.data(other.mat_idx(i, 0))
+			d += self.data[mat_idx(i, 0)] * other.data[other.mat_idx(i, 0)]
 		return d
 	else:
 		# Invalid (different dimensions)
