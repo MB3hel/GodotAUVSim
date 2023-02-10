@@ -19,10 +19,15 @@ func _process(_delta):
 ####################################################################################################
 
 
+# TODO: Implement command processing
+# TODO: Implement periodic speed sets in global and sassist modes
+
+
 ####################################################################################################
 # Motor Control
 ####################################################################################################
 
+# Motor control speed set in GLOBAL mode
 func mc_set_global(x: float, y: float, z: float, pitch: float, roll: float, yaw: float, curr_quat: Quat):
 	# Construct current gravity vector from quaternion
 	var gravity_vector = Matrix.new(3, 1)
@@ -65,7 +70,7 @@ func mc_set_global(x: float, y: float, z: float, pitch: float, roll: float, yaw:
 	# Pass on to local mode
 	mc_set_local(ltranslation[0], ltranslation[1], ltranslation[2], lrotation[0], lrotation[1], lrotation[2]);
 
-# Motor control speed set in LOCAL mode (equivilent of control board LOCAL mode)
+# Motor control speed set in LOCAL mode
 func mc_set_local(x: float, y: float, z: float, pitch: float, roll: float, yaw: float):
 	# Base level of motion supported in simulator is LOCAL mode motion
 	# RAW mode is not supported. Thus, this function applies the desired motion to the
