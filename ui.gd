@@ -17,7 +17,7 @@ onready var copy_button = get_node("VBoxContainer/HBoxContainer/VBoxContainer/Co
 const translation_template = "(x=%+.2f, y=%+.2f, z=%+.2f)"
 const rotation_template = "(p=%+.2f, r=%+.2f, y=%+.2f)"
 const euler_template = "(p=%+.2f, r=%+.2f, y=%+.2f)"
-const quat_template = "(w=%+.4f, x=%+.4f, y=%+.4f z=%+.4f)"
+const quat_template = "(w=%+.4f, x=%+.4f, y=%+.4f, z=%+.4f)"
 
 
 func _ready():
