@@ -58,9 +58,17 @@ The following commands / queries are currently supported:
 
 - LOCAL mode speed set
 - GLOBAL mode speed set
+- Motor Watchdog Feed
 
 The following status messages are implemented:
 
-- NONE
+- Motor Watchdog Status
 
-*Note that no motor watchdog exists in the simulator, thus those commands are not implemented.*
+The following are not (and will never be) implemented. The simulator does not work at a thruster level.
+
+- RAW mode speed set
+- Thruster inversion set
+- Motor matrix set
+- Motor matrix update
+- BNO055 axis configure (sensor axes always match robot axes in space)
+- Reset command (would be redundant; can just use reset_sim command to simulator)
