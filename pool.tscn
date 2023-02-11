@@ -42,7 +42,7 @@ margin_bottom = -10.0
 
 [node name="MainGrid" type="GridContainer" parent="UIRoot/VBoxContainer"]
 margin_right = 1132.0
-margin_bottom = 439.0
+margin_bottom = 466.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/vseparation = 10
@@ -51,7 +51,7 @@ columns = 3
 
 [node name="RearView" type="Control" parent="UIRoot/VBoxContainer/MainGrid"]
 margin_right = 371.0
-margin_bottom = 439.0
+margin_bottom = 466.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -63,7 +63,7 @@ size_flags_vertical = 3
 stretch = true
 
 [node name="Viewport" type="Viewport" parent="UIRoot/VBoxContainer/MainGrid/RearView/ViewportContainer"]
-size = Vector2( 371, 439 )
+size = Vector2( 371, 466 )
 handle_input_locally = false
 render_target_update_mode = 3
 
@@ -86,7 +86,7 @@ align = 1
 [node name="RightView" type="Control" parent="UIRoot/VBoxContainer/MainGrid"]
 margin_left = 381.0
 margin_right = 752.0
-margin_bottom = 439.0
+margin_bottom = 466.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -98,7 +98,7 @@ size_flags_vertical = 3
 stretch = true
 
 [node name="Viewport" type="Viewport" parent="UIRoot/VBoxContainer/MainGrid/RightView/ViewportContainer2"]
-size = Vector2( 371, 439 )
+size = Vector2( 371, 466 )
 handle_input_locally = false
 render_target_update_mode = 3
 
@@ -121,7 +121,7 @@ align = 1
 [node name="TopView" type="Control" parent="UIRoot/VBoxContainer/MainGrid"]
 margin_left = 762.0
 margin_right = 1132.0
-margin_bottom = 439.0
+margin_bottom = 466.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -133,7 +133,7 @@ size_flags_vertical = 3
 stretch = true
 
 [node name="Viewport" type="Viewport" parent="UIRoot/VBoxContainer/MainGrid/TopView/ViewportContainer2"]
-size = Vector2( 370, 439 )
+size = Vector2( 370, 466 )
 handle_input_locally = false
 render_target_update_mode = 3
 
@@ -155,22 +155,22 @@ text = "Top View"
 align = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UIRoot/VBoxContainer"]
-margin_top = 443.0
+margin_top = 470.0
 margin_right = 1132.0
 margin_bottom = 580.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/VBoxContainer/HBoxContainer"]
-margin_right = 564.0
-margin_bottom = 137.0
+margin_right = 1132.0
+margin_bottom = 110.0
 size_flags_horizontal = 3
 
 [node name="StatusPanel" type="GridContainer" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
-margin_right = 564.0
-margin_bottom = 104.0
+margin_right = 1132.0
+margin_bottom = 77.0
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 custom_constants/hseparation = 10
-columns = 2
+columns = 4
 
 [node name="TranslationLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
 margin_right = 145.0
@@ -180,7 +180,7 @@ text = "Local Translation:"
 
 [node name="TranslationValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
 margin_left = 155.0
-margin_right = 564.0
+margin_right = 561.0
 margin_bottom = 23.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
@@ -188,65 +188,94 @@ text = "(x=0.0, y=0.0, z=0.0)"
 clip_text = true
 
 [node name="RotationLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
-margin_top = 27.0
-margin_right = 145.0
-margin_bottom = 50.0
+margin_left = 571.0
+margin_right = 716.0
+margin_bottom = 23.0
 custom_fonts/font = ExtResource( 2 )
 text = "Local Rotation:"
 
 [node name="RotationValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
-margin_left = 155.0
-margin_top = 27.0
-margin_right = 564.0
-margin_bottom = 50.0
+margin_left = 726.0
+margin_right = 1132.0
+margin_bottom = 23.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
 text = "(p=0.0, r=0.0, y=0.0)"
 clip_text = true
 
 [node name="EulerLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
-margin_top = 54.0
+margin_top = 27.0
 margin_right = 145.0
-margin_bottom = 77.0
+margin_bottom = 50.0
 custom_fonts/font = ExtResource( 2 )
 text = "Euler Orientation:"
 
 [node name="EulerValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
 margin_left = 155.0
-margin_top = 54.0
-margin_right = 564.0
-margin_bottom = 77.0
+margin_top = 27.0
+margin_right = 561.0
+margin_bottom = 50.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
 text = "(p=0.0, r=0.0, y=0.0)"
 clip_text = true
 
 [node name="QuatLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
-margin_top = 81.0
-margin_right = 145.0
-margin_bottom = 104.0
+margin_left = 571.0
+margin_top = 27.0
+margin_right = 716.0
+margin_bottom = 50.0
 custom_fonts/font = ExtResource( 2 )
 text = "Quat Orientation:"
 
 [node name="QuatValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
-margin_left = 155.0
-margin_top = 81.0
-margin_right = 564.0
-margin_bottom = 104.0
+margin_left = 726.0
+margin_top = 27.0
+margin_right = 1132.0
+margin_bottom = 50.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
 text = "(w=0.0, x=0.0, y=0.0, z=0.0)"
 clip_text = true
 
+[node name="ModeLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
+margin_top = 54.0
+margin_right = 145.0
+margin_bottom = 77.0
+custom_fonts/font = ExtResource( 2 )
+text = "Cboard Mode:"
+
+[node name="ModeValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
+margin_left = 155.0
+margin_top = 54.0
+margin_right = 561.0
+margin_bottom = 77.0
+size_flags_horizontal = 3
+custom_fonts/font = ExtResource( 3 )
+text = "LOCAL"
+clip_text = true
+
+[node name="MotorWDGLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
+margin_left = 571.0
+margin_top = 54.0
+margin_right = 716.0
+margin_bottom = 77.0
+custom_fonts/font = ExtResource( 2 )
+text = "Motor Watchdog:"
+
+[node name="MotorWDGValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel"]
+margin_left = 726.0
+margin_top = 54.0
+margin_right = 1132.0
+margin_bottom = 77.0
+size_flags_horizontal = 3
+custom_fonts/font = ExtResource( 3 )
+text = "Killed"
+clip_text = true
+
 [node name="CopyButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
-margin_top = 108.0
-margin_right = 564.0
-margin_bottom = 137.0
+margin_top = 81.0
+margin_right = 1132.0
+margin_bottom = 110.0
 custom_fonts/font = ExtResource( 3 )
 text = "Copy"
-
-[node name="Placeholder" type="Control" parent="UIRoot/VBoxContainer/HBoxContainer"]
-margin_left = 568.0
-margin_right = 1132.0
-margin_bottom = 137.0
-size_flags_horizontal = 3

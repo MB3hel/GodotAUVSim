@@ -90,6 +90,18 @@ func _process(_delta):
 	ui.curr_rotation = robot.curr_rotation
 	ui.robot_quat = Quat(robot.rotation)
 	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) * 180.0 / PI
+	if cboard.mode == cboard.MODE_LOCAL:
+		ui.mode_value = "LOCAL"
+	elif cboard.mode == cboard.MODE_GLOBAL:
+		ui.mode_value = "GLOBAL"
+	elif cboard.mode == cboard.MODE_SASSIST:
+		ui.mode_value = "SASSIST"
+	else:
+		ui.mode_value = "???"
+	if cboard.motors_killed:
+		ui.wdg_status = "Killed"
+	else:
+		ui.wdg_status = "Active"
 
 
 # Error codes:
