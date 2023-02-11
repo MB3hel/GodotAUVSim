@@ -234,7 +234,6 @@ var global_yaw = 0.0
 # Run by a timer periodically
 func periodic_speed_set():
 	if mode == MODE_GLOBAL:
-
 		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, Angles.godot_euler_to_quat(robot.rotation))
 
 
