@@ -13,6 +13,7 @@ class_name ControlBoard
 var robot = null
 var speed_set_timer = Timer.new()
 var motor_wdog_timer = Timer.new()
+var sensor_data_timer = Timer.new()
 
 
 func _init(robot):
@@ -24,9 +25,13 @@ func _ready():
 	self.speed_set_timer.one_shot = false
 	self.motor_wdog_timer.connect("timeout", self, "motor_wdog_timeout")
 	self.motor_wdog_timer.one_shot = true
+	self.sensor_data_timer.connect("timeout", self, "periodic_sensor_data")
+	self.sensor_data_timer.one_shot = false
 	add_child(self.speed_set_timer)
 	add_child(self.motor_wdog_timer)
+	add_child(self.sensor_data_timer)
 	self.speed_set_timer.start(0.02)   # 20ms matches what cboard firmware does
+	self.sensor_data_timer.start(0.02) # 20ms matches what cboard firmware does
 
 
 func reset():
@@ -37,7 +42,8 @@ func reset():
 	local_pitch = 0.0
 	local_roll = 0.0
 	local_yaw = 0.0
-	# TODO: Disable periodic sensor reads when implemented
+	periodic_bno055 = false;
+	periodic_ms5837 = false;
 
 
 func crc16_ccitt_false(data: Array, length: int, initial: int = 0xFFFF) -> int:
@@ -80,6 +86,9 @@ var read_buffer = StreamPeerBuffer.new()
 var curr_msg_id = 0
 var parse_started = false;
 var parse_escaped = false;
+
+var periodic_bno055 = false;
+var periodic_ms5837 = false;
 
 
 # Read bytes and decode message
@@ -128,6 +137,7 @@ func handle_msg(buf: StreamPeerBuffer):
 		# L, O, C, A, L, [x], [y], [z], [pitch], [roll], [yaw]
 		if buf.get_size() - 4 != 29:
 			acknowledge(msg_id, ACK_ERR_INVALID_ARGS)
+			return
 		buf.seek(2 + 5)
 		local_x = buf.get_float()
 		local_y = buf.get_float()
@@ -143,6 +153,7 @@ func handle_msg(buf: StreamPeerBuffer):
 		# G, L, O, B, A, L, [x], [y], [z], [pitch], [roll], [yaw]
 		if buf.get_size() - 4 != 30:
 			acknowledge(msg_id, ACK_ERR_INVALID_ARGS)
+			return
 		buf.seek(2 + 6)
 		global_x = buf.get_float()
 		global_y = buf.get_float()
@@ -164,6 +175,26 @@ func handle_msg(buf: StreamPeerBuffer):
 		acknowledge(msg_id, ACK_ERR_NONE, build_bno055_data());
 	elif msg_str == "MS5837R" and buf.get_size() - 4 == 7:
 		acknowledge(msg_id, ACK_ERR_NONE, build_ms5837_data());
+	elif msg_str.begins_with("BNO055P"):
+		# B, N, O, 0, 5, 5, P, [enable]
+		if buf.get_size() - 4 != 8:
+			acknowledge(msg_id, ACK_ERR_INVALID_ARGS);
+		buf.seek(2 + 7)
+		if buf.get_u8() == 1:
+			periodic_bno055 = true
+		else:
+			periodic_bno055 = false
+		acknowledge(msg_id, ACK_ERR_NONE)
+	elif msg_str.begins_with("MS5837P"):
+		# M, S, 5, 8, 3, 7, [enable]
+		if buf.get_size() - 4 != 8:
+			acknowledge(msg_id, ACK_ERR_INVALID_ARGS);
+		buf.seek(2 + 7)
+		if buf.get_u8() == 1:
+			periodic_ms5837 = true
+		else:
+			periodic_ms5837 = false
+		acknowledge(msg_id, ACK_ERR_NONE)
 	else:
 		acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG)
 
@@ -220,6 +251,21 @@ func acknowledge(msg_id: int, ec: int, data: Array = []):
 	buf.put_u8(ec)
 	buf.put_data(data)
 	write_msg(buf.data_array)
+
+
+func periodic_sensor_data():
+	if periodic_bno055:
+		var buf = StreamPeerBuffer.new()
+		buf.big_endian = false
+		buf.put_data("BNO055D".to_ascii())
+		buf.put_data(build_bno055_data())
+		self.write_msg(buf.data_array)
+	if periodic_ms5837:
+		var buf = StreamPeerBuffer.new()
+		buf.big_endian = false
+		buf.put_data("MS5837D".to_ascii())
+		buf.put_data(build_ms5837_data())
+		self.write_msg(buf.data_array)
 
 ####################################################################################################
 

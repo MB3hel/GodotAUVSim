@@ -61,10 +61,14 @@ The following commands / queries are currently supported:
 - Motor Watchdog Feed
 - Read BNO055 once
 - Read MS5837 once
+- Read BNO055 periodic
+- Read MS5837 periodic
 
 The following status messages are implemented:
 
 - Motor Watchdog Status
+- BNO055 data
+- MS5837 data
 
 The following are not (and will never be) implemented. The simulator does not work at a thruster level.
 
@@ -72,5 +76,5 @@ The following are not (and will never be) implemented. The simulator does not wo
 - Thruster inversion set
 - Motor matrix set
 - Motor matrix update
-- BNO055 axis configure (sensor axes always match robot axes in space)
-- Reset command (would be redundant; can just use reset_sim command to simulator)
+- BNO055 axis configure (sensor axes always match robot axes in simulation)
+- Reset command (use reset_sim command to reset simulator including control board state)
