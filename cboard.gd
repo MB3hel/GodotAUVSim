@@ -25,14 +25,16 @@ func reset():
 func crc16_ccitt_false(data: Array, length: int, initial: int = 0xFFFF) -> int:
 	var crc = initial
 	var pos = 0
-	while(pos < length):
+	while pos < length:
 		var b = data[pos]
 		for i in range(8):
-			var bit = ((b >> (7 - i) & 1))
-			var c15 = ((crc >> 15 & 1))
-			crc <<= 1;
-			if(c15 ^ bit):
+			var bit = int((b >> (7 - i) & 1) == 1)
+			var c15 = int((crc >> 15 & 1) == 1)
+			crc <<= 1
+			crc &= 0xFFFF
+			if c15 ^ bit:
 				crc ^= 0x1021
+				crc &= 0xFFFF
 		pos += 1
 	return crc & 0xFFFF
 
@@ -67,7 +69,7 @@ func handle_data(data):
 	for byte in data:
 		if parse_escaped:
 			if byte == START_BYTE or byte == END_BYTE or byte == ESCAPE_BYTE:
-				read_buffer.put_8(byte)
+				read_buffer.put_u8(byte)
 			parse_escaped = false
 		elif parse_started:
 			if byte == START_BYTE:
@@ -89,7 +91,7 @@ func handle_data(data):
 			elif byte == ESCAPE_BYTE:
 				parse_escaped = true
 			else:
-				read_buffer.put_8(byte)
+				read_buffer.put_u8(byte)
 		elif byte == START_BYTE:
 			parse_started = true
 			read_buffer.clear()
@@ -104,9 +106,10 @@ func handle_msg(buf: StreamPeerBuffer):
 	var msg_str = buf.get_string(msg_len)
 	buf.big_endian = false
 	
-	print(buf.data_array.subarray(2, buf.get_size() - 4))
 	if msg_str.begins_with("LOCAL"):
 		# L, O, C, A, L, [x], [y], [z], [pitch], [roll], [yaw]
+		if buf.get_size() - 4 != 29:
+			acknowledge(msg_id, ACK_ERR_INVALID_ARGS)
 		buf.seek(2 + 5)
 		local_x = buf.get_float()
 		local_y = buf.get_float()
@@ -115,14 +118,62 @@ func handle_msg(buf: StreamPeerBuffer):
 		local_roll = buf.get_float()
 		local_yaw = buf.get_float()
 		mc_set_local(local_x, local_y, local_z, local_pitch, local_roll, local_yaw)
-
+		acknowledge(msg_id, ACK_ERR_NONE)
+	else:
+		acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG)
 
 func write_msg(data: Array):
-	pass
+	write_buffer_mutex.lock()
+	
+	# Write start byte
+	write_buffer.put_u8(START_BYTE)
+	
+	# Write message id (big endian) escape as needed
+	var msg_id = curr_msg_id
+	curr_msg_id += 1
+	var tmp = StreamPeerBuffer.new()
+	tmp.big_endian = true
+	tmp.put_u16(msg_id)
+	tmp.seek(0)
+	for _i in range(tmp.get_size()):
+		var b = tmp.get_u8()
+		if b == START_BYTE or b == END_BYTE or b == ESCAPE_BYTE:
+			write_buffer.put_u8(ESCAPE_BYTE)
+		write_buffer.put_u8(b)
+	
+	 # Write each byte escaping it as needed
+	for i in range(data.size()):
+		var b = data[i]
+		if b == START_BYTE or b == END_BYTE or b == ESCAPE_BYTE:
+			write_buffer.put_u8(ESCAPE_BYTE)
+		write_buffer.put_u8(b)
+	
+	# Calculate crc and write it. CRC includes message id bytes
+	var crc = crc16_ccitt_false(tmp.data_array, 2)
+	crc = crc16_ccitt_false(data, data.size(), crc)
+	var high_byte = (crc >> 8) & 0xFF
+	var low_byte = crc & 0xFF
+	if high_byte == START_BYTE or high_byte == END_BYTE or high_byte == ESCAPE_BYTE:
+		write_buffer.put_u8(ESCAPE_BYTE)
+	write_buffer.put_u8(high_byte)
+	if low_byte == START_BYTE or low_byte == END_BYTE or low_byte == ESCAPE_BYTE:
+		write_buffer.put_u8(ESCAPE_BYTE)
+	write_buffer.put_u8(low_byte)
+	
+	# Write end byte
+	write_buffer.put_u8(END_BYTE)
+	
+	write_buffer_mutex.unlock()
 
 
-func acknowledge(msg_id: int):
-	pass
+func acknowledge(msg_id: int, ec: int, data: Array = []):
+	var buf = StreamPeerBuffer.new()
+	buf.put_data("ACK".to_ascii())
+	buf.big_endian = true
+	buf.put_u16(msg_id)
+	buf.put_u8(ec)
+	buf.put_data(data)
+	write_msg(buf.data_array)
 
 ####################################################################################################
 

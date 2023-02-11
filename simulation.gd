@@ -67,7 +67,9 @@ func _process(_delta):
 		
 		# Send data back from cboard if any
 		cboard.write_buffer_mutex.lock()
-		# TODO: Write data if any
+		if cboard.write_buffer.get_size() > 0:
+			cboard_client.put_data(cboard.write_buffer.data_array)
+			cboard.write_buffer.clear()
 		cboard.write_buffer_mutex.unlock()
 	else:
 		# Check for and handle new connections
