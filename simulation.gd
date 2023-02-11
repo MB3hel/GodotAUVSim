@@ -29,6 +29,8 @@ var cmd_buffer = "";
 func _ready():
 	add_child(cboard)
 	
+	self.ui.connect("sim_reset", self, "reset_sim")
+	
 	# Start TCP servers
 	if cmd_server.listen(cmd_port, listen_addr) != OK:
 		OS.alert("Failed to start command sever (%s:%d)" % [listen_addr, cmd_port], "Startup Error")
@@ -167,13 +169,7 @@ func handle_command(cmd: String) -> String:
 	if parts[0] == "reset_sim":
 		if len(parts) != 1:
 			return "1"
-		cboard.reset()
-		robot.curr_rotation = Vector3(0, 0, 0)
-		robot.curr_translation = Vector3(0, 0, 0)
-		robot.translation = robot_def_translation
-		robot.rotation = robot_def_rotation
-		robot.max_translation = robot_def_max_translation
-		robot.max_rotation = robot_def_max_rotation
+		reset_sim()
 		return "0"
 	
 	# set_max_trans m -> EC
@@ -209,3 +205,12 @@ func handle_command(cmd: String) -> String:
 	# Unknown command
 	return "2"
 
+
+func reset_sim():
+	cboard.reset()
+	robot.curr_rotation = Vector3(0, 0, 0)
+	robot.curr_translation = Vector3(0, 0, 0)
+	robot.translation = robot_def_translation
+	robot.rotation = robot_def_rotation
+	robot.max_translation = robot_def_max_translation
+	robot.max_rotation = robot_def_max_rotation

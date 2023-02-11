@@ -40,7 +40,8 @@ Angles="*res://angles.gd"
 
 [display]
 
-window/size/width=1152
+window/size/width=1280
+window/size/height=720
 
 [global]
 

@@ -10,13 +10,14 @@ var wdg_status = "Killed"
 
 
 # UI elements
-onready var translation_label = get_node("VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel/TranslationValue")
-onready var rotation_label = get_node("VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel/RotationValue")
-onready var euler_label = get_node("VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel/EulerValue")
-onready var quat_label = get_node("VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel/QuatValue")
-onready var mode_label = get_node("VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel/ModeValue")
-onready var wdg_label = get_node("VBoxContainer/HBoxContainer/VBoxContainer/StatusPanel/MotorWDGValue")
+onready var translation_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/TranslationValue")
+onready var rotation_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/RotationValue")
+onready var euler_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/EulerValue")
+onready var quat_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/QuatValue")
+onready var mode_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/ModeValue")
+onready var wdg_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/MotorWDGValue")
 onready var copy_button = get_node("VBoxContainer/HBoxContainer/VBoxContainer/CopyButton")
+onready var reset_button = get_node("VBoxContainer/HBoxContainer/VBoxContainer/ResetButton")
 
 
 const translation_template = "(x=%+.2f, y=%+.2f, z=%+.2f)"
@@ -25,8 +26,12 @@ const euler_template = "(p=%+.2f, r=%+.2f, y=%+.2f)"
 const quat_template = "(w=%+.4f, x=%+.4f, y=%+.4f, z=%+.4f)"
 
 
+signal sim_reset
+
+
 func _ready():
 	copy_button.connect("pressed", self, "copy_to_clipboard")
+	reset_button.connect("pressed", self, "reset_pressed")
 
 func _process(_delta):
 	translation_label.text = translation_template % [curr_translation.x, curr_translation.y, curr_translation.z]
@@ -42,3 +47,6 @@ func copy_to_clipboard():
 		[translation_label.text, rotation_label.text, euler_label.text, quat_label.text, mode_label.text, wdg_label.text]
 	)
 	OS.set_clipboard(info)
+
+func reset_pressed():
+	self.emit_signal("sim_reset")
