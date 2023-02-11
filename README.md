@@ -67,7 +67,7 @@ The following commands / queries are currently supported:
 The following status messages are implemented:
 
 - Motor Watchdog Status
-- BNO055 data
+- BNO055 data (note that accumulated euler angles are not implemented yet)
 - MS5837 data
 
 The following are not (and will never be) implemented. The simulator does not work at a thruster level.
