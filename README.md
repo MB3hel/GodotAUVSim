@@ -52,12 +52,15 @@ The following commands are implemented
 
 This port is used to send / receive the same data that would normally be sent over UART between control board and PC. It uses the same data format and messages (just over TCP not UART).
 
-Note that not all commands are implemented by the simulator. Commands that are not implemented will be acknowledged with the error code `ACK_ERR_UNKNOWN_MSG`.
+Note that not all commands are implemented by the simulator. Commands that are not implemented will be acknowledged with the error code `ACK_ERR_UNKNOWN_MSG` or the error code `ACK_ERR_INVALID_CMD`.
 
 The following commands / queries are currently supported:
 
-- NONE
+- LOCAL mode speed set
+- GLOBAL mode speed set
 
 The following status messages are implemented:
 
 - NONE
+
+*Note that no motor watchdog exists in the simulator, thus those commands are not implemented.*
