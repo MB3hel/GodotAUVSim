@@ -12,15 +12,24 @@ class_name ControlBoard
 ####################################################################################################
 
 var robot = null
+var speed_set_timer = Timer.new()
 
 func _init(robot):
 	self.robot = robot
+	self.speed_set_timer.connect("timeout", self, "periodic_speed_set")
+	self.speed_set_timer.one_shot = false
+	self.speed_set_timer.start(0.02)   # 20ms matches what cboard firmware does
 
 func reset():
-	# TODO: Reset to default state
-	# Periodic sensor data reads disabled
-	# Local mode with all zeros for last speed
-	pass
+	mode = MODE_LOCAL
+	local_x = 0.0
+	local_y = 0.0
+	local_z = 0.0
+	local_pitch = 0.0
+	local_roll = 0.0
+	local_yaw = 0.0
+	# TODO: Disable periodic sensor reads when implemented
+
 
 func crc16_ccitt_false(data: Array, length: int, initial: int = 0xFFFF) -> int:
 	var crc = initial
@@ -119,6 +128,19 @@ func handle_msg(buf: StreamPeerBuffer):
 		local_yaw = buf.get_float()
 		mc_set_local(local_x, local_y, local_z, local_pitch, local_roll, local_yaw)
 		acknowledge(msg_id, ACK_ERR_NONE)
+	elif msg_str.begins_with("GLOBAL"):
+		# G, L, O, B, A, L, [x], [y], [z], [pitch], [roll], [yaw]
+		if buf.get_size() - 4 != 30:
+			acknowledge(msg_id, ACK_ERR_INVALID_ARGS)
+		buf.seek(2 + 6)
+		global_x = buf.get_float()
+		global_y = buf.get_float()
+		global_z = buf.get_float()
+		global_pitch = buf.get_float()
+		global_roll = buf.get_float()
+		global_yaw = buf.get_float()
+		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, Angles.godot_euler_to_quat(robot.rotation))
+		acknowledge(msg_id, ACK_ERR_NONE)
 	else:
 		acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG)
 
@@ -196,6 +218,20 @@ var local_z = 0.0
 var local_pitch = 0.0
 var local_roll = 0.0
 var local_yaw = 0.0
+
+# Cached global mode target
+var global_x = 0.0
+var global_y = 0.0
+var global_z = 0.0
+var global_pitch = 0.0
+var global_roll = 0.0
+var global_yaw = 0.0
+
+
+# Run by a timer periodically
+func periodic_speed_set():
+	if mode == MODE_GLOBAL:
+		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, Angles.godot_euler_to_quat(robot.rotation))
 
 
 # Motor control speed set in GLOBAL mode
