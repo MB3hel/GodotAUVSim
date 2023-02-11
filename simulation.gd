@@ -27,6 +27,8 @@ var cmd_buffer = "";
 
 
 func _ready():
+	add_child(cboard)
+	
 	# Start TCP servers
 	if cmd_server.listen(cmd_port, listen_addr) != OK:
 		OS.alert("Failed to start command sever (%s:%d)" % [listen_addr, cmd_port], "Startup Error")

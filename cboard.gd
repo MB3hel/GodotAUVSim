@@ -1,8 +1,7 @@
+extends Node
 class_name ControlBoard
 
 
-# TODO: Implement command processing
-# TODO: Implement periodic speed sets in global and sassist modes
 # TODO: Enable simulated sensor data reads
 # TODO: Motor watchdog simulation
 
@@ -13,13 +12,22 @@ class_name ControlBoard
 
 var robot = null
 var speed_set_timer = Timer.new()
+var motor_wdog_timer = Timer.new()
+
 
 func _init(robot):
 	self.robot = robot
+
+
+func _ready():
 	self.speed_set_timer.connect("timeout", self, "periodic_speed_set")
 	self.speed_set_timer.one_shot = false
-	robot.add_child(self.speed_set_timer)
+	self.motor_wdog_timer.connect("timeout", self, "motor_wdog_timeout")
+	self.motor_wdog_timer.one_shot = true
+	add_child(self.speed_set_timer)
+	add_child(self.motor_wdog_timer)
 	self.speed_set_timer.start(0.02)   # 20ms matches what cboard firmware does
+
 
 func reset():
 	mode = MODE_LOCAL
@@ -128,6 +136,7 @@ func handle_msg(buf: StreamPeerBuffer):
 		local_roll = buf.get_float()
 		local_yaw = buf.get_float()
 		mode = MODE_LOCAL
+		motor_wdog_feed()
 		mc_set_local(local_x, local_y, local_z, local_pitch, local_roll, local_yaw)
 		acknowledge(msg_id, ACK_ERR_NONE)
 	elif msg_str.begins_with("GLOBAL"):
@@ -142,10 +151,15 @@ func handle_msg(buf: StreamPeerBuffer):
 		global_roll = buf.get_float()
 		global_yaw = buf.get_float()
 		mode = MODE_GLOBAL
+		motor_wdog_feed()
 		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, Angles.godot_euler_to_quat(robot.rotation))
+		acknowledge(msg_id, ACK_ERR_NONE)
+	elif msg_str == "WDGF" and buf.get_size() - 4 == 4:
+		motor_wdog_feed()
 		acknowledge(msg_id, ACK_ERR_NONE)
 	else:
 		acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG)
+
 
 func write_msg(data: Array):
 	write_buffer_mutex.lock()
@@ -230,11 +244,47 @@ var global_pitch = 0.0
 var global_roll = 0.0
 var global_yaw = 0.0
 
+var motors_killed = true
+
+const MOTOR_WDOG_TIME = 1.5
+
 
 # Run by a timer periodically
 func periodic_speed_set():
+	if mode == MODE_GLOBAL or mode == MODE_SASSIST:
+		apply_saved_speed()
+
+
+func apply_saved_speed():
 	if mode == MODE_GLOBAL:
 		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, Angles.godot_euler_to_quat(robot.rotation))
+
+
+# Called when motor watchdog times out
+func motor_wdog_timeout():
+	motors_killed = true
+	robot.curr_translation.x = 0.0
+	robot.curr_translation.y = 0.0
+	robot.curr_translation.z = 0.0
+	robot.curr_rotation.x = 0.0
+	robot.curr_rotation.y = 0.0
+	robot.curr_rotation.z = 0.0
+	var buf = StreamPeerBuffer.new()
+	buf.put_data("WDGS".to_ascii())
+	buf.put_u8(0)
+	self.write_msg(buf.data_array)
+
+
+func motor_wdog_feed():
+	motor_wdog_timer.stop()
+	motor_wdog_timer.start(MOTOR_WDOG_TIME)
+	if motors_killed:
+		var buf = StreamPeerBuffer.new()
+		buf.put_data("WDGS".to_ascii())
+		buf.put_u8(1)
+		self.write_msg(buf.data_array)
+		motors_killed = false
+		apply_saved_speed()
 
 
 # Motor control speed set in GLOBAL mode
@@ -280,8 +330,12 @@ func mc_set_global(x: float, y: float, z: float, pitch: float, roll: float, yaw:
 	# Pass on to local mode
 	mc_set_local(ltranslation[0], ltranslation[1], ltranslation[2], lrotation[0], lrotation[1], lrotation[2]);
 
+
 # Motor control speed set in LOCAL mode
 func mc_set_local(x: float, y: float, z: float, pitch: float, roll: float, yaw: float):
+	if motors_killed:
+		return
+		
 	# Base level of motion supported in simulator is LOCAL mode motion
 	# RAW mode is not supported. Thus, this function applies the desired motion to the
 	# provided robot object (see robot.gd)
@@ -311,7 +365,8 @@ func limit(v: float, lower: float, upper: float) -> float:
 	if v < lower:
 		return lower
 	return v
-	
+
+
 func skew3(invec: Matrix) -> Matrix:
 	var m = Matrix.new(3, 3);
 	var v = [];
@@ -325,6 +380,5 @@ func skew3(invec: Matrix) -> Matrix:
 	m.set_row(1, [v[2], 0.0, -v[0]]);
 	m.set_row(2, [-v[1], v[0], 0.0]);
 	return m;
-	
 
 ####################################################################################################
