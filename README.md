@@ -59,6 +59,8 @@ The following commands / queries are currently supported:
 - LOCAL mode speed set
 - GLOBAL mode speed set
 - Motor Watchdog Feed
+- Read BNO055 once
+- Read MS5837 once
 
 The following status messages are implemented:
 

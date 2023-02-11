@@ -157,6 +157,13 @@ func handle_msg(buf: StreamPeerBuffer):
 	elif msg_str == "WDGF" and buf.get_size() - 4 == 4:
 		motor_wdog_feed()
 		acknowledge(msg_id, ACK_ERR_NONE)
+	elif msg_str == "SSTAT" and buf.get_size() - 4 == 5:
+		# Both sensors are always "ready" in simulation
+		acknowledge(msg_id, ACK_ERR_NONE, [3]);
+	elif msg_str == "BNO055R" and buf.get_size() - 4 == 7:
+		acknowledge(msg_id, ACK_ERR_NONE, build_bno055_data());
+	elif msg_str == "MS5837R" and buf.get_size() - 4 == 7:
+		acknowledge(msg_id, ACK_ERR_NONE, build_ms5837_data());
 	else:
 		acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG)
 
@@ -358,6 +365,28 @@ func mc_set_local(x: float, y: float, z: float, pitch: float, roll: float, yaw: 
 ####################################################################################################
 # Helper functions
 ####################################################################################################
+
+func build_bno055_data() -> Array:
+	var buf = StreamPeerBuffer.new()
+	buf.big_endian = false
+	var q = Angles.godot_euler_to_quat(robot.rotation)
+	buf.put_float(q.w)
+	buf.put_float(q.x)
+	buf.put_float(q.y)
+	buf.put_float(q.z)
+	# TODO: Implement euler angle accumulation and sent it here instead of zeros
+	buf.put_float(0.0)
+	buf.put_float(0.0)
+	buf.put_float(0.0)
+	return buf.data_array
+
+
+func build_ms5837_data() -> Array:
+	var buf = StreamPeerBuffer.new()
+	buf.big_endian = false
+	buf.put_float(robot.translation.z)
+	return buf.data_array
+
 
 func limit(v: float, lower: float, upper: float) -> float:
 	if v > upper:
