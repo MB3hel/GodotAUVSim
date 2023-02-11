@@ -18,6 +18,7 @@ func _init(robot):
 	self.robot = robot
 	self.speed_set_timer.connect("timeout", self, "periodic_speed_set")
 	self.speed_set_timer.one_shot = false
+	robot.add_child(self.speed_set_timer)
 	self.speed_set_timer.start(0.02)   # 20ms matches what cboard firmware does
 
 func reset():
@@ -126,6 +127,7 @@ func handle_msg(buf: StreamPeerBuffer):
 		local_pitch = buf.get_float()
 		local_roll = buf.get_float()
 		local_yaw = buf.get_float()
+		mode = MODE_LOCAL
 		mc_set_local(local_x, local_y, local_z, local_pitch, local_roll, local_yaw)
 		acknowledge(msg_id, ACK_ERR_NONE)
 	elif msg_str.begins_with("GLOBAL"):
@@ -139,6 +141,7 @@ func handle_msg(buf: StreamPeerBuffer):
 		global_pitch = buf.get_float()
 		global_roll = buf.get_float()
 		global_yaw = buf.get_float()
+		mode = MODE_GLOBAL
 		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, Angles.godot_euler_to_quat(robot.rotation))
 		acknowledge(msg_id, ACK_ERR_NONE)
 	else:
@@ -231,6 +234,7 @@ var global_yaw = 0.0
 # Run by a timer periodically
 func periodic_speed_set():
 	if mode == MODE_GLOBAL:
+
 		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, Angles.godot_euler_to_quat(robot.rotation))
 
 
