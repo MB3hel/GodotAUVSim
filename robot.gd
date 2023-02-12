@@ -2,6 +2,7 @@
 ## Control baord equivilent math is implemented here
 
 extends Spatial
+class_name Robot
 
 
 # Max speeds of robot

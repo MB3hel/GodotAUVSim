@@ -1,4 +1,5 @@
 extends Spatial
+class_name Simulator
 
 
 # Resousrces used during simulation
@@ -26,10 +27,21 @@ const cboard_port = 5012
 var cmd_buffer = "";
 
 
+var hijacked = false;
+
+
 func _ready():
 	add_child(cboard)
-	
 	self.ui.connect("sim_reset", self, "reset_sim")
+	
+	# See devmode.gd for details
+	var dm = load("res://devmode.gd").new()
+	if dm.should_hijack():
+		hijacked = true
+		# devmode hijacked simulator. Not doing normal TCP startup
+		add_child(dm)
+		return
+		
 	
 	# Start TCP servers
 	if cmd_server.listen(cmd_port, listen_addr) != OK:
@@ -41,6 +53,29 @@ func _ready():
 
 
 func _process(_delta):
+	# Update UI 
+	ui.curr_translation = robot.curr_translation
+	ui.curr_rotation = robot.curr_rotation
+	ui.robot_quat = Quat(robot.rotation)
+	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) * 180.0 / PI
+	if cboard.mode == cboard.MODE_LOCAL:
+		ui.mode_value = "LOCAL"
+	elif cboard.mode == cboard.MODE_GLOBAL:
+		ui.mode_value = "GLOBAL"
+	elif cboard.mode == cboard.MODE_SASSIST:
+		ui.mode_value = "SASSIST"
+	else:
+		ui.mode_value = "???"
+	if cboard.motors_killed:
+		ui.wdg_status = "Killed"
+	else:
+		ui.wdg_status = "Active"
+		
+	
+	# Skip network stuff if devmode override
+	if self.hijacked:
+		return
+	
 	# Network stuff
 	if cmd_client != null and cboard_client != null:
 		# Handle disconnects
@@ -87,23 +122,6 @@ func _process(_delta):
 				cboard_client.disconnect_from_host()
 				cboard_client = null
 	
-	# Update UI 
-	ui.curr_translation = robot.curr_translation
-	ui.curr_rotation = robot.curr_rotation
-	ui.robot_quat = Quat(robot.rotation)
-	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) * 180.0 / PI
-	if cboard.mode == cboard.MODE_LOCAL:
-		ui.mode_value = "LOCAL"
-	elif cboard.mode == cboard.MODE_GLOBAL:
-		ui.mode_value = "GLOBAL"
-	elif cboard.mode == cboard.MODE_SASSIST:
-		ui.mode_value = "SASSIST"
-	else:
-		ui.mode_value = "???"
-	if cboard.motors_killed:
-		ui.wdg_status = "Killed"
-	else:
-		ui.wdg_status = "Active"
 
 
 # Error codes:

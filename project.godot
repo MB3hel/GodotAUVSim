@@ -18,10 +18,22 @@ _global_script_classes=[ {
 "class": "Matrix",
 "language": "GDScript",
 "path": "res://matrix.gd"
+}, {
+"base": "Spatial",
+"class": "Robot",
+"language": "GDScript",
+"path": "res://robot.gd"
+}, {
+"base": "Spatial",
+"class": "Simulator",
+"language": "GDScript",
+"path": "res://simulation.gd"
 } ]
 _global_script_class_icons={
 "ControlBoard": "",
-"Matrix": ""
+"Matrix": "",
+"Robot": "",
+"Simulator": ""
 }
 
 [application]
