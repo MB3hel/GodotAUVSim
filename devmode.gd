@@ -32,7 +32,7 @@ func should_hijack():
 
 func _ready():
 	sim.reset_sim()
-	var cboard_rot = Vector3(15.0, 91, 0.0);
+	var cboard_rot = Vector3(15.0, 45.0, 0.0);
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
 	
 	print("Orientation: ", Angles.godot_euler_to_cboard_euler(robot.rotation) * 180.0 / PI)
@@ -56,18 +56,26 @@ func _ready():
 		# Picking roll as it will likley impact depth sensor less on most vehicles
 		err = Vector3(0.0, 180.0, 0.0)
 	else:
-		# TODO: Does this work on multi axis rotations???
 		err = v * a
 		
+	# This is probably best to use as error input to PID controllers
 	print("Angle: ", a * 180.0 / PI)
 	print("Axis: ", v)
 	print("Error: ", err * 180.0 / PI)
 	
-	# robot.rotate_z(-err.z)
-	# robot.rotate_y(-err.y)
-	# robot.rotate_x(-err.x)
+	# TODO: Repeatedly run this with a PID and see what happens
 	
-	# print("New Orientation: ", Angles.godot_euler_to_cboard_euler(robot.rotation) * 180.0 / PI)
+	# Can euler be used? Should it be?
+	# Answer NO. Can't get rid of yaw component!
+	# var qdiff = Quat(0.0, 0.0, 0.0, 0.0)
+	# qdiff.w = cos(a / 2.0)
+	# qdiff.x = v.x * sin(a / 2.0)
+	# qdiff.y = v.y * sin(a / 2.0)
+	# qdiff.z = v.z * sin(a / 2.0)
+	# print("Quat Diff: ", qdiff)
+	
+	# var ediff = Angles.quat_to_cboard_euler(qdiff)
+	# print("Euler Diff: ", ediff)
 
 func _process(delta):
 	pass

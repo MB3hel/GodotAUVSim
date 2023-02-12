@@ -32,15 +32,14 @@ func quat_to_cboard_euler(q: Quat) -> Vector3:
 	var pitch = 0.0
 	var yaw = 0.0
 	
-	if abs(abs(cos(roll / 2.0)) - abs(sin(roll / 2.0))) < 0.001:
+	var rolldeg = (180.0 * roll / PI);
+	
+	if abs(90.0 - abs(rolldeg)) < 0.1:
 		# roll is +/- 90 degrees
 		# This is a gimbal lock scenario
-		# The atan2 equations will always return 0 (because t0 and t3 are zero)
 		# Need to extract what the pitch + yaw are differently
 		# pitch + yaw = 2 * atan2(q.x, q.w)
-		# Can represent with any split between pitch and yaw
-		# Randomly choose pitch for all of it and zero yaw
-		# No way to know for sure, so just pick something
+		# Can represent with any split between pitch and yaw (mean the same thing)
 		pitch = 2.0 * atan2(q.x, q.w)
 		yaw = 0.0
 	else:
