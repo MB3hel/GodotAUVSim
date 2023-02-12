@@ -5,12 +5,14 @@ Simulator used for testing math for [AUVControlBoard](https://github.com/MB3hel/
 Simulator is run through [Godot Engine](https://godotengine.org/)
 
 
-Note that simulator translation speeds are in "world distance units" and rotation speeds are in "degrees per second".
+Note that simulator translation speeds are in units/sec and rotation speeds are in degrees per second. Note that "units/sec" refers to one unit of distance on the game engine's world axes.
 
 
 ## TCP Communication & Control
 
 Two TCP ports are used. A connection to both ports must be made by the same client to use the simulator.
+
+*Note: currently, the simulator only accepts connections from the same device (`127.0.0.1`).*
 
 ### Command port
 
@@ -30,7 +32,7 @@ Each command will receive a response in the following format
 
 Response are also newline (ASCII 10) delimited. EC is an error code (0 = no error, 1 = invalid arguments, 2 = unknown command). Responses are sent in the same order commands are sent in, thus it is possible to send multiple commands before handling / waiting for responses.
 
-***NOTE: The command parser is very simple. It will not properly handle extra whitespace including carriage return characters, tab characters, or multiple spaces.***
+*NOTE: The command parser is very simple. It will not properly handle extra whitespace including carriage return characters, tab characters, or multiple spaces.*
 
 The following commands are implemented
 
@@ -46,11 +48,11 @@ The following commands are implemented
 - Reset simulator: `reset_sim -> EC`
 
 
-*Note that get commands may not return with arguments if the error code is non-zero*.
+*Note that get commands may not return with all arguments if the error code is non-zero*.
 
 ### Control Board port
 
-This port is used to send / receive the same data that would normally be sent over UART between control board and PC. It uses the same data format and messages (just over TCP not UART).
+This port is used to send / receive the same data that would normally be sent over UART between control board and PC. It uses the same data format and messages (just over TCP not UART). This is port `5012`.
 
 Note that not all commands are implemented by the simulator. Commands that are not implemented will be acknowledged with the error code `ACK_ERR_UNKNOWN_MSG` or the error code `ACK_ERR_INVALID_CMD`.
 
