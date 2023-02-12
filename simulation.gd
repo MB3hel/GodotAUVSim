@@ -38,8 +38,12 @@ func _ready():
 	var dm = load("res://devmode.gd").new()
 	if dm.should_hijack():
 		hijacked = true
-		# devmode hijacked simulator. Not doing normal TCP startup
+		dm.sim = self
+		dm.robot = robot
+		dm.cboard = cboard
 		add_child(dm)
+		get_node("UIRoot/DevmodeLabel").show()
+		# Simulator hijacked. Not starting tcp.
 		return
 		
 	

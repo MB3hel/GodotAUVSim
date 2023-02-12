@@ -26,6 +26,12 @@ func should_hijack():
 	return self.devmode
 
 
+####################################################################################################
 # Hard coded stuff for development use
+####################################################################################################
+
 func _ready():
-	print("HERE I AM")
+	pass
+
+func _process(delta):
+	pass
