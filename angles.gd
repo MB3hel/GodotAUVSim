@@ -24,16 +24,33 @@ func godot_euler_to_quat(e: Vector3) -> Quat:
 	return Quat(e)
 	
 func quat_to_cboard_euler(q: Quat) -> Vector3:
-	var t0 = +2.0 * (q.w * q.x + q.y * q.z)
-	var t1 = +1.0 - 2.0 * (q.x * q.x + q.y * q.y)
-	var pitch = atan2(t0, t1)
 	var t2 = +2.0 * (q.w * q.y - q.z * q.x)
 	t2 = +1.0 if t2 > +1.0 else t2
 	t2 = -1.0 if t2 < -1.0 else t2
 	var roll = asin(t2)
-	var t3 = +2.0 * (q.w * q.z + q.x * q.y)
-	var t4 = +1.0 - 2.0 * (q.y * q.y + q.z * q.z)
-	var yaw = atan2(t3, t4)
+	
+	var pitch = 0.0
+	var yaw = 0.0
+	
+	if abs(abs(cos(roll / 2.0)) - abs(sin(roll / 2.0))) < 0.001:
+		# roll is +/- 90 degrees
+		# This is a gimbal lock scenario
+		# The atan2 equations will always return 0 (because t0 and t3 are zero)
+		# Need to extract what the pitch + yaw are differently
+		# pitch + yaw = 2 * atan2(q.x, q.w)
+		# Can represent with any split between pitch and yaw
+		# Randomly choose pitch for all of it and zero yaw
+		# No way to know for sure, so just pick something
+		pitch = 2.0 * atan2(q.x, q.w)
+		yaw = 0.0
+	else:
+		var t0 = +2.0 * (q.w * q.x + q.y * q.z)
+		var t1 = +1.0 - 2.0 * (q.x * q.x + q.y * q.y)
+		pitch = atan2(t0, t1)
+		
+		var t4 = +1.0 - 2.0 * (q.y * q.y + q.z * q.z)
+		var t3 = +2.0 * (q.w * q.z + q.x * q.y)
+		yaw = atan2(t3, t4)
 	return Vector3(pitch, roll, yaw)
 
 func cboard_euler_to_quat(e: Vector3) -> Quat:

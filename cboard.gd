@@ -344,7 +344,7 @@ func motor_wdog_feed():
 func mc_set_global(x: float, y: float, z: float, pitch: float, roll: float, yaw: float, curr_quat: Quat):
 	# Construct current gravity vector from quaternion
 	var gravity_vector = Matrix.new(3, 1)
-	gravity_vector.set_item(0 ,0, 2.0 * (-curr_quat.x*curr_quat.z + curr_quat.w*curr_quat.y))
+	gravity_vector.set_item(0, 0, 2.0 * (-curr_quat.x*curr_quat.z + curr_quat.w*curr_quat.y))
 	gravity_vector.set_item(1, 0, 2.0 * (-curr_quat.w*curr_quat.x - curr_quat.y*curr_quat.z))
 	gravity_vector.set_item(2, 0, -curr_quat.w*curr_quat.w + curr_quat.x*curr_quat.x + curr_quat.y*curr_quat.y - curr_quat.z*curr_quat.z)
 
