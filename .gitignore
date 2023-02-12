@@ -1,5 +1,5 @@
 # Custom
-build/**/*.exe
+build/
 
 # Godot 4+ specific ignores
 .godot/
