@@ -34,7 +34,7 @@ var t = Timer.new()
 
 func _ready():
 	sim.reset_sim()
-	var cboard_rot = Vector3(15.0, 45.0, 0.0);
+	var cboard_rot = Vector3(0.0, 180.0, 0.0);
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
 	print("Orientation: ", Angles.godot_euler_to_cboard_euler(robot.rotation) * 180.0 / PI)
 	
@@ -48,42 +48,15 @@ func _process(delta):
 
 func dothings():
 	var q = Angles.godot_euler_to_quat(robot.rotation)
-	var stdgrav = Vector3(0, 0, -1)
-	var grav = Vector3(0, 0, 0)
-	grav.x = 2.0 * (-q.x*q.z + q.w*q.y)
-	grav.y = 2.0 * (-q.w*q.x - q.y*q.z)
-	grav.z = -q.w*q.w + q.x*q.x + q.y*q.y - q.z*q.z
-	var v = grav.cross(stdgrav)
-	var a = acos(grav.dot(stdgrav))
+	var vgm = Vector3(0, 0, 0)
+	vgm.x = 2.0 * (-q.x*q.z + q.w*q.y)
+	vgm.y = 2.0 * (-q.w*q.x - q.y*q.z)
+	vgm.z = -q.w*q.w + q.x*q.x + q.y*q.y - q.z*q.z
 	
-	var err = null
-	if a == 0:
-		# Vectors exactly aligned.
-		err = Vector3(0.0, 0.0, 0.0)
-	elif a == PI:
-		# Vectors exactly opposite each other.
-		# Could pick either roll or yaw for the error.
-		# Picking roll as it will likley impact depth sensor less on most vehicles
-		err = Vector3(0.0, 180.0, 0.0)
-	else:
-		err = v * a
-		
-	# This is probably best to use as error input to PID controllers
-	# print("Angle: ", a * 180.0 / PI)
-	# print("Axis: ", v)
-	# print("Error: ", err * 180.0 / PI)
+	# Note: Singularity at pitch / roll of 90 because vgm.z == 0
+	# Also works wrong for pitch / roll of 180
+	var scale = -1.0 / vgm.z
+	var vdir = Vector3(vgm.y, vgm.x, 0.0) * scale
 	
-	# Simple proportional control
-	var pitch_speed = 5.0 * err.x
-	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
-	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
-	var pitch_change_deg = pitch_speed * robot.max_rotation * 0.02
-	
-	var roll_speed = 5.0 * err.y
-	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
-	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
-	var roll_change_deg = roll_speed * robot.max_rotation * 0.02
-	
-	robot.rotate_x(-pitch_change_deg * PI / 180.0)
-	robot.rotate_y(-roll_change_deg * PI / 180.0)
-	
+	print(vdir)
+
