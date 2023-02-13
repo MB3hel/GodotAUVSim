@@ -34,11 +34,23 @@ var t = Timer.new()
 
 func _ready():
 	sim.reset_sim()
-	var cboard_rot = Vector3(15.0, 45.0, 0.0);
+	var cboard_rot = Vector3(15.0, 10.0, 0.0);
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
-	print("Orientation: ", Angles.godot_euler_to_cboard_euler(robot.rotation) * 180.0 / PI)
-	
-	
+	t.one_shot = false
+	t.connect("timeout", self, "dothings")
+	add_child(t)
+	t.start(0.02)
+
+func _process(delta):
+	pass
+
+
+var delaycount = 0.0
+
+func dothings():
+	if delaycount < 50:
+		delaycount += 1
+		return
 	var q = Angles.godot_euler_to_quat(robot.rotation)
 	var vgm = Vector3(0, 0, 0)
 	vgm.x = 2.0 * (-q.x*q.z + q.w*q.y)
@@ -47,9 +59,6 @@ func _ready():
 	
 	var vgm_xz = project_xz(vgm)
 	var vgm_yz = project_yz(vgm)
-	
-	print(vgm_yz)
-	print(vgm_xz)
 	
 	var rollerr = 0.0
 	var pitcherr = 0.0
@@ -83,22 +92,19 @@ func _ready():
 		else:
 			pitcherr = p2
 			rollerr = r2
-		
-	print(pitcherr)
-	print(rollerr)
-
-	return
 	
-	t.one_shot = false
-	t.connect("timeout", self, "dothings")
-	add_child(t)
-	t.start(0.02)
-
-func _process(delta):
-	pass
-
-func dothings():
-	pass
+	
+	# Proportional control for sasssist orientation control
+	var pitch_speed = 1.0 * (-pitcherr);
+	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
+	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
+	var roll_speed = 1.0 * (-rollerr);
+	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
+	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
+	
+	cboard.motor_wdog_feed()
+	cboard.mc_set_global(0, 0, 0, pitch_speed, roll_speed, 0, q)
+	
 
 func project_yz(v: Vector3) -> Vector3:
 	 # Project v onto yz plane
