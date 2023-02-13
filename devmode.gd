@@ -34,7 +34,7 @@ var t = Timer.new()
 
 func _ready():
 	sim.reset_sim()
-	var cboard_rot = Vector3(0.0, 0.0, 0.0);
+	var cboard_rot = Vector3(15.0, 45.0, 0.0);
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
 	print("Orientation: ", Angles.godot_euler_to_cboard_euler(robot.rotation) * 180.0 / PI)
 	
@@ -57,16 +57,16 @@ func _ready():
 	if vgm_xz.length() < 0.8:
 		rollerr = 0.0
 	else:
-		rollerr = acos(vgm_xz.dot(Vector3(0, 0, -1))) * 180.0 / PI
+		rollerr = angle_between_in_plane(vgm_xz, Vector3(0, 0, -1), Vector3(0, 1, 0))
+		rollerr *= 180.0 / PI
 	
 	if vgm_yz.length() < 0.8:
 		pitcherr = 0.0
 	else:
-		pitcherr = acos(vgm_yz.dot(Vector3(0, 0, -1))) * 180.0 / PI
+		pitcherr = angle_between_in_plane(vgm_yz, Vector3(0, 0, -1), Vector3(1, 0, 0))
+		pitcherr *= 180.0 / PI
 	
-	# TODO Apply correct signs to errs
-	
-	if pitcherr > 90.0 or rollerr > 90.0:
+	if abs(pitcherr) > 90.0 or abs(rollerr) > 90.0:
 		# There are two solutions (one with more roll and one with more pitch)
 		# Calculate both and pick the smaller magnitude sum
 		var p1 = pitcherr
@@ -86,10 +86,7 @@ func _ready():
 		
 	print(pitcherr)
 	print(rollerr)
-	
-	# robot.rotate_x(pitcherr * PI / 180.0)
-	# robot.rotate_y(rollerr * PI / 180.0)
-		
+
 	return
 	
 	t.one_shot = false
@@ -115,3 +112,7 @@ func project_xz(v: Vector3) -> Vector3:
 	var n = Vector3(0, 1, 0)
 	var u = v - ((v.dot(n) / n.length_squared()) * n)
 	return u.normalized()
+
+# Signed right hand angle between a and b in the plane to which n is normal
+func angle_between_in_plane(a: Vector3, b: Vector3, n: Vector3):
+	return atan2(a.cross(b).dot(n), a.dot(b))
