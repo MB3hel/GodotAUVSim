@@ -34,7 +34,9 @@ var t = Timer.new()
 
 func _ready():
 	sim.reset_sim()
-	var cboard_rot = Vector3(15.0, 10.0, 0.0);
+	var cboard_rot = Vector3(90.0, 60.0, 15.0);
+	
+	# print("Orientation: ", Angles.quat_to_cboard_euler(Angles.cboard_euler_to_quat(cboard_rot * PI / 180.0)) * 180.0 / PI)
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
 	t.one_shot = false
 	t.connect("timeout", self, "dothings")
@@ -46,6 +48,7 @@ func _process(delta):
 
 
 var delaycount = 0.0
+var enable_yaw_control = true
 
 func dothings():
 	if delaycount < 50:
@@ -93,6 +96,19 @@ func dothings():
 			pitcherr = p2
 			rollerr = r2
 	
+	var yawerr = 0.0
+	if enable_yaw_control:
+		var vhm = Vector3(0.0, 0.0, 0.0)
+		vhm.x = 2.0 * (q.x*q.y - q.w*q.z)
+		vhm.y = 2.0 * (q.w*q.w + q.y*q.y) - 1.0
+		vhm.z = 2.0 * (q.y*q.z + q.w*q.x)
+		var vhm_xy = project_xy(vhm)
+		if vhm_xy.length() < 0.8:
+			yawerr = 0.0
+		else:
+			yawerr = angle_between_in_plane(vhm_xy, Vector3(0, 1, 0), Vector3(0, 0, 1))
+			yawerr *= 180.0 / PI
+	
 	
 	# Proportional control for sasssist orientation control
 	var pitch_speed = 1.0 * (-pitcherr);
@@ -101,9 +117,12 @@ func dothings():
 	var roll_speed = 1.0 * (-rollerr);
 	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
 	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
+	var yaw_speed = 1.0 * (yawerr)
+	yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
+	yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
 	cboard.motor_wdog_feed()
-	cboard.mc_set_global(0, 0, 0, pitch_speed, roll_speed, 0, q)
+	cboard.mc_set_global(0, 0, 0, pitch_speed, roll_speed, yaw_speed, q)
 	
 
 func project_yz(v: Vector3) -> Vector3:
@@ -118,6 +137,14 @@ func project_xz(v: Vector3) -> Vector3:
 	var n = Vector3(0, 1, 0)
 	var u = v - ((v.dot(n) / n.length_squared()) * n)
 	return u.normalized()
+
+
+func project_xy(v: Vector3) -> Vector3:
+	 # Project v onto yz plane
+	var n = Vector3(0, 0, 1)
+	var u = v - ((v.dot(n) / n.length_squared()) * n)
+	return u.normalized()
+
 
 # Signed right hand angle between a and b in the plane to which n is normal
 func angle_between_in_plane(a: Vector3, b: Vector3, n: Vector3):
