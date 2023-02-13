@@ -34,8 +34,7 @@ var t = Timer.new()
 
 func _ready():
 	sim.reset_sim()
-	var cboard_rot = Vector3(90.0, 60.0, 15.0);
-	
+	var cboard_rot = Vector3(90.0, 180.0, 90.0);	
 	# print("Orientation: ", Angles.quat_to_cboard_euler(Angles.cboard_euler_to_quat(cboard_rot * PI / 180.0)) * 180.0 / PI)
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
 	t.one_shot = false
@@ -58,7 +57,7 @@ func dothings():
 	var vgm = Vector3(0, 0, 0)
 	vgm.x = 2.0 * (-q.x*q.z + q.w*q.y)
 	vgm.y = 2.0 * (-q.w*q.x - q.y*q.z)
-	vgm.z = -q.w*q.w + q.x*q.x + q.y*q.y - q.z*q.z
+	vgm.z = -2.0 * (q.w*q.w + q.z*q.z) + 1.0
 	
 	var vgm_xz = project_xz(vgm)
 	var vgm_yz = project_yz(vgm)
