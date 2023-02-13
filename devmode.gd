@@ -30,13 +30,23 @@ func should_hijack():
 # Hard coded stuff for development use
 ####################################################################################################
 
+var t = Timer.new()
+
 func _ready():
 	sim.reset_sim()
 	var cboard_rot = Vector3(15.0, 45.0, 0.0);
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
-	
 	print("Orientation: ", Angles.godot_euler_to_cboard_euler(robot.rotation) * 180.0 / PI)
 	
+	t.one_shot = false
+	t.connect("timeout", self, "dothings")
+	add_child(t)
+	t.start(0.02)
+
+func _process(delta):
+	pass
+
+func dothings():
 	var q = Angles.godot_euler_to_quat(robot.rotation)
 	var stdgrav = Vector3(0, 0, -1)
 	var grav = Vector3(0, 0, 0)
@@ -59,23 +69,21 @@ func _ready():
 		err = v * a
 		
 	# This is probably best to use as error input to PID controllers
-	print("Angle: ", a * 180.0 / PI)
-	print("Axis: ", v)
-	print("Error: ", err * 180.0 / PI)
+	# print("Angle: ", a * 180.0 / PI)
+	# print("Axis: ", v)
+	# print("Error: ", err * 180.0 / PI)
 	
-	# TODO: Repeatedly run this with a PID and see what happens
+	# Simple proportional control
+	var pitch_speed = 5.0 * err.x
+	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
+	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
+	var pitch_change_deg = pitch_speed * robot.max_rotation * 0.02
 	
-	# Can euler be used? Should it be?
-	# Answer NO. Can't get rid of yaw component!
-	# var qdiff = Quat(0.0, 0.0, 0.0, 0.0)
-	# qdiff.w = cos(a / 2.0)
-	# qdiff.x = v.x * sin(a / 2.0)
-	# qdiff.y = v.y * sin(a / 2.0)
-	# qdiff.z = v.z * sin(a / 2.0)
-	# print("Quat Diff: ", qdiff)
+	var roll_speed = 5.0 * err.y
+	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
+	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
+	var roll_change_deg = roll_speed * robot.max_rotation * 0.02
 	
-	# var ediff = Angles.quat_to_cboard_euler(qdiff)
-	# print("Euler Diff: ", ediff)
-
-func _process(delta):
-	pass
+	robot.rotate_x(-pitch_change_deg * PI / 180.0)
+	robot.rotate_y(-roll_change_deg * PI / 180.0)
+	
