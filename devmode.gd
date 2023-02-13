@@ -34,7 +34,7 @@ var t = Timer.new()
 
 func _ready():
 	sim.reset_sim()
-	var cboard_rot = Vector3(110.0, 0.0, 0.0);
+	var cboard_rot = Vector3(0.0, 0.0, 0.0);
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
 	print("Orientation: ", Angles.godot_euler_to_cboard_euler(robot.rotation) * 180.0 / PI)
 	
@@ -57,18 +57,39 @@ func _ready():
 	if vgm_xz.length() < 0.8:
 		rollerr = 0.0
 	else:
-		rollerr = acos(vgm_xz.dot(Vector3(0, 0, -1)))
+		rollerr = acos(vgm_xz.dot(Vector3(0, 0, -1))) * 180.0 / PI
 	
 	if vgm_yz.length() < 0.8:
 		pitcherr = 0.0
 	else:
-		pitcherr = acos(vgm_yz.dot(Vector3(0, 0, -1)))
+		pitcherr = acos(vgm_yz.dot(Vector3(0, 0, -1))) * 180.0 / PI
 	
-	# TODO: Determine how to handle rotations past 90
+	# TODO Apply correct signs to errs
 	
-	print(pitcherr * 180.0 / PI)
-	print(rollerr * 180.0 / PI)
+	if pitcherr > 90.0 or rollerr > 90.0:
+		# There are two solutions (one with more roll and one with more pitch)
+		# Calculate both and pick the smaller magnitude sum
+		var p1 = pitcherr
+		var r1 = 180.0 - rollerr
+		var s1 = abs(p1) + abs(r1)
+		
+		var p2 = 180.0 - pitcherr
+		var r2 = rollerr
+		var s2 = abs(p2) + abs(r2)
+
+		if s1 < s2:
+			pitcherr = p1
+			rollerr = r1
+		else:
+			pitcherr = p2
+			rollerr = r2
+		
+	print(pitcherr)
+	print(rollerr)
 	
+	# robot.rotate_x(pitcherr * PI / 180.0)
+	# robot.rotate_y(rollerr * PI / 180.0)
+		
 	return
 	
 	t.one_shot = false
