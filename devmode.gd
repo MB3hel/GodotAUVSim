@@ -34,7 +34,7 @@ var t = Timer.new()
 
 func _ready():
 	sim.reset_sim()
-	var cboard_rot = Vector3(90.0, 180.0, 90.0);	
+	var cboard_rot = Vector3(90.0, 180.0, 90.0);
 	# print("Orientation: ", Angles.quat_to_cboard_euler(Angles.cboard_euler_to_quat(cboard_rot * PI / 180.0)) * 180.0 / PI)
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
 	t.one_shot = false
@@ -48,6 +48,11 @@ func _process(delta):
 
 var delaycount = 0.0
 var enable_yaw_control = true
+
+# In degrees
+var target_pitch = 0.0
+var target_roll = 0.0
+var target_yaw = 0.0
 
 func dothings():
 	if delaycount < 50:
@@ -68,13 +73,21 @@ func dothings():
 	if vgm_xz.length() < 0.8:
 		rollerr = 0.0
 	else:
-		rollerr = angle_between_in_plane(vgm_xz, Vector3(0, 0, -1), Vector3(0, 1, 0))
+		var v = Vector3(0.0, 0.0, 0.0)
+		v.x = -sin(-target_roll * PI / 180.0)
+		v.y = 0
+		v.z = -cos(-target_roll * PI / 180.0)
+		rollerr = angle_between_in_plane(vgm_xz, v, Vector3(0, 1, 0))
 		rollerr *= 180.0 / PI
 	
 	if vgm_yz.length() < 0.8:
 		pitcherr = 0.0
 	else:
-		pitcherr = angle_between_in_plane(vgm_yz, Vector3(0, 0, -1), Vector3(1, 0, 0))
+		var v = Vector3(0.0, 0.0, 0.0)
+		v.x = 0.0
+		v.y = sin(-target_pitch * PI / 180.0)
+		v.z = -cos(-target_pitch * PI / 180.0)
+		pitcherr = angle_between_in_plane(vgm_yz, v, Vector3(1, 0, 0))
 		pitcherr *= 180.0 / PI
 	
 	if abs(pitcherr) > 90.0 or abs(rollerr) > 90.0:
@@ -105,7 +118,11 @@ func dothings():
 		if vhm_xy.length() < 0.8:
 			yawerr = 0.0
 		else:
-			yawerr = angle_between_in_plane(vhm_xy, Vector3(0, 1, 0), Vector3(0, 0, 1))
+			var v = Vector3(0.0, 0.0, 0.0)
+			v.x = -sin(target_yaw * PI / 180.0)
+			v.y = cos(target_yaw * PI / 180.0)
+			v.z = 0.0
+			yawerr = angle_between_in_plane(vhm_xy, v, Vector3(0, 0, 1))
 			yawerr *= 180.0 / PI
 	
 	
@@ -121,6 +138,7 @@ func dothings():
 	yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
 	cboard.motor_wdog_feed()
+	cboard.mode = cboard.MODE_GLOBAL
 	cboard.mc_set_global(0, 0, 0, pitch_speed, roll_speed, yaw_speed, q)
 	
 
