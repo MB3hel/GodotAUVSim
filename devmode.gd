@@ -34,7 +34,7 @@ var t = Timer.new()
 
 func _ready():
 	sim.reset_sim()
-	var cboard_rot = Vector3(90.0, 180.0, 90.0);	
+	var cboard_rot = Vector3(0.0, 0.0, 0.0);
 	# print("Orientation: ", Angles.quat_to_cboard_euler(Angles.cboard_euler_to_quat(cboard_rot * PI / 180.0)) * 180.0 / PI)
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
 	t.one_shot = false
@@ -49,33 +49,49 @@ func _process(delta):
 var delaycount = 0.0
 var enable_yaw_control = true
 
+var target_euler = Vector3(15.0, 0.0, 0.0)
+
 func dothings():
 	if delaycount < 50:
 		delaycount += 1
 		return
+	
 	var q = Angles.godot_euler_to_quat(robot.rotation)
+	var qt = Angles.cboard_euler_to_quat(target_euler * PI / 180.0)
+	
 	var vgm = Vector3(0, 0, 0)
 	vgm.x = 2.0 * (-q.x*q.z + q.w*q.y)
 	vgm.y = 2.0 * (-q.w*q.x - q.y*q.z)
 	vgm.z = -2.0 * (q.w*q.w + q.z*q.z) + 1.0
 	
+	var vgt = Vector3(0, 0, 0)
+	vgt.x = 2.0 * (-qt.x*qt.z + qt.w*qt.y)
+	vgt.y = 2.0 * (-qt.w*qt.x - qt.y*qt.z)
+	vgt.z = -2.0 * (qt.w*qt.w + qt.z*qt.z) + 1.0
+	
 	var vgm_xz = project_xz(vgm)
 	var vgm_yz = project_yz(vgm)
+	
+	var vgt_xz = project_xz(vgt)
+	var vgt_yz = project_yz(vgt)
+	
 	
 	var rollerr = 0.0
 	var pitcherr = 0.0
 	
+	
 	if vgm_xz.length() < 0.8:
 		rollerr = 0.0
 	else:
-		rollerr = angle_between_in_plane(vgm_xz, Vector3(0, 0, -1), Vector3(0, 1, 0))
+		rollerr = angle_between_in_plane(vgm_xz, vgt_xz, Vector3(0, 1, 0))
 		rollerr *= 180.0 / PI
 	
 	if vgm_yz.length() < 0.8:
 		pitcherr = 0.0
 	else:
-		pitcherr = angle_between_in_plane(vgm_yz, Vector3(0, 0, -1), Vector3(1, 0, 0))
+		pitcherr = angle_between_in_plane(vgm_yz, vgt_yz, Vector3(1, 0, 0))
 		pitcherr *= 180.0 / PI
+	
 	
 	if abs(pitcherr) > 90.0 or abs(rollerr) > 90.0:
 		# There are two solutions (one with more roll and one with more pitch)
@@ -95,28 +111,34 @@ func dothings():
 			pitcherr = p2
 			rollerr = r2
 	
+	
 	var yawerr = 0.0
 	if enable_yaw_control:
 		var vhm = Vector3(0.0, 0.0, 0.0)
 		vhm.x = 2.0 * (q.x*q.y - q.w*q.z)
 		vhm.y = 2.0 * (q.w*q.w + q.y*q.y) - 1.0
 		vhm.z = 2.0 * (q.y*q.z + q.w*q.x)
+		var vht = Vector3(0.0, 0.0, 0.0)
+		vht.x = 2.0 * (qt.x*qt.y - qt.w*qt.z)
+		vht.y = 2.0 * (qt.w*qt.w + qt.y*qt.y) - 1.0
+		vht.z = 2.0 * (qt.y*qt.z + qt.w*qt.x)
 		var vhm_xy = project_xy(vhm)
+		var vht_xy = project_xy(vht)
 		if vhm_xy.length() < 0.8:
 			yawerr = 0.0
 		else:
-			yawerr = angle_between_in_plane(vhm_xy, Vector3(0, 1, 0), Vector3(0, 0, 1))
+			yawerr = angle_between_in_plane(vhm_xy, vht, Vector3(0, 0, 1))
 			yawerr *= 180.0 / PI
 	
 	
 	# Proportional control for sasssist orientation control
-	var pitch_speed = 1.0 * (-pitcherr);
+	var pitch_speed = 0.5 * (-pitcherr);
 	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
 	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
-	var roll_speed = 1.0 * (-rollerr);
+	var roll_speed = 0.5 * (-rollerr);
 	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
 	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
-	var yaw_speed = 1.0 * (yawerr)
+	var yaw_speed = 0.5 * (yawerr)
 	yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
 	yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
