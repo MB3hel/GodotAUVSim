@@ -80,3 +80,22 @@ The following are not (and will never be) implemented. The simulator does not wo
 - Motor matrix update
 - BNO055 axis configure (sensor axes always match robot axes in simulation)
 - Reset command (use reset_sim command to reset simulator including control board state)
+
+
+## Development
+
+The simulator was built using v3.5.1 of Godot. There is a single scene (`pool.tscn`) using the default world environment (`default_env.tres`) as configured. Currently, no environment for the robot to operate in is configured. The simulator currently includes a simplified model of SeaWolf 8 (a robot designed and built by AquaPack Robotics at NC State University).
+
+Important to note is that Godot's world system differs from the coordinate system defined by the control board. Both use a right hand coordinate system, however Godot uses a "y up" convention and the control board uses a "z up" convention. The robot and cameras are setup for a control board system. This doesn't really impact much in the engine, however it is best to be explicit about directions (ie don't use named directions in the engine, always explicitly specify x, y, and z components).
+
+Additionally, Godot uses a different euler angle convention that the control board. When assigning or using euler rotations from game engine objects, Godot's convention must be used. When specifying orientations for the control board, the control board convention must be used. There is a helper class `Angles` implemented to perform conversions between these euler angle conventions and quaternions. Note that this class requires euler angles in radians, not degrees.
+
+Script Files:
+
+- `angles.gd`: Angle conversion helper. Converts from either euler convention to/from quaternions or to/from each other.
+- `cboard.gd`: Control board simulator. Implements message handling in the same way the control board itself does.
+- `devmode.gd`: Development script. Set the `devmode` variable to true to hijack the simulator (only works when running through the editor, not when exported). This will disable the tcp interface to the simulator. This is intended to allow hard-coded math / development testing to occur using this script's ready and process functions.
+- `matrix.gd`: Port of my C matrix math library from the AUVControlBoard firmware to godot. Used by `cboard.gd` to implement math the same way it is implemented on the control board. Note that while this is not strictly necessary (Godot does technically include implementations of most / all operations required), this makes the code more readable from a math context and more similar to the actual firmware (makes porting changes easier).
+- `robot.gd`: Script attached to the robot object itself. Handles motion at a local level.
+- `simulation.gd`: Simulation manager / "entry level" script. Manges UI values, the robot, and the control board instance. Also manages the tcp servers and communication.
+- `ui.gd`: Handles the on-screen UI.
