@@ -48,7 +48,7 @@ func _process(delta):
 var delaycount = 0.0
 var enable_yaw_control = false
 
-var target_euler = Vector3(0.0, 120.0, 0.0)
+var target_euler = Vector3(15.0, 120.0, 0.0)
 
 func dothings():
 	# Delay before starting in seconds (50 counts per second)
@@ -92,14 +92,17 @@ func dothings():
 		pitcherr = angle_between_in_plane(vgm_yz, vgt_yz, Vector3(1, 0, 0))
 		pitcherr *= 180.0 / PI
 	
+	pitcherr = restrict_angle_deg(pitcherr)
+	rollerr = restrict_angle_deg(rollerr)
+	
 	if abs(pitcherr) > 90.0 or abs(rollerr) > 90.0:
 		# There are two solutions (one with more roll and one with more pitch)
 		# Calculate both and pick the smaller magnitude sum
 		var p1 = pitcherr
-		var r1 = 180.0 - rollerr
+		var r1 = restrict_angle_deg(180.0 - rollerr)
 		var s1 = abs(p1) + abs(r1)
 		
-		var p2 = 180.0 - pitcherr
+		var p2 = restrict_angle_deg(180.0 - pitcherr)
 		var r2 = rollerr
 		var s2 = abs(p2) + abs(r2)
 
@@ -109,12 +112,11 @@ func dothings():
 		else:
 			pitcherr = p2
 			rollerr = r2
-	
-	
-	pitcherr = restrict_angle_deg(pitcherr)
-	rollerr = restrict_angle_deg(rollerr)
+			
+	print(pitcherr)
+	print(rollerr)
+	print()
 
-	
 	var yawerr = 0.0
 	if enable_yaw_control:
 		var vhm = Vector3(0.0, 0.0, 0.0)
