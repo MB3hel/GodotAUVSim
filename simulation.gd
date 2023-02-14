@@ -231,8 +231,16 @@ func handle_command(cmd: String) -> String:
 
 
 func reset_sim():
+	cboard.reset()
+	robot.curr_rotation = Vector3(0, 0, 0)
+	robot.curr_translation = Vector3(0, 0, 0)
+	robot.translation = robot_def_translation
+	robot.rotation = robot_def_rotation
+	robot.max_translation = robot_def_max_translation
+	robot.max_rotation = robot_def_max_rotation
+	
 	if devmode_node != null:
-		# Reset devmode script. Not to simulator defaults
+		# Reset devmode script too
 		remove_child(devmode_node)
 		var dm = load("res://devmode.gd").new()
 		dm.sim = self
@@ -240,11 +248,3 @@ func reset_sim():
 		dm.cboard = cboard
 		devmode_node = dm
 		add_child(dm)
-	else:
-		cboard.reset()
-		robot.curr_rotation = Vector3(0, 0, 0)
-		robot.curr_translation = Vector3(0, 0, 0)
-		robot.translation = robot_def_translation
-		robot.rotation = robot_def_rotation
-		robot.max_translation = robot_def_max_translation
-		robot.max_rotation = robot_def_max_rotation

@@ -33,7 +33,7 @@ func should_hijack():
 var t = Timer.new()
 
 func _ready():
-	var cboard_rot = Vector3(0.0, 180.0, 0.0);
+	var cboard_rot = Vector3(0.0, 0.0, 0.0);
 	# print("Orientation: ", Angles.quat_to_cboard_euler(Angles.cboard_euler_to_quat(cboard_rot * PI / 180.0)) * 180.0 / PI)
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
 	t.one_shot = false
@@ -46,9 +46,9 @@ func _process(delta):
 
 
 var delaycount = 0.0
-var enable_yaw_control = true
+var enable_yaw_control = false
 
-var target_euler = Vector3(15.0, 0.0, 0.0)
+var target_euler = Vector3(0.0, 120.0, 0.0)
 
 func dothings():
 	# Delay before starting in seconds (50 counts per second)
@@ -92,17 +92,24 @@ func dothings():
 		pitcherr = angle_between_in_plane(vgm_yz, vgt_yz, Vector3(1, 0, 0))
 		pitcherr *= 180.0 / PI
 	
-
-	while pitcherr > 180.0:
-		pitcherr -= 360.0
-	while pitcherr < -180.0:
-		pitcherr += 360.0
-
-	while rollerr > 180.0:
-		rollerr -= 360.0
-	while rollerr < -180.0:
-		rollerr += 360.0
+	if abs(rollerr) > 90.0:
+		var p1 = pitcherr
+		var r1 = restrict_angle_deg(180.0 - rollerr)
+		
+		var p2 = restrict_angle_deg(180.0 - pitcherr)
+		var r2 = rollerr
+		
+		if (abs(p2) + abs(r2)) < (abs(p1) + abs(r1)):
+			pitcherr = p2
+			rollerr = r2
+		else:
+			pitcherr = p1
+			rollerr = r1
 	
+	
+	pitcherr = restrict_angle_deg(pitcherr)
+	rollerr = restrict_angle_deg(rollerr)
+
 	
 	var yawerr = 0.0
 	if enable_yaw_control:
@@ -122,10 +129,11 @@ func dothings():
 			yawerr = angle_between_in_plane(vhm_xy, vht_xy, Vector3(0, 0, 1))
 			yawerr *= 180.0 / PI
 	
-	while yawerr > 180.0:
-		yawerr -= 360.0
-	while yawerr < -180.0:
-		yawerr += 360.0
+	yawerr = restrict_angle_deg(yawerr)
+	
+	print(pitcherr)
+	print(rollerr)
+	print()
 	
 	var pitch_speed = 0.0
 	var roll_speed = 0.0
@@ -138,17 +146,19 @@ func dothings():
 	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
 	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
 	
-	if abs(rollerr) < 60.0:
-		pitch_speed = 0.05 * (-pitcherr);
-		pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
-		pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
-		
-		yaw_speed = 0.05 * (yawerr)
-		yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
-		yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
+	pitch_speed = 0.05 * (-pitcherr);
+	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
+	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
+	
+	yaw_speed = 0.05 * (yawerr)
+	yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
+	yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
 	cboard.motor_wdog_feed()
 	cboard.mode = cboard.MODE_GLOBAL
+	
+	# robot.rotation = Angles.cboard_euler_to_godot_euler(target_euler)
+	
 	cboard.mc_set_global(0, 0, 0, pitch_speed, roll_speed, yaw_speed, q)
 	
 
@@ -176,3 +186,11 @@ func project_xy(v: Vector3) -> Vector3:
 # Signed right hand angle between a and b in the plane to which n is normal
 func angle_between_in_plane(a: Vector3, b: Vector3, n: Vector3):
 	return atan2(a.cross(b).dot(n), a.dot(b))
+
+
+func restrict_angle_deg(angle: float) -> float:
+	while angle > 180.0:
+		angle -= 360.0
+	while angle < -180.0:
+		angle += 360.0
+	return angle
