@@ -33,7 +33,6 @@ func should_hijack():
 var t = Timer.new()
 
 func _ready():
-	sim.reset_sim()
 	var cboard_rot = Vector3(90.0, 180.0, 90.0);
 	# print("Orientation: ", Angles.quat_to_cboard_euler(Angles.cboard_euler_to_quat(cboard_rot * PI / 180.0)) * 180.0 / PI)
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
