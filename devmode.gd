@@ -34,7 +34,7 @@ var t = Timer.new()
 
 func _ready():
 	sim.reset_sim()
-	var cboard_rot = Vector3(0.0, 0.0, 0.0);
+	var cboard_rot = Vector3(90.0, 180.0, 90.0);
 	# print("Orientation: ", Angles.quat_to_cboard_euler(Angles.cboard_euler_to_quat(cboard_rot * PI / 180.0)) * 180.0 / PI)
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
 	t.one_shot = false
@@ -52,7 +52,8 @@ var enable_yaw_control = true
 var target_euler = Vector3(15.0, 0.0, 0.0)
 
 func dothings():
-	if delaycount < 50:
+	# Delay before starting in seconds (50 counts per second)
+	if delaycount < (50 * 1.0):
 		delaycount += 1
 		return
 	
@@ -92,24 +93,16 @@ func dothings():
 		pitcherr = angle_between_in_plane(vgm_yz, vgt_yz, Vector3(1, 0, 0))
 		pitcherr *= 180.0 / PI
 	
-	
-	if abs(pitcherr) > 90.0 or abs(rollerr) > 90.0:
-		# There are two solutions (one with more roll and one with more pitch)
-		# Calculate both and pick the smaller magnitude sum
-		var p1 = pitcherr
-		var r1 = 180.0 - rollerr
-		var s1 = abs(p1) + abs(r1)
-		
-		var p2 = 180.0 - pitcherr
-		var r2 = rollerr
-		var s2 = abs(p2) + abs(r2)
 
-		if s1 < s2:
-			pitcherr = p1
-			rollerr = r1
-		else:
-			pitcherr = p2
-			rollerr = r2
+	while pitcherr > 180.0:
+		pitcherr -= 360.0
+	while pitcherr < -180.0:
+		pitcherr += 360.0
+
+	while rollerr > 180.0:
+		rollerr -= 360.0
+	while rollerr < -180.0:
+		rollerr += 360.0
 	
 	
 	var yawerr = 0.0
@@ -130,15 +123,24 @@ func dothings():
 			yawerr = angle_between_in_plane(vhm_xy, vht, Vector3(0, 0, 1))
 			yawerr *= 180.0 / PI
 	
+	while yawerr > 180.0:
+		yawerr -= 360.0
+	while yawerr < -180.0:
+		yawerr += 360.0
 	
-	# Proportional control for sasssist orientation control
-	var pitch_speed = 0.5 * (-pitcherr);
-	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
-	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
-	var roll_speed = 0.5 * (-rollerr);
+	var pitch_speed = 0.0
+	var roll_speed = 0.0
+	var yaw_speed = 0.0
+	
+	roll_speed = 0.05 * (-rollerr);
 	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
 	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
-	var yaw_speed = 0.5 * (yawerr)
+	
+	pitch_speed = 0.05 * (-pitcherr);
+	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
+	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
+	
+	yaw_speed = 0.05 * (yawerr)
 	yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
 	yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
