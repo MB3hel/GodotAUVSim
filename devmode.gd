@@ -92,19 +92,23 @@ func dothings():
 		pitcherr = angle_between_in_plane(vgm_yz, vgt_yz, Vector3(1, 0, 0))
 		pitcherr *= 180.0 / PI
 	
-	if abs(rollerr) > 90.0:
+	if abs(pitcherr) > 90.0 or abs(rollerr) > 90.0:
+		# There are two solutions (one with more roll and one with more pitch)
+		# Calculate both and pick the smaller magnitude sum
 		var p1 = pitcherr
-		var r1 = restrict_angle_deg(180.0 - rollerr)
+		var r1 = 180.0 - rollerr
+		var s1 = abs(p1) + abs(r1)
 		
-		var p2 = restrict_angle_deg(180.0 - pitcherr)
+		var p2 = 180.0 - pitcherr
 		var r2 = rollerr
-		
-		if (abs(p2) + abs(r2)) < (abs(p1) + abs(r1)):
-			pitcherr = p2
-			rollerr = r2
-		else:
+		var s2 = abs(p2) + abs(r2)
+
+		if s1 < s2:
 			pitcherr = p1
 			rollerr = r1
+		else:
+			pitcherr = p2
+			rollerr = r2
 	
 	
 	pitcherr = restrict_angle_deg(pitcherr)
@@ -130,10 +134,6 @@ func dothings():
 			yawerr *= 180.0 / PI
 	
 	yawerr = restrict_angle_deg(yawerr)
-	
-	print(pitcherr)
-	print(rollerr)
-	print()
 	
 	var pitch_speed = 0.0
 	var roll_speed = 0.0
