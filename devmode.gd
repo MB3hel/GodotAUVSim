@@ -120,7 +120,7 @@ func dothings():
 		if vhm_xy.length() < 0.8:
 			yawerr = 0.0
 		else:
-			yawerr = angle_between_in_plane(vhm_xy, vht, Vector3(0, 0, 1))
+			yawerr = angle_between_in_plane(vhm_xy, vht_xy, Vector3(0, 0, 1))
 			yawerr *= 180.0 / PI
 	
 	while yawerr > 180.0:
