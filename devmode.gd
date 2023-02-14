@@ -33,7 +33,7 @@ func should_hijack():
 var t = Timer.new()
 
 func _ready():
-	var cboard_rot = Vector3(90.0, 180.0, 90.0);
+	var cboard_rot = Vector3(0.0, 180.0, 0.0);
 	# print("Orientation: ", Angles.quat_to_cboard_euler(Angles.cboard_euler_to_quat(cboard_rot * PI / 180.0)) * 180.0 / PI)
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0);
 	t.one_shot = false
@@ -131,17 +131,21 @@ func dothings():
 	var roll_speed = 0.0
 	var yaw_speed = 0.0
 	
+	# Roll first, then enable both pitch and yaw
+	# If rollerr is too high, pitch and yaw changes may cause issues
+	
 	roll_speed = 0.05 * (-rollerr);
 	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
 	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
 	
-	pitch_speed = 0.05 * (-pitcherr);
-	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
-	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
-	
-	yaw_speed = 0.05 * (yawerr)
-	yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
-	yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
+	if abs(rollerr) < 60.0:
+		pitch_speed = 0.05 * (-pitcherr);
+		pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
+		pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
+		
+		yaw_speed = 0.05 * (yawerr)
+		yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
+		yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
 	cboard.motor_wdog_feed()
 	cboard.mode = cboard.MODE_GLOBAL
