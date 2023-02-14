@@ -145,6 +145,7 @@ func dothings():
 	yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
 	cboard.motor_wdog_feed()
+	cboard.mode = cboard.MODE_GLOBAL
 	cboard.mc_set_global(0, 0, 0, pitch_speed, roll_speed, yaw_speed, q)
 	
 
