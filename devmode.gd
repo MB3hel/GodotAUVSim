@@ -46,9 +46,9 @@ func _process(delta):
 
 
 var delaycount = 0.0
-var enable_yaw_control = true
+var enable_yaw_control = false
 
-var target_euler = Vector3(45.0, 45.0, 0.0)
+var target_euler = Vector3(15.0, 120.0, 170.0)
 var first_time = false
 
 
@@ -66,7 +66,7 @@ func dothings():
 		print("Target Quat: (w = ", qt.w, ", x = ", qt.z, ", y = ", qt.y, ", z = ", qt.z, ")")
 		first_time = true
 	
-	var qrot = q * qt.inverse()
+	var qrot = diff_quat(q, qt)
 	var angle = acos(qrot.w) * 2.0
 	var axis = Vector3(0.0, 0.0, 0.0)
 	if angle != 0.0:
@@ -92,18 +92,14 @@ func dothings():
 	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
 	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
 	
-	if enable_yaw_control:
-		yaw_speed = 0.05 * (-e.z)
+	if enable_yaw_control and abs(e.x) < 15.0 and abs(e.y) < 15.0:
+		yaw_speed = 0.01 * (-e.z)
 		yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
 		yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
 	cboard.motor_wdog_feed()
-	cboard.mode = cboard.MODE_GLOBAL
-	
-	# robot.rotation = Angles.cboard_euler_to_godot_euler(target_euler)
-	
+	cboard.mode = cboard.MODE_GLOBAL	
 	cboard.mc_set_global(0, 0, 0, pitch_speed, roll_speed, yaw_speed, q)
-	
 
 
 func dothings_vector():
@@ -263,3 +259,14 @@ func restrict_angle_rad(angle: float) -> float:
 	while angle < -PI:
 		angle += PI + PI
 	return angle
+
+
+func diff_quat(a: Quat, b: Quat) -> Quat:
+	if a.dot(b) < 0.0:
+		return a * -b.inverse()
+	else:
+		return a * b.inverse()
+
+
+func axis_angle_to_quat(axis: Vector3, angle: float) -> Quat:
+	return null
