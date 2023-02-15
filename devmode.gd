@@ -47,7 +47,7 @@ func _process(delta):
 var delaycount = 0.0
 var enable_yaw_control = true
 
-var target_euler = Vector3(15.0, 120.0, 90.0)
+var target_euler = Vector3(90.0, 45.0, 90.0)
 var first = false
 
 func dothings():
@@ -65,28 +65,6 @@ func dothings():
 		first = true
 	
 	var qrot = diff_quat(q, qt).normalized()
-	
-	
-	# var angle = acos(qrot.w) * 2.0
-	# var axis = Vector3(0.0, 0.0, 0.0)
-	# if angle != 0.0:
-	# 	axis.x = qrot.x / sin(angle / 2.0)
-	# 	axis.y = qrot.y / sin(angle / 2.0)
-	# 	axis.z = qrot.z / sin(angle / 2.0)
-	# angle = restrict_angle_deg(angle * 180.0 / PI)
-	# var angular_velocity = angle * axis.normalized()
-	# var e = angular_velocity
-	# NOTE: Signs on e are not always what would be expected
-	# Example: (both start at 0, 0, 0)
-	# Target of 0, 120, 0 requires negative e.y (-x, +z)
-	# Target of 15, 180, 170 requires positive e.y (-x, +z)
-	# Perhaps an issue because of the 180 specifically???
-	# Also 15, 120, 0 just doesn't work at all??? Very wrong signs??? No clue.
-	# Target of 15, 120, 0 requires (+x, -y, +z)
-	# The "shortest path" motion also doesn't seem to work quite right in cases with multiple axes of motion
-	# It seems to move away then back most of the time. Possibly releated. Possibly not. Possibly just bad tuning
-	
-	# Alt e vector??? Maybe works??? Maybe doesn't???
 	var qv = Vector3(qrot.x, qrot.y, qrot.z)
 	var qv_mag = qv.length()
 	var qr = qrot.w
@@ -115,7 +93,7 @@ func dothings():
 		
 	
 	cboard.motor_wdog_feed()
-	cboard.mode = cboard.MODE_LOCAL
+	cboard.mode = cboard.MODE_GLOBAL
 	cboard.mc_set_global(0, 0, 0, pitch_speed, roll_speed, yaw_speed, q)
 
 

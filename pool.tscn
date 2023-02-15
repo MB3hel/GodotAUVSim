@@ -20,6 +20,7 @@ font_data = ExtResource( 8 )
 script = ExtResource( 7 )
 
 [node name="Robot" type="KinematicBody" parent="."]
+transform = Transform( -3.09086e-08, 3.09086e-08, 1, 0.707107, 0.707107, 0, -0.707107, 0.707107, -4.37114e-08, 0, 0, 0 )
 script = ExtResource( 6 )
 
 [node name="MeshInstance" type="MeshInstance" parent="Robot"]
