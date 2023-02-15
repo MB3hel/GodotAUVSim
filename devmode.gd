@@ -50,7 +50,52 @@ var enable_yaw_control = false
 
 var target_euler = Vector3(15.0, 120.0, 0.0)
 
+
+func dothings_quat():
+	# Quaternion based control setup
+	var q = Angles.godot_euler_to_quat(robot.rotation)
+	var qt = Angles.cboard_euler_to_quat(target_euler * PI / 180.0)
+	
+	var qrot = qt * q.inverse()
+	var qv = Vector3(qrot.x, qrot.y, qrot.z)
+	var qvmag = qv.length()
+	var qr = qrot.w
+	var emag = 2 * atan(qvmag / qr)
+	var e = emag * qv
+	
+	var pitch_speed = 0.0
+	var roll_speed = 0.0
+	var yaw_speed = 0.0
+	
+	# Roll first, then enable both pitch and yaw
+	# If rollerr is too high, pitch and yaw changes may cause issues
+	
+	roll_speed = 0.2 * (-e.y);
+	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
+	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
+	
+	pitch_speed = 0.2 * (-e.x);
+	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
+	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
+	
+	if enable_yaw_control:
+		yaw_speed = 0.2 * (e.z)
+		yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
+		yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
+	
+	cboard.motor_wdog_feed()
+	cboard.mode = cboard.MODE_GLOBAL
+	
+	# robot.rotation = Angles.cboard_euler_to_godot_euler(target_euler)
+	
+	cboard.mc_set_global(0, 0, 0, pitch_speed, roll_speed, yaw_speed, q)
+	
+
+
 func dothings():
+	
+	robot.rotation = Angles.cboard_euler_to_godot_euler(target_euler * PI / 180.0)
+	
 	# Delay before starting in seconds (50 counts per second)
 	if delaycount < (50 * 1.0):
 		delaycount += 1
