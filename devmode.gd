@@ -33,7 +33,7 @@ func should_hijack():
 var t = Timer.new()
 
 func _ready():
-	var cboard_rot = Vector3(0.0, 0.0, 90.0)
+	var cboard_rot = Vector3(0.0, 0.0, 0.0)
 	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0)
 	t.one_shot = false
 	t.connect("timeout", self, "dothings")
@@ -45,10 +45,10 @@ func _process(delta):
 
 
 var delaycount = 0.0
-var enable_yaw_control = true
+var enable_yaw_control = false
 
 # TODO Construct this differently so that roll and yaw are what they mean in GLOBAL mode of operation
-var target_euler = Vector3(15.0, 0.0, 90.0)
+var target_euler = Vector3(15.0, 120.0, 0.0)
 var first = false
 
 func dothings():
@@ -81,25 +81,32 @@ func dothings():
 	var e_mag = 2.0 * atan(qv_mag / qr)
 	var e = e_mag * qv
 	
-	# TODO: Rotate e by rotation matrix from q to localize it
+	var e_m = Matrix.new(3, 1)
+	e_m.set_col(0, [e.x, e.y, e.z])
 	
+	var R = rotation_matrix_from_quat(q.inverse())
+	var e_m_rotated = R.mul(e_m)
+	
+	var data = e_m_rotated.get_col(0)
+	e.x = data[0]
+	e.y = data[1]
+	e.z = data[2]
 	
 	var pitch_speed = 0.0
 	var roll_speed = 0.0
 	var yaw_speed = 0.0
 	
-	pitch_speed = 4.0 * (-e.x);
+	pitch_speed = 16.0 * (-e.x);
 	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
 	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
 
-	roll_speed = 4.0 * (-e.y);
+	roll_speed = 16.0 * (-e.y);
 	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
 	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
 
-	if enable_yaw_control:
-		yaw_speed = 4.0 * (-e.z)
-		yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
-		yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
+	yaw_speed = 16.0 * (-e.z)
+	yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
+	yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
 	if is_nan(pitch_speed) or is_nan(roll_speed) or is_nan(yaw_speed):
 		print("BROKE")
@@ -107,7 +114,7 @@ func dothings():
 	
 	
 	cboard.motor_wdog_feed()
-	cboard.mode = cboard.MODE_GLOBAL
+	cboard.mode = cboard.MODE_LOCAL
 	cboard.mc_set_local(0, 0, 0, pitch_speed, roll_speed, yaw_speed)
 
 
@@ -138,3 +145,10 @@ func diff_quat(a: Quat, b: Quat) -> Quat:
 	else:
 		return a * b.inverse()
 
+
+func rotation_matrix_from_quat(q: Quat) -> Matrix:
+	var R = Matrix.new(3, 3)
+	R.set_row(0, [1.0 - 2.0*(q.y*q.y + q.z*q.z),     2.0*(q.x*q.y - q.z*q.w),    2.0*(q.x*q.z + q.y*q.w)])
+	R.set_row(1, [2.0*(q.x*q.y + q.z*q.w),     1.0 - 2.0*(q.x*q.x + q.z*q.z),    2.0*(q.y*q.z - q.x*q.w)])
+	R.set_row(2, [2.0*(q.x*q.z - q.y*q.w),     2.0*(q.y*q.z + q.x*q.w),    1.0 - 2.0*(q.x*q.x + q.y*q.y)])
+	return R
