@@ -33,8 +33,12 @@ func should_hijack():
 var t = Timer.new()
 
 func _ready():
-	var cboard_rot = Vector3(0.0, 0.0, 0.0)
-	robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0)
+	# var cboard_rot = Vector3(0.0, 0.0, 0.0)
+	# robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0)
+	var q = Angles.cboard_euler_to_quat(
+		Vector3(15.0, 90.0, 90.0) / 180.0 * PI
+	)
+	robot.rotation = Angles.quat_to_godot_euler(q)
 	t.one_shot = false
 	t.connect("timeout", self, "dothings")
 	add_child(t)
@@ -52,6 +56,7 @@ var target_euler = Vector3(15.0, 120.0, 0.0)
 var first = false
 
 func dothings():
+	return
 	# Delay before starting in seconds (50 counts per second)
 	if delaycount < (50 * 1.0):
 		delaycount += 1
@@ -66,7 +71,11 @@ func dothings():
 		first = true
 
 
-	if not enable_yaw_control:
+	# Note that a change to z-x'-y'' convention would probably make this work
+	# Note that since +y is forward for cboard, this is a standard pitch, roll, yaw convention
+	# using Tait–Bryan angles (same as standard convention z-y'-x''). Basically, my x and y axes
+	# are switched comprared to convention.
+	if false:
 		var e = Angles.quat_to_cboard_euler(q)
 		var et = Angles.quat_to_cboard_euler(qt)
 		et.z = e.z
@@ -80,6 +89,8 @@ func dothings():
 	var qr = qrot.w
 	var e_mag = 2.0 * atan(qv_mag / qr)
 	var e = e_mag * qv
+	
+	print(e)
 	
 	var e_m = Matrix.new(3, 1)
 	e_m.set_col(0, [e.x, e.y, e.z])
