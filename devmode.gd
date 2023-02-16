@@ -36,7 +36,7 @@ func _ready():
 	# var cboard_rot = Vector3(0.0, 0.0, 0.0)
 	# robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0)
 	var q = Angles.cboard_euler_to_quat(
-		Vector3(15.0, 90.0, 90.0) / 180.0 * PI
+		Vector3(0.0, 0.0, 0.0) / 180.0 * PI
 	)
 	robot.rotation = Angles.quat_to_godot_euler(q)
 	t.one_shot = false

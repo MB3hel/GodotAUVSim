@@ -36,8 +36,6 @@ func quat_to_cboard_euler(q: Quat) -> Vector3:
 	var pitch_denom = 1.0 - 2.0 * (q.x * q.x + q.y * q.y)
 	var pitch = atan2(pitch_numer, pitch_denom)
 	
-	# TODO: Handle gimbal lock scenarios (pitch +/- 90)
-	
 	var roll = asin(2.0 * (q.w * q.y - q.x * q.z))
 	
 	var yaw_numer = 2.0 * (q.x * q.y + q.w * q.z)
