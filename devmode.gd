@@ -78,14 +78,10 @@ func dothings():
 		first = true
 	
 	
-	var qrot = diff_quat(q, qt).normalized()
-	var qv = Vector3(qrot.x, qrot.y, qrot.z)
-	var qv_mag = qv.length()
-	var qr = qrot.w
-	var e_mag = 2.0 * atan(qv_mag / qr)
-	var e = e_mag * qv.normalized()
-	
-	
+	var res = quat_to_axis_angle(diff_quat(q, qt))
+	var axis = res[1]
+	var angle = res[0]
+	var e = axis * angle
 	
 	# print(e)
 	# print(ealt)
@@ -94,7 +90,7 @@ func dothings():
 	var e_m = Matrix.new(3, 1)
 	e_m.set_col(0, [e.x, e.y, e.z])
 	
-	var R = rotation_matrix_from_quat(q.inverse())
+	var R = quat_to_rotation_matrix(q.inverse())
 	var e_m_rotated = R.mul(e_m)
 	
 	var data = e_m_rotated.get_col(0)
@@ -157,14 +153,14 @@ func diff_quat(a: Quat, b: Quat) -> Quat:
 		return a * b.inverse()
 
 
-func rotation_matrix_from_quat(q: Quat) -> Matrix:
+func quat_to_rotation_matrix(q: Quat) -> Matrix:
 	var R = Matrix.new(3, 3)
 	R.set_row(0, [1.0 - 2.0*(q.y*q.y + q.z*q.z),     2.0*(q.x*q.y - q.z*q.w),    2.0*(q.x*q.z + q.y*q.w)])
 	R.set_row(1, [2.0*(q.x*q.y + q.z*q.w),     1.0 - 2.0*(q.x*q.x + q.z*q.z),    2.0*(q.y*q.z - q.x*q.w)])
 	R.set_row(2, [2.0*(q.x*q.z - q.y*q.w),     2.0*(q.y*q.z + q.x*q.w),    1.0 - 2.0*(q.x*q.x + q.y*q.y)])
 	return R
 
-func to_axis_angle(q: Quat) -> Array:
+func quat_to_axis_angle(q: Quat) -> Array:
 	q = q.normalized()
 	var axis = Vector3(q.x, q.y, q.z)
 	var angle = 2.0 * atan2(axis.length(), q.w)
