@@ -83,6 +83,9 @@ func dothings():
 	
 	# e is currently angular rotaiton about world axes
 	# Localize it to the robot
+	# Note: Cannot just pass this to global mode
+	# since global mode does not account for yaw
+	# Thus at 90 yaw, the x and y angular velocities would be swapped.
 	e = rotate_vector(e, q.inverse())
 	
 	# Crude proportional control which is good enough for a simulation
