@@ -49,7 +49,6 @@ func _process(delta):
 var delaycount = 0.0
 var enable_yaw_control = false
 
-# TODO Construct this differently so that roll and yaw are what they mean in GLOBAL mode of operation
 var target_euler = Vector3(45.0, 45.0, 180.0)
 var first = false
 
