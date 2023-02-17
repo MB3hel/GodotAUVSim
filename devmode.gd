@@ -47,7 +47,7 @@ func _process(delta):
 
 
 var delaycount = 0.0
-var enable_yaw_control = true
+var enable_yaw_control = false
 
 # TODO Construct this differently so that roll and yaw are what they mean in GLOBAL mode of operation
 var target_euler = Vector3(45.0, 45.0, 180.0)
@@ -106,9 +106,10 @@ func dothings():
 	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
 	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
 
-	yaw_speed = 16.0 * (-e.z)
-	yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
-	yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
+	if enable_yaw_control:
+		yaw_speed = 16.0 * (-e.z)
+		yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
+		yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
 	if is_nan(pitch_speed) or is_nan(roll_speed) or is_nan(yaw_speed):
 		print("BROKE")
