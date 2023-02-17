@@ -30,12 +30,20 @@ func should_hijack():
 # Hard coded stuff for development use
 ####################################################################################################
 
+
+# ------------------------------------------------------------------------------
+# Sassist settings to tweak for testing
+# ------------------------------------------------------------------------------
+var enable_yaw_control = true
+var initial_euler = Vector3(0.0, 0.0, 0.0)
+var target_euler = Vector3(45.0, 45.0, 180.0)
+# ------------------------------------------------------------------------------
+
+
 var t = Timer.new()
 
 func _ready():
-	var q = Angles.cboard_euler_to_quat(
-		Vector3(0.0, 0.0, 0.0) / 180.0 * PI
-	)
+	var q = Angles.cboard_euler_to_quat(initial_euler/ 180.0 * PI)
 	robot.rotation = Angles.quat_to_godot_euler(q)
 	t.one_shot = false
 	t.connect("timeout", self, "dothings")
@@ -47,9 +55,6 @@ func _process(delta):
 
 
 var delaycount = 0.0
-var enable_yaw_control = false
-
-var target_euler = Vector3(45.0, 45.0, 180.0)
 var first = false
 
 func dothings():
