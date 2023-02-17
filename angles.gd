@@ -33,16 +33,26 @@ func godot_euler_to_quat(e: Vector3) -> Quat:
 	
 func quat_to_cboard_euler(q: Quat) -> Vector3:
 	var pitch = asin(2.0 * (q.y*q.z + q.w*q.x))
+	var roll
+	var yaw
 	
-	# TODO: Handle gimbal lock (pitch +/- 90)
-	
-	var roll_numer = 2.0 * (q.w*q.y - q.x*q.z)
-	var roll_denom = 1.0 - 2.0 * (q.x*q.x + q.y*q.y)
-	var roll = atan2(roll_numer, roll_denom)
-	
-	var yaw_numer = 2.0 * (q.x*q.y - q.w*q.z)
-	var yaw_denom = 1.0 - 2.0 * (q.x*q.x + q.z*q.z)
-	var yaw = atan2(yaw_numer, yaw_denom)
+	var pitchdeg = 180.0 * pitch / PI
+	if abs(90 - abs(pitchdeg)) < 0.1:
+		# Pitch is +/- 90 degrees
+		# This is gimbal lock scenario
+		# Roll and yaw mean the same thing
+		# roll + yaw = 2 * atan2(q.y, q.w)
+		# Can split among roll and yaw any way (not unique)
+		yaw = 2.0 * atan2(q.y, q.w)
+		roll = 0.0
+	else:
+		var roll_numer = 2.0 * (q.w*q.y - q.x*q.z)
+		var roll_denom = 1.0 - 2.0 * (q.x*q.x + q.y*q.y)
+		roll = atan2(roll_numer, roll_denom)
+		
+		var yaw_numer = 2.0 * (q.x*q.y - q.w*q.z)
+		var yaw_denom = 1.0 - 2.0 * (q.x*q.x + q.z*q.z)
+		yaw = atan2(yaw_numer, yaw_denom)
 	
 	return Vector3(pitch, roll, yaw)
 

@@ -7,7 +7,7 @@ extends Node
 
 # Set to true to hijack simulator
 # Will not work in export templates
-var devmode = false
+var devmode = true
 
 var sim: Simulator = null
 var robot: Robot = null
@@ -35,7 +35,7 @@ func should_hijack():
 # Sassist settings to tweak for testing
 # ------------------------------------------------------------------------------
 var enable_yaw_control = true
-var initial_euler = Vector3(0.0, 0.0, 0.0)
+var initial_euler = Vector3(90.0, 15.0, 0.0)
 var target_euler = Vector3(45.0, 45.0, 180.0)
 # ------------------------------------------------------------------------------
 
@@ -44,11 +44,13 @@ var t = Timer.new()
 
 func _ready():
 	var q = Angles.cboard_euler_to_quat(initial_euler/ 180.0 * PI)
+	print(Angles.quat_to_cboard_euler(q)* 180.0 / PI)
+	
 	robot.rotation = Angles.quat_to_godot_euler(q)
 	t.one_shot = false
 	t.connect("timeout", self, "dothings")
 	add_child(t)
-	t.start(0.02)
+	# t.start(0.02)
 
 func _process(delta):
 	pass
