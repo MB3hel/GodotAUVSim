@@ -83,9 +83,13 @@ func dothings():
 	var qv_mag = qv.length()
 	var qr = qrot.w
 	var e_mag = 2.0 * atan(qv_mag / qr)
-	var e = e_mag * qv
+	var e = e_mag * qv.normalized()
+	
+	
 	
 	# print(e)
+	# print(ealt)
+	# print()
 	
 	var e_m = Matrix.new(3, 1)
 	e_m.set_col(0, [e.x, e.y, e.z])
@@ -102,16 +106,16 @@ func dothings():
 	var roll_speed = 0.0
 	var yaw_speed = 0.0
 	
-	pitch_speed = 16.0 * (-e.x);
+	pitch_speed = 1.0 * (-e.x);
 	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
 	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
 
-	roll_speed = 16.0 * (-e.y);
+	roll_speed = 1.0 * (-e.y);
 	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
 	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
 
 	if enable_yaw_control:
-		yaw_speed = 16.0 * (-e.z)
+		yaw_speed = 1.0 * (-e.z)
 		yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
 		yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
@@ -159,3 +163,9 @@ func rotation_matrix_from_quat(q: Quat) -> Matrix:
 	R.set_row(1, [2.0*(q.x*q.y + q.z*q.w),     1.0 - 2.0*(q.x*q.x + q.z*q.z),    2.0*(q.y*q.z - q.x*q.w)])
 	R.set_row(2, [2.0*(q.x*q.z - q.y*q.w),     2.0*(q.y*q.z + q.x*q.w),    1.0 - 2.0*(q.x*q.x + q.y*q.y)])
 	return R
+
+func to_axis_angle(q: Quat) -> Array:
+	q = q.normalized()
+	var axis = Vector3(q.x, q.y, q.z)
+	var angle = 2.0 * atan2(axis.length(), q.w)
+	return [angle, axis.normalized()]
