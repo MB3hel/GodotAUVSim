@@ -67,37 +67,25 @@ func dothings():
 	var q = Angles.godot_euler_to_quat(robot.rotation)
 	var cur = Angles.quat_to_cboard_euler(q)
 	
+	# Remove yaw component if yaw control not enabled
 	var tgt = target_euler
 	if not enable_yaw_control:
 		tgt.z = cur.z
 	
+	# Target quaternion
 	var qt = Angles.cboard_euler_to_quat(tgt * PI / 180.0)
 	
-	if not first:
-		print("Target Quat: (w = %.4f, x = %.4f, y = %.4f, z = %.4f" % [qt.w, qt.x, qt.y, qt.z])
-		first = true
-	
-	
+	# Convert to axis angle and use this to determine angular velocities
 	var res = quat_to_axis_angle(diff_quat(q, qt))
 	var axis = res[1]
 	var angle = res[0]
 	var e = axis * angle
 	
-	# print(e)
-	# print(ealt)
-	# print()
+	# e is currently angular rotaiton about world axes
+	# Localize it to the robot
+	e = rotate_vector(e, q.inverse())
 	
-	var e_m = Matrix.new(3, 1)
-	e_m.set_col(0, [e.x, e.y, e.z])
-	
-	var R = quat_to_rotation_matrix(q.inverse())
-	var e_m_rotated = R.mul(e_m)
-	
-	var data = e_m_rotated.get_col(0)
-	e.x = data[0]
-	e.y = data[1]
-	e.z = data[2]
-	
+	# Crude proportional control which is good enough for a simulation
 	var pitch_speed = 0.0
 	var roll_speed = 0.0
 	var yaw_speed = 0.0
@@ -115,35 +103,9 @@ func dothings():
 		yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
 		yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
 	
-	if is_nan(pitch_speed) or is_nan(roll_speed) or is_nan(yaw_speed):
-		print("BROKE")
-		return
-	
-	
 	cboard.motor_wdog_feed()
 	cboard.mode = cboard.MODE_LOCAL
 	cboard.mc_set_local(0, 0, 0, pitch_speed, roll_speed, yaw_speed)
-
-
-# Signed right hand angle between a and b in the plane to which n is normal
-func angle_between_in_plane(a: Vector3, b: Vector3, n: Vector3):
-	return atan2(a.cross(b).dot(n), a.dot(b))
-
-
-func restrict_angle_deg(angle: float) -> float:
-	while angle > 180.0:
-		angle -= 360.0
-	while angle < -180.0:
-		angle += 360.0
-	return angle
-
-
-func restrict_angle_rad(angle: float) -> float:
-	while angle > PI:
-		angle -= PI - PI
-	while angle < -PI:
-		angle += PI + PI
-	return angle
 
 
 func diff_quat(a: Quat, b: Quat) -> Quat:
@@ -153,15 +115,16 @@ func diff_quat(a: Quat, b: Quat) -> Quat:
 		return a * b.inverse()
 
 
-func quat_to_rotation_matrix(q: Quat) -> Matrix:
-	var R = Matrix.new(3, 3)
-	R.set_row(0, [1.0 - 2.0*(q.y*q.y + q.z*q.z),     2.0*(q.x*q.y - q.z*q.w),    2.0*(q.x*q.z + q.y*q.w)])
-	R.set_row(1, [2.0*(q.x*q.y + q.z*q.w),     1.0 - 2.0*(q.x*q.x + q.z*q.z),    2.0*(q.y*q.z - q.x*q.w)])
-	R.set_row(2, [2.0*(q.x*q.z - q.y*q.w),     2.0*(q.y*q.z + q.x*q.w),    1.0 - 2.0*(q.x*q.x + q.y*q.y)])
-	return R
-
 func quat_to_axis_angle(q: Quat) -> Array:
 	q = q.normalized()
 	var axis = Vector3(q.x, q.y, q.z)
 	var angle = 2.0 * atan2(axis.length(), q.w)
 	return [angle, axis.normalized()]
+
+
+func rotate_vector(v: Vector3, q: Quat) -> Vector3:
+	var qv = Quat(v.x, v.y, v.z, 0.0)
+	var qconj = Quat(-q.x, -q.y, -q.z, q.w)
+	var qr = q * qv * qconj
+	var r = Vector3(qr.x, qr.y, qr.z)
+	return r
