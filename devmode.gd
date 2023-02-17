@@ -33,8 +33,6 @@ func should_hijack():
 var t = Timer.new()
 
 func _ready():
-	# var cboard_rot = Vector3(0.0, 0.0, 0.0)
-	# robot.rotation = Angles.cboard_euler_to_godot_euler(cboard_rot * PI / 180.0)
 	var q = Angles.cboard_euler_to_quat(
 		Vector3(0.0, 0.0, 0.0) / 180.0 * PI
 	)
@@ -49,14 +47,13 @@ func _process(delta):
 
 
 var delaycount = 0.0
-var enable_yaw_control = false
+var enable_yaw_control = true
 
 # TODO Construct this differently so that roll and yaw are what they mean in GLOBAL mode of operation
-var target_euler = Vector3(15.0, 120.0, 0.0)
+var target_euler = Vector3(45.0, 45.0, 180.0)
 var first = false
 
 func dothings():
-	return
 	# Delay before starting in seconds (50 counts per second)
 	if delaycount < (50 * 1.0):
 		delaycount += 1
@@ -64,25 +61,19 @@ func dothings():
 	
 	# Quaternion based control setup
 	var q = Angles.godot_euler_to_quat(robot.rotation)
-	var qt = Angles.cboard_euler_to_quat(target_euler * PI / 180.0)
+	var cur = Angles.quat_to_cboard_euler(q)
+	
+	var tgt = target_euler
+	if not enable_yaw_control:
+		tgt.z = cur.z
+	
+	var qt = Angles.cboard_euler_to_quat(tgt * PI / 180.0)
 	
 	if not first:
 		print("Target Quat: (w = %.4f, x = %.4f, y = %.4f, z = %.4f" % [qt.w, qt.x, qt.y, qt.z])
 		first = true
-
-
-	# Note that a change to z-x'-y'' convention would probably make this work
-	# Note that since +y is forward for cboard, this is a standard pitch, roll, yaw convention
-	# using Tait–Bryan angles (same as standard convention z-y'-x''). Basically, my x and y axes
-	# are switched comprared to convention.
-	if false:
-		var e = Angles.quat_to_cboard_euler(q)
-		var et = Angles.quat_to_cboard_euler(qt)
-		et.z = e.z
-		q = Angles.cboard_euler_to_quat(e)
-		qt = Angles.cboard_euler_to_quat(et)
-
-
+	
+	
 	var qrot = diff_quat(q, qt).normalized()
 	var qv = Vector3(qrot.x, qrot.y, qrot.z)
 	var qv_mag = qv.length()
@@ -90,7 +81,7 @@ func dothings():
 	var e_mag = 2.0 * atan(qv_mag / qr)
 	var e = e_mag * qv
 	
-	print(e)
+	# print(e)
 	
 	var e_m = Matrix.new(3, 1)
 	e_m.set_col(0, [e.x, e.y, e.z])
