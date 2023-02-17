@@ -7,7 +7,7 @@ extends Node
 
 # Set to true to hijack simulator
 # Will not work in export templates
-var devmode = true
+var devmode = false
 
 var sim: Simulator = null
 var robot: Robot = null

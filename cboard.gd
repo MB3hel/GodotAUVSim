@@ -342,46 +342,27 @@ func motor_wdog_feed():
 
 # Motor control speed set in GLOBAL mode
 func mc_set_global(x: float, y: float, z: float, pitch: float, roll: float, yaw: float, curr_quat: Quat):
-	# Construct current gravity vector from quaternion
-	var gravity_vector = Matrix.new(3, 1)
-	gravity_vector.set_item(0, 0, 2.0 * (-curr_quat.x*curr_quat.z + curr_quat.w*curr_quat.y))
-	gravity_vector.set_item(1, 0, 2.0 * (-curr_quat.w*curr_quat.x - curr_quat.y*curr_quat.z))
-	gravity_vector.set_item(2, 0, -curr_quat.w*curr_quat.w + curr_quat.x*curr_quat.x + curr_quat.y*curr_quat.y - curr_quat.z*curr_quat.z)
-
-	# b is unit gravity vector
-	var gravl2norm = gravity_vector.l2vnorm()
-	if gravl2norm < 0.1:
-		return # Invalid gravity vector. Norm should be 1
-	var b = gravity_vector.sc_div(gravl2norm);
+	# Get gravity vector from current quaternion orientation
+	var grav = Vector3(0.0, 0.0, 0.0)
+	grav.x = 2.0 * (-curr_quat.x*curr_quat.z + curr_quat.w*curr_quat.y)
+	grav.y = 2.0 * (-curr_quat.w*curr_quat.x - curr_quat.y*curr_quat.z)
+	grav.z = -curr_quat.w*curr_quat.w + curr_quat.x*curr_quat.x + curr_quat.y*curr_quat.y - curr_quat.z*curr_quat.z
+	grav = grav.normalized()
 	
-	# Expected unit gravity vector when "level"
-	var a = Matrix.new(3, 1);
-	a.set_col(0, [0, 0, -1]);
+	# Gravity vector when level
+	var stdgrav = Vector3(0.0, 0.0, -1.0)
 	
-	# Construct rotation matrix
-	var v = a.vcross(b);
-	var c = a.vdot(b);
-	var sk = skew3(v);
-	var I = Matrix.new(3, 3);
-	I.fill_ident();
-	var R = sk.mul(sk);
-	R = R.sc_div(1.0+c);
-	R = R.add(sk);
-	R = R.add(I);
+	# Quaternion rotation from measured to standard gravity vector
+	var qrot = quat_between(grav, stdgrav).inverse()
 	
-	# Split and rotate translation and rotation targets
-	var tgtarget = Matrix.new(3, 1);		# tg = translation global
-	var rgtarget = Matrix.new(3, 1);		# rg = rotation global
-	tgtarget.set_col(0, [x, y, z]);
-	rgtarget.set_col(0, [pitch, roll, yaw]);
-	var tltarget = R.mul(tgtarget);			# tl = translation local
-	var rltarget = R.mul(rgtarget);			# rl = rotation local
-	
-	var ltranslation = tltarget.get_col(0);
-	var lrotation = rltarget.get_col(0);
+	# Apply rotation to translation and rotation DOF targets
+	var global_translation = Vector3(x, y, z)
+	var global_rotation = Vector3(pitch, roll, yaw)
+	var local_translation = rotate_vector(global_translation, qrot)
+	var local_rotation = rotate_vector(global_rotation, qrot)
 	
 	# Pass on to local mode
-	mc_set_local(ltranslation[0], ltranslation[1], ltranslation[2], lrotation[0], lrotation[1], lrotation[2]);
+	mc_set_local(local_translation.x, local_translation.y, local_translation.z, local_rotation.x, local_rotation.y, local_rotation.z)
 
 
 # Motor control speed set in LOCAL mode
@@ -442,18 +423,24 @@ func limit(v: float, lower: float, upper: float) -> float:
 	return v
 
 
-func skew3(invec: Matrix) -> Matrix:
-	var m = Matrix.new(3, 3);
-	var v = [];
-	if invec.rows == 1 and invec.cols == 3:
-		v = invec.get_row(0)
-	elif invec.cols == 1 and invec.rows == 3:
-		v = invec.get_col(0)
-	else:
-		return Matrix.new(0, 0)
-	m.set_row(0, [0.0, -v[2], v[1]]);
-	m.set_row(1, [v[2], 0.0, -v[0]]);
-	m.set_row(2, [-v[1], v[0], 0.0]);
-	return m;
+func rotate_vector(v: Vector3, q: Quat) -> Vector3:
+	var qv = Quat(v.x, v.y, v.z, 0.0)
+	var qconj = Quat(-q.x, -q.y, -q.z, q.w)
+	var qr = q * qv * qconj
+	var r = Vector3(qr.x, qr.y, qr.z)
+	return r
+
+
+func quat_between(a: Vector3, b: Vector3) -> Quat:
+	var dot = a.dot(b)
+	var summag = sqrt(a.length_squared() * b.length_squared())
+	
+	if dot / summag == -1:
+		# 180 degree rotation
+		var v = a.cross(b).normalized()
+		return Quat(v.x, v.y, v.z, 0)
+	
+	var v = a.cross(b)
+	return Quat(v.x, v.y, v.z, dot + summag).normalized()
 
 ####################################################################################################
