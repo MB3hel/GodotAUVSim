@@ -35,7 +35,7 @@ func should_hijack():
 # Sassist settings to tweak for testing
 # ------------------------------------------------------------------------------
 var enable_yaw_control = true
-var initial_euler = Vector3(90.0, 15.0, 0.0)
+var initial_euler = Vector3(0.0, 0.0, 0.0)
 var target_euler = Vector3(45.0, 45.0, 180.0)
 # ------------------------------------------------------------------------------
 
@@ -44,13 +44,14 @@ var t = Timer.new()
 
 func _ready():
 	var q = Angles.cboard_euler_to_quat(initial_euler/ 180.0 * PI)
-	print(Angles.quat_to_cboard_euler(q)* 180.0 / PI)
-	
+	pitch_pid.kP = 1.0
+	roll_pid.kP = 1.0
+	yaw_pid.kP = 1.0
 	robot.rotation = Angles.quat_to_godot_euler(q)
 	t.one_shot = false
 	t.connect("timeout", self, "dothings")
 	add_child(t)
-	# t.start(0.02)
+	t.start(0.02)
 
 func _process(delta):
 	pass
@@ -58,6 +59,10 @@ func _process(delta):
 
 var delaycount = 0.0
 var first = false
+
+var pitch_pid = PIDController.new()
+var roll_pid = PIDController.new()
+var yaw_pid = PIDController.new()
 
 func dothings():
 	# Delay before starting in seconds (50 counts per second)
@@ -95,18 +100,13 @@ func dothings():
 	var roll_speed = 0.0
 	var yaw_speed = 0.0
 	
-	pitch_speed = 1.0 * (-e.x);
-	pitch_speed = 1.0 if pitch_speed > 1.0 else pitch_speed
-	pitch_speed = -1.0 if pitch_speed < -1.0 else pitch_speed
-
-	roll_speed = 1.0 * (-e.y);
-	roll_speed = 1.0 if roll_speed > 1.0 else roll_speed
-	roll_speed = -1.0 if roll_speed < -1.0 else roll_speed
+	pitch_speed = pitch_pid.calculate(-e.x)
+	roll_speed = roll_pid.calculate(-e.y)
 
 	if enable_yaw_control:
-		yaw_speed = 1.0 * (-e.z)
-		yaw_speed = 1.0 if yaw_speed > 1.0 else yaw_speed
-		yaw_speed = -1.0 if yaw_speed < -1.0 else yaw_speed
+		yaw_speed = yaw_pid.calculate(-e.z)
+	else:
+		yaw_speed = 0.0
 	
 	cboard.motor_wdog_feed()
 	cboard.mode = cboard.MODE_LOCAL

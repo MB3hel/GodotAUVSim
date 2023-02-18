@@ -297,8 +297,14 @@ var global_pitch = 0.0
 var global_roll = 0.0
 var global_yaw = 0.0
 
-var motors_killed = true
+# Stability assist PID controllers
+var depth_pid = PIDController.new()
+var pitch_pid = PIDController.new()
+var roll_pid = PIDController.new()
+var yaw_pid = PIDController.new()
 
+# Motor watchdog stuff
+var motors_killed = true
 const MOTOR_WDOG_TIME = 1.5
 
 
