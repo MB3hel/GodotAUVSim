@@ -346,6 +346,26 @@ func motor_wdog_feed():
 		apply_saved_speed()
 
 
+# Motor control speed set in SASSIST mode
+func mc_set_sassist(x: float, y: float, yaw: float, target_euler: Vector3, curr_quat: Quat, ignore_yaw: bool):
+	# Ensure zero yaw error if ignoring yaw
+	# This is necessary because the shortest rotation path is calculated
+	# Thus, yaw must be aligned top prevent that shortest path from including a yaw component
+	if ignore_yaw:
+		var curr_euler = Angles.quat_to_cboard_euler(curr_quat)
+		target_euler.z = curr_euler.z
+		
+	# Convert target to quaternion
+	var target_quat = Angles.cboard_euler_to_quat(target_euler)
+	
+	# Construct difference quaternion and convert it to angular velocity
+	var res = quat_to_axis_angle(diff_quat(curr_quat, target_quat))
+	var err = res[0] * res[1]
+
+	# Error vector is in global axis DOFs. Rotate onto local axes
+	# TODO: this is bad due to possible yaw drift...
+
+
 # Motor control speed set in GLOBAL mode
 func mc_set_global(x: float, y: float, z: float, pitch: float, roll: float, yaw: float, curr_quat: Quat):
 	# Get gravity vector from current quaternion orientation
@@ -429,6 +449,7 @@ func limit(v: float, lower: float, upper: float) -> float:
 	return v
 
 
+# Rotate vector v by quaternion q
 func rotate_vector(v: Vector3, q: Quat) -> Vector3:
 	var qv = Quat(v.x, v.y, v.z, 0.0)
 	var qconj = Quat(-q.x, -q.y, -q.z, q.w)
@@ -437,6 +458,7 @@ func rotate_vector(v: Vector3, q: Quat) -> Vector3:
 	return r
 
 
+# Quaternion rotation from vector a to vector b
 func quat_between(a: Vector3, b: Vector3) -> Quat:
 	var dot = a.dot(b)
 	var summag = sqrt(a.length_squared() * b.length_squared())
@@ -448,5 +470,21 @@ func quat_between(a: Vector3, b: Vector3) -> Quat:
 	
 	var v = a.cross(b)
 	return Quat(v.x, v.y, v.z, dot + summag).normalized()
+
+
+# Minimum difference from quaternion a to quaternion b
+func diff_quat(a: Quat, b: Quat) -> Quat:
+	if a.dot(b) < 0.0:
+		return a * -b.inverse()
+	else:
+		return a * b.inverse()
+
+
+# Convert quaternion to axis angle representation
+func quat_to_axis_angle(q: Quat) -> Array:
+	q = q.normalized()
+	var axis = Vector3(q.x, q.y, q.z)
+	var angle = 2.0 * atan2(axis.length(), q.w)
+	return [angle, axis.normalized()]
 
 ####################################################################################################
