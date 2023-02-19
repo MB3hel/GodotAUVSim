@@ -11,6 +11,8 @@ var kD = 0.0
 var out_min = -1.0
 var out_max = 1.0
 
+var invert = false
+
 # State info
 var integral = 0.0
 var last_error = 0.0
@@ -34,4 +36,7 @@ func calculate(curr_error: float):
 	last_error = curr_error
 	
 	# Limit output range
-	return max(out_min, min(out, out_max))
+	if invert:
+		return -max(out_min, min(out, out_max))
+	else:
+		return max(out_min, min(out, out_max))
