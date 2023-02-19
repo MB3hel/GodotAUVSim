@@ -288,6 +288,22 @@ func handle_msg(buf: StreamPeerBuffer):
 		else:
 			periodic_ms5837 = false
 		acknowledge(msg_id, ACK_ERR_NONE)
+	elif msg_str.begins_with("DHOLD"):
+		# D, H, O, L, D, [x], [y], [pitch], [roll], [yaw], [target_depth]
+		if buf.get_size() - 4 != 29:
+			acknowledge(msg_id, ACK_ERR_INVALID_ARGS)
+		buf.seek(2 + 5)
+		dhold_x = buf.get_float()
+		dhold_y = buf.get_float()
+		dhold_pitch = buf.get_float()
+		dhold_roll = buf.get_float()
+		dhold_yaw = buf.get_float()
+		dhold_depth = buf.get_float()
+		mode = MODE_DHOLD
+		motor_wdog_feed()
+		mc_set_dhold(dhold_x, dhold_y, dhold_pitch, dhold_roll, dhold_yaw, dhold_depth, 
+			Angles.godot_euler_to_quat(robot.rotation), robot.translation.z)
+		acknowledge(msg_id, ACK_ERR_NONE)
 	else:
 		acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG)
 
@@ -371,6 +387,7 @@ const MODE_RAW = 0
 const MODE_LOCAL = 1
 const MODE_GLOBAL = 2
 const MODE_SASSIST = 3
+const MODE_DHOLD = 4
 
 var mode = MODE_LOCAL
 
@@ -400,6 +417,14 @@ var sassist_roll = 0.0
 var sassist_yaw = 0.0
 var sassist_depth = 0.0
 
+# Cached depth hold mode target
+var dhold_x = 0.0
+var dhold_y = 0.0
+var dhold_pitch = 0.0
+var dhold_roll = 0.0
+var dhold_yaw = 0.0
+var dhold_depth = 0.0
+
 # Stability assist PID controllers
 var depth_pid = PIDController.new()
 var pitch_pid = PIDController.new()
@@ -413,7 +438,7 @@ const MOTOR_WDOG_TIME = 1.5
 
 # Run by a timer periodically
 func periodic_speed_set():
-	if mode == MODE_GLOBAL or mode == MODE_SASSIST:
+	if mode == MODE_GLOBAL or mode == MODE_SASSIST or mode == MODE_DHOLD:
 		apply_saved_speed()
 
 
@@ -437,6 +462,9 @@ func apply_saved_speed():
 				robot.translation.z,
 				false
 			)
+	if mode == MODE_DHOLD:
+		mc_set_dhold(dhold_x, dhold_y, dhold_pitch, dhold_roll, dhold_yaw, dhold_depth, 
+			Angles.godot_euler_to_quat(robot.rotation), robot.translation.z)
 
 
 # Called when motor watchdog times out
@@ -464,6 +492,12 @@ func motor_wdog_feed():
 		self.write_msg(buf.data_array)
 		motors_killed = false
 		apply_saved_speed()
+
+
+# Motor control speed set in DHOLD mode
+func mc_set_dhold(x: float, y: float, pitch: float, roll: float, yaw: float, target_depth: float, curr_quat: Quat, curr_depth: float):
+	var z = -depth_pid.calculate(curr_depth - target_depth)
+	mc_set_global(x, y, z, pitch, roll, yaw, curr_quat)
 
 
 # Motor control speed set in SASSIST mode

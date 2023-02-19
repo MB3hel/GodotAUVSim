@@ -70,6 +70,8 @@ func _process(_delta):
 		ui.mode_value = "GLOBAL"
 	elif cboard.mode == cboard.MODE_SASSIST:
 		ui.mode_value = "SASSIST"
+	elif cboard.mode == cboard.MODE_DHOLD:
+		ui.mode_value = "DHOLD"
 	else:
 		ui.mode_value = "???"
 	if cboard.motors_killed:
