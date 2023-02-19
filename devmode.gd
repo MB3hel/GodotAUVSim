@@ -34,9 +34,10 @@ func should_hijack():
 # ------------------------------------------------------------------------------
 # Sassist settings to tweak for testing
 # ------------------------------------------------------------------------------
-var enable_yaw_control = true
+var enable_yaw_control = false
+var yaw_spd_fb = 0.5
 var initial_euler = Vector3(0.0, 0.0, 0.0)
-var target_euler = Vector3(45.0, 45.0, 180.0)
+var target_euler = Vector3(180.0, 0.0, 0.0)
 # ------------------------------------------------------------------------------
 
 
@@ -74,6 +75,10 @@ func dothings():
 	var q = Angles.godot_euler_to_quat(robot.rotation)
 	var cur = Angles.quat_to_cboard_euler(q)
 	
+	# Simulate IMU yaw drift of 15 degrees
+	# var qdrift = Angles.cboard_euler_to_quat(Vector3(0.0, 0.0, 15.0) * PI / 180.0)
+	# q = qdrift * q
+	
 	# Remove yaw component if yaw control not enabled
 	var tgt = target_euler
 	if not enable_yaw_control:
@@ -88,13 +93,6 @@ func dothings():
 	var angle = res[0]
 	var e = axis * angle
 	
-	# e is currently angular rotaiton about world axes
-	# Localize it to the robot
-	# Note: Cannot just pass this to global mode
-	# since global mode does not account for yaw
-	# Thus at 90 yaw, the x and y angular velocities would be swapped.
-	e = rotate_vector(e, q.inverse())
-	
 	# Crude proportional control which is good enough for a simulation
 	var pitch_speed = 0.0
 	var roll_speed = 0.0
@@ -106,11 +104,19 @@ func dothings():
 	if enable_yaw_control:
 		yaw_speed = yaw_pid.calculate(-e.z)
 	else:
-		yaw_speed = 0.0
+		yaw_speed = yaw_spd_fb
+	
+	# e is currently angular rotaiton about world axes
+	# Localize it to the robot
+	# Note: Cannot just pass this to global mode
+	# since global mode does not account for yaw
+	# Thus at 90 yaw, the x and y angular velocities would be swapped.
+	var world_rot = Vector3(pitch_speed, roll_speed, yaw_speed)
+	var local_rot = rotate_vector(world_rot, q.inverse())
 	
 	cboard.motor_wdog_feed()
 	cboard.mode = cboard.MODE_LOCAL
-	cboard.mc_set_local(0, 0, 0, pitch_speed, roll_speed, yaw_speed)
+	cboard.mc_set_local(0, 0, 0, local_rot.x, local_rot.y, local_rot.z)
 
 
 func diff_quat(a: Quat, b: Quat) -> Quat:

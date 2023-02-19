@@ -347,7 +347,7 @@ func motor_wdog_feed():
 
 
 # Motor control speed set in SASSIST mode
-func mc_set_sassist(x: float, y: float, yaw: float, target_euler: Vector3, curr_quat: Quat, ignore_yaw: bool):
+func mc_set_sassist(x: float, y: float, yaw: float, target_euler: Vector3, target_depth: float, curr_quat: Quat, curr_depth: float, ignore_yaw: bool):
 	# Ensure zero yaw error if ignoring yaw
 	# This is necessary because the shortest rotation path is calculated
 	# Thus, yaw must be aligned top prevent that shortest path from including a yaw component
@@ -363,8 +363,35 @@ func mc_set_sassist(x: float, y: float, yaw: float, target_euler: Vector3, curr_
 	var err = res[0] * res[1]
 
 	# Error vector is in global axis DOFs. Rotate onto local axes
-	# TODO: this is bad due to possible yaw drift...
-
+	# Note that yaw drift is not a big deal as yaw drift redefines "zero yaw"
+	# Since zero yaw aligns with world axes, this redefines the world axes in
+	# this context too (by the same amount)
+	err = rotate_vector(err, curr_quat.inverse())
+	
+	# Construct qrot same way GLOBAL mode does
+	var grav = Vector3(0.0, 0.0, 0.0)
+	grav.x = 2.0 * (-curr_quat.x*curr_quat.z + curr_quat.w*curr_quat.y)
+	grav.y = 2.0 * (-curr_quat.w*curr_quat.x - curr_quat.y*curr_quat.z)
+	grav.z = -curr_quat.w*curr_quat.w + curr_quat.x*curr_quat.x + curr_quat.y*curr_quat.y - curr_quat.z*curr_quat.z
+	grav = grav.normalized()
+	var stdgrav = Vector3(0.0, 0.0, -1.0)
+	var qrot = quat_between(grav, stdgrav).inverse()
+	
+	var z = depth_pid.calculate(curr_depth - target_depth)
+	var pitch = pitch_pid.calculate(-err.x)
+	var roll = roll_pid.calculate(-err.y)
+	
+	if ignore_yaw:
+		# Yaw is NOT localized. Localize it as would be done in global mode.
+		var rot_vec = Vector3(0, 0, yaw)
+		var rot_loc = rotate_vector(rot_vec, qrot)
+		pitch += rot_loc.x
+		roll += rot_loc.y
+		yaw += rot_loc.z
+	else:
+		yaw = yaw_pid.calculate(-err.z)
+		# All rotations controlled and localized by localizing err
+	
 
 # Motor control speed set in GLOBAL mode
 func mc_set_global(x: float, y: float, z: float, pitch: float, roll: float, yaw: float, curr_quat: Quat):
