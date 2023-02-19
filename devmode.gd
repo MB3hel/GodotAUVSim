@@ -76,8 +76,8 @@ func dothings():
 	var cur = Angles.quat_to_cboard_euler(q)
 	
 	# Simulate IMU yaw drift of 15 degrees
-	# var qdrift = Angles.cboard_euler_to_quat(Vector3(0.0, 0.0, 15.0) * PI / 180.0)
-	# q = qdrift * q
+	var qdrift = Angles.cboard_euler_to_quat(Vector3(0.0, 0.0, 15.0) * PI / 180.0)
+	q = qdrift * q
 	
 	# Remove yaw component if yaw control not enabled
 	var tgt = target_euler
