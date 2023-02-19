@@ -211,6 +211,53 @@ func handle_msg(buf: StreamPeerBuffer):
 			false
 		)
 		acknowledge(msg_id, ACK_ERR_NONE)
+	elif msg_str.begins_with("SASSISTTN"):
+		# S, A, S, S, I, S, T, T, N, [which], [kp], [ki], [kd], [kf], [limit]
+		if buf.get_size() - 4 != 30:
+			acknowledge(msg_id, ACK_ERR_INVALID_ARGS)
+			return
+		buf.seek(2 + 9)
+		var w = buf.get_u8()
+		if w == 80:
+			# P
+			pitch_pid.kP = buf.get_float()
+			pitch_pid.kI = buf.get_float()
+			pitch_pid.kD = buf.get_float()
+			buf.get_float()
+			var l = abs(buf.get_float())
+			pitch_pid.out_min = -l
+			pitch_pid.out_max = l
+		elif w == 82:
+			# R
+			roll_pid.kP = buf.get_float()
+			roll_pid.kI = buf.get_float()
+			roll_pid.kD = buf.get_float()
+			buf.get_float()
+			var l = abs(buf.get_float())
+			roll_pid.out_min = -l
+			roll_pid.out_max = l
+		elif w == 89:
+			# Y
+			yaw_pid.kP = buf.get_float()
+			yaw_pid.kI = buf.get_float()
+			yaw_pid.kD = buf.get_float()
+			buf.get_float()
+			var l = abs(buf.get_float())
+			yaw_pid.out_min = -l
+			yaw_pid.out_max = l
+		elif w == 68:
+			# D
+			depth_pid.kP = buf.get_float()
+			depth_pid.kI = buf.get_float()
+			depth_pid.kD = buf.get_float()
+			buf.get_float()
+			var l = abs(buf.get_float())
+			depth_pid.out_min = -l
+			depth_pid.out_max = l
+		else:
+			acknowledge(msg_id, ACK_ERR_INVALID_ARGS)
+			return
+		acknowledge(msg_id, ACK_ERR_NONE)
 	elif msg_str == "WDGF" and buf.get_size() - 4 == 4:
 		motor_wdog_feed()
 		acknowledge(msg_id, ACK_ERR_NONE)
