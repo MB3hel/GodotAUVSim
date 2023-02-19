@@ -420,6 +420,23 @@ func periodic_speed_set():
 func apply_saved_speed():
 	if mode == MODE_GLOBAL:
 		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, Angles.godot_euler_to_quat(robot.rotation))
+	if mode == MODE_SASSIST:
+		if sassist_variant == 1:
+			mc_set_sassist(sassist_x, sassist_y, sassist_yawspeed, 
+				Vector3(sassist_pitch, sassist_roll, sassist_yaw),
+				sassist_depth,
+				Angles.godot_euler_to_quat(robot.rotation),
+				robot.translation.z,
+				true
+			)
+		elif sassist_variant == 2:
+			mc_set_sassist(sassist_x, sassist_y, sassist_yawspeed, 
+				Vector3(sassist_pitch, sassist_roll, sassist_yaw),
+				sassist_depth,
+				Angles.godot_euler_to_quat(robot.rotation),
+				robot.translation.z,
+				false
+			)
 
 
 # Called when motor watchdog times out
@@ -459,14 +476,14 @@ func mc_set_sassist(x: float, y: float, yaw: float, target_euler: Vector3, targe
 		target_euler.z = curr_euler.z
 		
 	# Convert target to quaternion
-	var target_quat = Angles.cboard_euler_to_quat(target_euler)
+	var target_quat = Angles.cboard_euler_to_quat(target_euler / 180.0 * PI)
 	
 	# Construct difference quaternion and convert it to angular velocity
 	var res = quat_to_axis_angle(diff_quat(curr_quat, target_quat))
 	var err = res[0] * res[1]
 	
 	# Use PID controllers to calculate current outputs
-	var z = depth_pid.calculate(curr_depth - target_depth)
+	var z = -depth_pid.calculate(curr_depth - target_depth)
 	var pitch = pitch_pid.calculate(-err.x)
 	var roll = roll_pid.calculate(-err.y)
 	if not ignore_yaw:
