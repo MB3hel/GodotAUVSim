@@ -165,6 +165,52 @@ func handle_msg(buf: StreamPeerBuffer):
 		motor_wdog_feed()
 		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, Angles.godot_euler_to_quat(robot.rotation))
 		acknowledge(msg_id, ACK_ERR_NONE)
+	elif msg_str.begins_with("SASSIST1"):
+		# S, A, S, S, I, S, T, 1, [x], [y], [yaw], [target_pitch], [taget_roll], [target_depth]
+		if buf.get_size() - 4 != 32:
+			acknowledge(msg_id, ACK_ERR_INVALID_ARGS)
+			return
+		buf.seek(2 + 8)
+		sassist_variant = 1
+		sassist_x = buf.get_float()
+		sassist_y = buf.get_float()
+		sassist_yawspeed = buf.get_float()
+		sassist_pitch = buf.get_float()
+		sassist_roll = buf.get_float()
+		sassist_depth = buf.get_float()
+		mode = MODE_SASSIST
+		motor_wdog_feed()
+		mc_set_sassist(sassist_x, sassist_y, sassist_yawspeed, 
+			Vector3(sassist_pitch, sassist_roll, sassist_yaw),
+			sassist_depth,
+			Angles.godot_euler_to_quat(robot.rotation),
+			robot.translation.z,
+			true
+		)
+		acknowledge(msg_id, ACK_ERR_NONE)
+	elif msg_str.begins_with("SASSIST2"):
+		# S, A, S, S, I, S, T, 2, [x], [y], [target_pitch], [taget_roll], [target_yaw], [target_depth]
+		if buf.get_size() - 4 != 32:
+			acknowledge(msg_id, ACK_ERR_INVALID_ARGS)
+			return
+		buf.seek(2 + 8)
+		sassist_variant = 2
+		sassist_x = buf.get_float()
+		sassist_y = buf.get_float()
+		sassist_pitch = buf.get_float()
+		sassist_roll = buf.get_float()
+		sassist_yaw = buf.get_float()
+		sassist_depth = buf.get_float()
+		mode = MODE_SASSIST
+		motor_wdog_feed()
+		mc_set_sassist(sassist_x, sassist_y, sassist_yawspeed, 
+			Vector3(sassist_pitch, sassist_roll, sassist_yaw),
+			sassist_depth,
+			Angles.godot_euler_to_quat(robot.rotation),
+			robot.translation.z,
+			false
+		)
+		acknowledge(msg_id, ACK_ERR_NONE)
 	elif msg_str == "WDGF" and buf.get_size() - 4 == 4:
 		motor_wdog_feed()
 		acknowledge(msg_id, ACK_ERR_NONE)
@@ -296,6 +342,16 @@ var global_z = 0.0
 var global_pitch = 0.0
 var global_roll = 0.0
 var global_yaw = 0.0
+
+# Cached sassist mode target
+var sassist_variant = 1
+var sassist_x = 0.0
+var sassist_y = 0.0
+var sassist_yawspeed = 0.0
+var sassist_pitch = 0.0
+var sassist_roll = 0.0
+var sassist_yaw = 0.0
+var sassist_depth = 0.0
 
 # Stability assist PID controllers
 var depth_pid = PIDController.new()
