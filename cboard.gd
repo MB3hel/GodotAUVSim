@@ -212,7 +212,7 @@ func handle_msg(buf: StreamPeerBuffer):
 		)
 		acknowledge(msg_id, ACK_ERR_NONE)
 	elif msg_str.begins_with("SASSISTTN"):
-		# S, A, S, S, I, S, T, T, N, [which], [kp], [ki], [kd], [kf], [limit]
+		# S, A, S, S, I, S, T, T, N, [which], [kp], [ki], [kd], [limit]
 		if buf.get_size() - 4 != 30:
 			acknowledge(msg_id, ACK_ERR_INVALID_ARGS)
 			return
@@ -223,7 +223,6 @@ func handle_msg(buf: StreamPeerBuffer):
 			pitch_pid.kP = buf.get_float()
 			pitch_pid.kI = buf.get_float()
 			pitch_pid.kD = buf.get_float()
-			buf.get_float()
 			var l = abs(buf.get_float())
 			pitch_pid.out_min = -l
 			pitch_pid.out_max = l
@@ -232,7 +231,6 @@ func handle_msg(buf: StreamPeerBuffer):
 			roll_pid.kP = buf.get_float()
 			roll_pid.kI = buf.get_float()
 			roll_pid.kD = buf.get_float()
-			buf.get_float()
 			var l = abs(buf.get_float())
 			roll_pid.out_min = -l
 			roll_pid.out_max = l
@@ -241,7 +239,6 @@ func handle_msg(buf: StreamPeerBuffer):
 			yaw_pid.kP = buf.get_float()
 			yaw_pid.kI = buf.get_float()
 			yaw_pid.kD = buf.get_float()
-			buf.get_float()
 			var l = abs(buf.get_float())
 			yaw_pid.out_min = -l
 			yaw_pid.out_max = l
@@ -250,7 +247,6 @@ func handle_msg(buf: StreamPeerBuffer):
 			depth_pid.kP = buf.get_float()
 			depth_pid.kI = buf.get_float()
 			depth_pid.kD = buf.get_float()
-			buf.get_float()
 			var l = abs(buf.get_float())
 			depth_pid.out_min = -l
 			depth_pid.out_max = l
