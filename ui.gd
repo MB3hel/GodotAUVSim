@@ -5,6 +5,7 @@ var curr_translation = Vector3(0.0, 0.0, 0.0)
 var curr_rotation = Vector3(0.0, 0.0, 0.0)
 var robot_euler = Vector3(0.0, 0.0, 0.0)
 var robot_quat = Quat(0.0, 0.0, 0.0, 1.0)
+var robot_pos = Vector3(0.0, 0.0, 0.0)
 var mode_value = "LOCAL"
 var wdg_status = "Killed"
 
@@ -12,12 +13,14 @@ var wdg_status = "Killed"
 # UI elements
 onready var translation_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/TranslationValue")
 onready var rotation_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/RotationValue")
+onready var pos_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/PosValue")
 onready var euler_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/EulerValue")
 onready var quat_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/QuatValue")
 onready var mode_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/ModeValue")
 onready var wdg_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/MotorWDGValue")
 onready var copy_button = get_node("VBoxContainer/HBoxContainer/VBoxContainer/CopyButton")
 onready var reset_button = get_node("VBoxContainer/HBoxContainer/VBoxContainer/ResetButton")
+
 
 
 const translation_template = "(x=%+.2f, y=%+.2f, z=%+.2f)"
@@ -36,6 +39,7 @@ func _ready():
 func _process(_delta):
 	translation_label.text = translation_template % [curr_translation.x, curr_translation.y, curr_translation.z]
 	rotation_label.text = rotation_template % [curr_rotation.x, curr_rotation.y, curr_rotation.z]
+	pos_label.text = translation_template % [robot_pos.x, robot_pos.y, robot_pos.z]
 	euler_label.text = euler_template % [robot_euler.x, robot_euler.y, robot_euler.z]
 	quat_label.text = quat_template % [robot_quat.w, robot_quat.x, robot_quat.y, robot_quat.z]
 	mode_label.text = mode_value

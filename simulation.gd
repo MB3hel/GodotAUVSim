@@ -62,6 +62,7 @@ func _process(_delta):
 	# Update UI 
 	ui.curr_translation = robot.curr_translation
 	ui.curr_rotation = robot.curr_rotation
+	ui.robot_pos = robot.translation
 	ui.robot_quat = Quat(robot.rotation)
 	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) / PI * 180.0
 	if cboard.mode == cboard.MODE_LOCAL:
