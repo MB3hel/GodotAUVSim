@@ -163,7 +163,7 @@ func handle_msg(buf: StreamPeerBuffer):
 		global_yaw = buf.get_float()
 		mode = MODE_GLOBAL
 		motor_wdog_feed()
-		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, Angles.godot_euler_to_quat(robot.rotation))
+		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, self.curr_quat())
 		acknowledge(msg_id, ACK_ERR_NONE)
 	elif msg_str.begins_with("SASSIST1"):
 		# S, A, S, S, I, S, T, 1, [x], [y], [yaw], [target_pitch], [taget_roll], [target_depth]
@@ -183,8 +183,8 @@ func handle_msg(buf: StreamPeerBuffer):
 		mc_set_sassist(sassist_x, sassist_y, sassist_yawspeed, 
 			Vector3(sassist_pitch, sassist_roll, sassist_yaw),
 			sassist_depth,
-			Angles.godot_euler_to_quat(robot.rotation),
-			robot.translation.z,
+			self.curr_quat(),
+			self.curr_depth(),
 			true
 		)
 		acknowledge(msg_id, ACK_ERR_NONE)
@@ -206,8 +206,8 @@ func handle_msg(buf: StreamPeerBuffer):
 		mc_set_sassist(sassist_x, sassist_y, sassist_yawspeed, 
 			Vector3(sassist_pitch, sassist_roll, sassist_yaw),
 			sassist_depth,
-			Angles.godot_euler_to_quat(robot.rotation),
-			robot.translation.z,
+			self.curr_quat(),
+			self.curr_depth(),
 			false
 		)
 		acknowledge(msg_id, ACK_ERR_NONE)
@@ -302,7 +302,7 @@ func handle_msg(buf: StreamPeerBuffer):
 		mode = MODE_DHOLD
 		motor_wdog_feed()
 		mc_set_dhold(dhold_x, dhold_y, dhold_pitch, dhold_roll, dhold_yaw, dhold_depth, 
-			Angles.godot_euler_to_quat(robot.rotation), robot.translation.z)
+			self.curr_quat(), self.curr_depth())
 		acknowledge(msg_id, ACK_ERR_NONE)
 	else:
 		acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG)
@@ -442,29 +442,35 @@ func periodic_speed_set():
 		apply_saved_speed()
 
 
+func curr_quat() -> Quat:
+	return Angles.godot_euler_to_quat(robot.rotation)
+
+func curr_depth() -> float:
+	return robot.translation.z
+
 func apply_saved_speed():
 	if mode == MODE_GLOBAL:
-		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, Angles.godot_euler_to_quat(robot.rotation))
+		mc_set_global(global_x, global_y, global_z, global_pitch, global_roll, global_yaw, self.curr_quat())
 	if mode == MODE_SASSIST:
 		if sassist_variant == 1:
 			mc_set_sassist(sassist_x, sassist_y, sassist_yawspeed, 
 				Vector3(sassist_pitch, sassist_roll, sassist_yaw),
 				sassist_depth,
-				Angles.godot_euler_to_quat(robot.rotation),
-				robot.translation.z,
+				self.curr_quat(),
+				self.curr_depth(),
 				true
 			)
 		elif sassist_variant == 2:
 			mc_set_sassist(sassist_x, sassist_y, sassist_yawspeed, 
 				Vector3(sassist_pitch, sassist_roll, sassist_yaw),
 				sassist_depth,
-				Angles.godot_euler_to_quat(robot.rotation),
-				robot.translation.z,
+				self.curr_quat(),
+				self.curr_depth(),
 				false
 			)
 	if mode == MODE_DHOLD:
 		mc_set_dhold(dhold_x, dhold_y, dhold_pitch, dhold_roll, dhold_yaw, dhold_depth, 
-			Angles.godot_euler_to_quat(robot.rotation), robot.translation.z)
+			self.curr_quat(), self.curr_depth())
 
 
 # Called when motor watchdog times out
@@ -601,7 +607,7 @@ func mc_set_local(x: float, y: float, z: float, pitch: float, roll: float, yaw: 
 func build_bno055_data() -> Array:
 	var buf = StreamPeerBuffer.new()
 	buf.big_endian = false
-	var q = Angles.godot_euler_to_quat(robot.rotation)
+	var q = self.curr_quat()
 	buf.put_float(q.w)
 	buf.put_float(q.x)
 	buf.put_float(q.y)
@@ -616,7 +622,7 @@ func build_bno055_data() -> Array:
 func build_ms5837_data() -> Array:
 	var buf = StreamPeerBuffer.new()
 	buf.big_endian = false
-	buf.put_float(robot.translation.z)
+	buf.put_float(self.curr_depth())
 	return buf.data_array
 
 
