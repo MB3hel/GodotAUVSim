@@ -69,7 +69,7 @@ func _process(_delta):
 		reset_now = false
 	
 	# Update UI 
-	# TODO: Rewrite this
+
 	ui.curr_translation = robot.curr_force
 	ui.curr_rotation = robot.curr_torque
 	ui.robot_pos = robot.translation
