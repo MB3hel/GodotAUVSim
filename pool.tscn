@@ -19,7 +19,8 @@ font_data = ExtResource( 8 )
 [node name="root" type="Spatial"]
 script = ExtResource( 7 )
 
-[node name="Robot" type="KinematicBody" parent="."]
+[node name="Robot" type="RigidBody" parent="."]
+gravity_scale = 0.0
 script = ExtResource( 6 )
 
 [node name="MeshInstance" type="MeshInstance" parent="Robot"]

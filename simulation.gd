@@ -8,10 +8,7 @@ onready var ui = get_node("UIRoot")
 onready var cboard = ControlBoard.new(robot)
 
 # Store default parameters
-onready var robot_def_translation = robot.translation
-onready var robot_def_rotation = robot.rotation
-onready var robot_def_max_translation = robot.max_translation
-onready var robot_def_max_rotation = robot.max_rotation
+# TODO: Rewrite this
 
 # TCP stuff
 var cmd_server = TCP_Server.new()
@@ -60,11 +57,12 @@ func _ready():
 
 func _process(_delta):
 	# Update UI 
-	ui.curr_translation = robot.curr_translation
-	ui.curr_rotation = robot.curr_rotation
-	ui.robot_pos = robot.translation
-	ui.robot_quat = Quat(robot.rotation)
-	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) / PI * 180.0
+	# TODO: Rewrite this
+	# ui.curr_translation = robot.curr_translation
+	# ui.curr_rotation = robot.curr_rotation
+	# ui.robot_pos = robot.translation
+	# ui.robot_quat = Quat(robot.rotation)
+	# ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) / PI * 180.0
 	if cboard.mode == cboard.MODE_LOCAL:
 		ui.mode_value = "LOCAL"
 	elif cboard.mode == cboard.MODE_GLOBAL:
@@ -235,12 +233,13 @@ func handle_command(cmd: String) -> String:
 
 func reset_sim():
 	cboard.reset()
-	robot.curr_rotation = Vector3(0, 0, 0)
-	robot.curr_translation = Vector3(0, 0, 0)
-	robot.translation = robot_def_translation
-	robot.rotation = robot_def_rotation
-	robot.max_translation = robot_def_max_translation
-	robot.max_rotation = robot_def_max_rotation
+	# TODO: Rewrite this
+	# robot.curr_rotation = Vector3(0, 0, 0)
+	# robot.curr_translation = Vector3(0, 0, 0)
+	# robot.translation = robot_def_translation
+	# robot.rotation = robot_def_rotation
+	# robot.max_translation = robot_def_max_translation
+	# robot.max_rotation = robot_def_max_rotation
 	
 	if devmode_node != null:
 		# Reset devmode script too

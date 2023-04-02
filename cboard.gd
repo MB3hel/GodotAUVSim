@@ -476,12 +476,12 @@ func apply_saved_speed():
 # Called when motor watchdog times out
 func motor_wdog_timeout():
 	motors_killed = true
-	robot.curr_translation.x = 0.0
-	robot.curr_translation.y = 0.0
-	robot.curr_translation.z = 0.0
-	robot.curr_rotation.x = 0.0
-	robot.curr_rotation.y = 0.0
-	robot.curr_rotation.z = 0.0
+	robot.curr_force.x = 0.0
+	robot.curr_force.y = 0.0
+	robot.curr_force.z = 0.0
+	robot.curr_torque.x = 0.0
+	robot.curr_torque.y = 0.0
+	robot.curr_torque.z = 0.0
 	var buf = StreamPeerBuffer.new()
 	buf.put_data("WDGS".to_ascii())
 	buf.put_u8(0)
@@ -590,12 +590,12 @@ func mc_set_local(x: float, y: float, z: float, pitch: float, roll: float, yaw: 
 	pitch = limit(pitch, -1.0, 1.0)
 	roll = limit(roll, -1.0, 1.0)
 	yaw = limit(yaw, -1.0, 1.0)
-	robot.curr_translation.x = x
-	robot.curr_translation.y = y
-	robot.curr_translation.z = z
-	robot.curr_rotation.x = pitch
-	robot.curr_rotation.y = roll
-	robot.curr_rotation.z = yaw
+	robot.curr_force.x = x
+	robot.curr_force.y = y
+	robot.curr_force.z = z
+	robot.curr_torque.x = pitch
+	robot.curr_torque.y = roll
+	robot.curr_torque.z = yaw
 
 ####################################################################################################
 
