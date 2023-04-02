@@ -14,6 +14,8 @@ var max_translation = 1;			# Translation units per second
 var ideal_motion = false			# true to add errors (more like real world)
 var max_translation_err = 0.0001	# Max translation error (for random errors)
 var max_rotation_err = 0.005		# Max rotation error (for random errors)
+var trans_hyst_points = 40
+var rot_hyst_points = 40
 
 
 # Current motion in robot-relative DoFs
@@ -49,27 +51,25 @@ func rotation_error() -> Vector3:
 # Simulates "momentum" (not in the physics sense, but in the hysteresis of motion sense)
 func trans_hyst() -> Vector3:
 	trans_history.push_front(curr_translation)
-	if trans_history.size() > 40:
+	if trans_history.size() > trans_hyst_points:
 		trans_history.pop_back()
 
 	var result = Vector3(0.0, 0.0, 0.0)
 	for i in range(trans_history.size()):
 		# Logistic model
-		var weight = 0.95 / (1.0 + exp((0.1/4) * (i - 5))) + 0.05
-		if(weight > 1.0):
-			print(weight)
+		var weight = 0.95 / (1.0 + exp((0.1 / (trans_hyst_points / 10.0)) * (i - 5))) + 0.05
 		result += weight * trans_history[i]
 	return result / float(trans_history.size())
 
 # Simulates "momentum" (not in the physics sense, but in the hysteresis of motion sense)
 func rot_hyst() -> Vector3:
 	rot_history.push_front(curr_rotation)
-	if rot_history.size() > 40:
+	if rot_history.size() > rot_hyst_points:
 		rot_history.pop_back()
 	var result = Vector3(0.0, 0.0, 0.0)
 	for i in range(rot_history.size()):
 		# Logistic model
-		var weight = 0.95 / (1.0 + exp((0.1/4) * (i - 5))) + 0.05
+		var weight = 0.95 / (1.0 + exp((0.1 / (rot_hyst_points / 10.0)) * (i - 5))) + 0.05
 		result += weight * rot_history[i]
 	return result / float(rot_history.size())
 
