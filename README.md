@@ -41,10 +41,6 @@ The following commands are implemented
 - Get robot position in simulator: `get_pos -> EC [x y z]`
 - Set robot rotation in simulator: `set_rot w x y z -> EC`
 - Get robot rotation in simulator: `get_rot -> EC [w x y z]`
-- Set robot max translation speed: `set_max_trans m -> EC`
-- Get robot max translation speed: `get_max_trans -> EC [m]`
-- Set robot max rotation speed: `set_max_rot m -> EC`
-- Get robot max rotation speed: `get_max_rot -> EC [m]`
 - Reset simulator: `reset_sim -> EC`
 
 

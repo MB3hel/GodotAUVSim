@@ -69,7 +69,6 @@ func _process(_delta):
 		reset_now = false
 	
 	# Update UI 
-
 	ui.curr_translation = robot.curr_force
 	ui.curr_rotation = robot.curr_torque
 	ui.robot_pos = robot.translation
@@ -208,36 +207,6 @@ func handle_command(cmd: String) -> String:
 			return "1"
 		reset_sim()
 		return "0"
-	
-	# set_max_trans m -> EC
-	if parts[0] == "set_max_trans":
-		if len(parts) != 2:
-			return "1"
-		if not parts[1].is_valid_float():
-			return "1"
-		robot.max_translation = float(parts[1])
-		return "0"
-	
-	# get_max_trans -> EC [m]
-	if parts[0] == "get_max_trans":
-		if len(parts) != 1:
-			return "1"
-		return "%d %f" % [0, robot.max_translation]
-	
-	# set_max_rot m -> EC
-	if parts[0] == "set_max_rot":
-		if len(parts) != 2:
-			return "1"
-		if not parts[1].is_valid_float():
-			return "1"
-		robot.max_rotation = float(parts[1])
-		return "0"
-	
-	# get_max_rot -> EC [m]
-	if parts[0] == "get_max_rot":
-		if len(parts) != 1:
-			return "1"
-		return "%d %f" % [0, robot.max_rotation]
 	
 	# Unknown command
 	return "2"

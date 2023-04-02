@@ -443,7 +443,9 @@ func periodic_speed_set():
 
 
 func curr_quat() -> Quat:
-	return Angles.godot_euler_to_quat(robot.rotation)
+	var q = Angles.godot_euler_to_quat(robot.rotation)
+	var qrot = Angles.cboard_euler_to_quat(Vector3(0.0, 0.0, 90.0))
+	return qrot * q
 
 func curr_depth() -> float:
 	return robot.translation.z
