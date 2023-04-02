@@ -8,7 +8,13 @@ onready var ui = get_node("UIRoot")
 onready var cboard = ControlBoard.new(robot)
 
 # Store default parameters
-# TODO: Rewrite this
+onready var def_robot_rotation = robot.rotation
+onready var def_robot_translation = robot.translation
+onready var def_robot_weight = robot.weight
+onready var def_robot_linear_damp = robot.linear_damp
+onready var def_robot_angular_damp = robot.angular_damp
+onready var def_robot_max_force = robot.max_force
+onready var def_robot_max_torque = robot.max_torque
 
 # TCP stuff
 var cmd_server = TCP_Server.new()
@@ -233,13 +239,15 @@ func handle_command(cmd: String) -> String:
 
 func reset_sim():
 	cboard.reset()
-	# TODO: Rewrite this
-	# robot.curr_rotation = Vector3(0, 0, 0)
-	# robot.curr_translation = Vector3(0, 0, 0)
-	# robot.translation = robot_def_translation
-	# robot.rotation = robot_def_rotation
-	# robot.max_translation = robot_def_max_translation
-	# robot.max_rotation = robot_def_max_rotation
+	robot.curr_force = Vector3(0, 0, 0)
+	robot.curr_torque = Vector3(0, 0, 0)
+	robot.translation = def_robot_translation
+	robot.rotation = def_robot_rotation
+	robot.max_force = def_robot_max_force
+	robot.max_torque = def_robot_max_torque
+	robot.weight = def_robot_weight
+	robot.linear_damp = def_robot_linear_damp
+	robot.angular_damp = def_robot_angular_damp
 	
 	if devmode_node != null:
 		# Reset devmode script too

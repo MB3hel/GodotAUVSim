@@ -30,9 +30,8 @@ func _ready():
 func _process(delta):
 	var f = ewmul(curr_force, max_force)
 	self.add_central_force(f)
-	
 	var t = ewmul(curr_torque, max_torque)
 	self.add_torque(t)
-	print(self.angular_velocity)
+
 
 ####################################################################################################
