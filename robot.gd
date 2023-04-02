@@ -29,9 +29,9 @@ func _ready():
 
 func _process(delta):
 	var f = ewmul(curr_force, max_force)
-	self.add_central_force(f)
+	self.add_central_force(to_global(f) - global_transform.origin)
 	var t = ewmul(curr_torque, max_torque)
-	self.add_torque(t)
+	self.add_torque(to_global(t) - global_transform.origin)
 
 
 ####################################################################################################

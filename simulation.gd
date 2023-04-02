@@ -33,6 +33,8 @@ var cmd_buffer = "";
 var hijacked = false;
 var devmode_node = null
 
+var reset_now = false
+
 
 func _ready():
 	add_child(cboard)
@@ -62,13 +64,17 @@ func _ready():
 
 
 func _process(_delta):
+	if reset_now:
+		do_reset_sim()
+		reset_now = false
+	
 	# Update UI 
 	# TODO: Rewrite this
-	# ui.curr_translation = robot.curr_translation
-	# ui.curr_rotation = robot.curr_rotation
-	# ui.robot_pos = robot.translation
-	# ui.robot_quat = Quat(robot.rotation)
-	# ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) / PI * 180.0
+	ui.curr_translation = robot.curr_force
+	ui.curr_rotation = robot.curr_torque
+	ui.robot_pos = robot.translation
+	ui.robot_quat = Quat(robot.rotation)
+	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) / PI * 180.0
 	if cboard.mode == cboard.MODE_LOCAL:
 		ui.mode_value = "LOCAL"
 	elif cboard.mode == cboard.MODE_GLOBAL:
@@ -238,9 +244,14 @@ func handle_command(cmd: String) -> String:
 
 
 func reset_sim():
+	reset_now = true
+
+func do_reset_sim():
 	cboard.reset()
 	robot.curr_force = Vector3(0, 0, 0)
 	robot.curr_torque = Vector3(0, 0, 0)
+	robot.linear_velocity = Vector3(0, 0, 0)
+	robot.angular_velocity = Vector3(0, 0, 0)
 	robot.translation = def_robot_translation
 	robot.rotation = def_robot_rotation
 	robot.max_force = def_robot_max_force
