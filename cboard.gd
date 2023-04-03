@@ -512,15 +512,18 @@ func mc_set_sassist(x: float, y: float, yaw: float, target_euler: Vector3, targe
 	# This is necessary because the shortest rotation path is calculated
 	# Thus, yaw must be aligned top prevent that shortest path from including a yaw component
 	if ignore_yaw:
-		var curr_euler = Angles.quat_to_cboard_euler(curr_quat)
+		var curr_euler = Angles.quat_to_cboard_euler(curr_quat) * 180.0 / PI
 		target_euler.z = curr_euler.z
-		
+	
 	# Convert target to quaternion
 	var target_quat = Angles.cboard_euler_to_quat(target_euler / 180.0 * PI)
 	
 	# Construct difference quaternion and convert it to angular velocity
 	var res = quat_to_axis_angle(diff_quat(curr_quat, target_quat))
 	var err = res[0] * res[1]
+	
+	
+	print(err)
 	
 	# Use PID controllers to calculate current outputs
 	var z = -depth_pid.calculate(curr_depth - target_depth)
