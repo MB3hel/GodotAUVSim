@@ -31,7 +31,7 @@ func should_hijack():
 ####################################################################################################
 
 func _ready():
-	pass
+	self.robot.rotation = Angles.cboard_euler_to_godot_euler(Vector3(0, 0, 45))
 
 
 func _process(delta):

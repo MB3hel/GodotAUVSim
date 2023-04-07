@@ -50,7 +50,7 @@ func quat_to_cboard_euler(q: Quat) -> Vector3:
 		var roll_denom = 1.0 - 2.0 * (q.x*q.x + q.y*q.y)
 		roll = atan2(roll_numer, roll_denom)
 		
-		var yaw_numer = 2.0 * (q.x*q.y - q.w*q.z)
+		var yaw_numer = -2.0 * (q.x*q.y - q.w*q.z)
 		var yaw_denom = 1.0 - 2.0 * (q.x*q.x + q.z*q.z)
 		yaw = atan2(yaw_numer, yaw_denom)
 	
