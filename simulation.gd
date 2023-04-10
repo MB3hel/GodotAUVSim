@@ -5,7 +5,7 @@ class_name Simulator
 # Resousrces used during simulation
 onready var robot = get_node("Robot")
 onready var ui = get_node("UIRoot")
-onready var gdsercomm = get_node("GDSercomm")
+
 
 # Store default parameters
 onready var def_robot_rotation = robot.rotation

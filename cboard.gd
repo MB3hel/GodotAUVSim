@@ -3,6 +3,13 @@ class_name ControlBoard
 
 enum AckError {NONE = 0, UNKNOWN_MSG = 1, INVALID_ARGS = 2, INVALID_CMD = 3, TIMEOUT = 255}
 
+const START_BYTE = 253
+const END_BYTE = 254
+const ESCAPE_BYTE = 255
+
+# Array of ack_waits[msg_id] = [err, res]
+var ack_waits = {}
+
 # Sercomm instance (used for UART)
 onready var ser = get_node("GDSercomm")
 
@@ -10,6 +17,7 @@ onready var ser = get_node("GDSercomm")
 var connected = false
 
 # Current msg_id
+var curr_msg_id_mutex = Mutex.new()
 var curr_msg_id = 0
 
 # Received from control board periodically
@@ -96,33 +104,84 @@ func write_sensor_data():
 # Control board communication
 ################################################################################
 
+# Called to make sure ack for message is captured
 func prepare_for_ack(msg_id: int):
-	# TODO
-	pass
+	ack_waits[msg_id] = null
 
 
 # Wait for message ack
 # timeout in seconds
-# Returns [AckError, PoolByteArray]
+# Returns [AckError, StreamPeerBuffer]
 func wait_for_ack(msg_id: int, timeout: float) -> Array:
-	# TODO
-	return []
+	if not ack_waits.has(msg_id):
+		return [null, null]
+	while ack_waits[msg_id] == null && timeout > 0:
+		OS.delay_msec(1)
+		timeout -= 0.001
+	var err = AckError.NONE
+	var res = StreamPeerBuffer.new()
+	if timeout <= 0:
+		err = AckError.TIMEOUT
+	else:
+		err = ack_waits[msg_id][0]
+		res.put_data(ack_waits[msg_id][1])
+	ack_waits.erase(msg_id)
+	return [err, res]
 
 
 # Write a message to control board formatted properly
-func write_msg(msg: PoolByteArray, ack: bool = false) -> int:
+func write_msg(msg: StreamPeerBuffer, ack: bool = false) -> int:
+	curr_msg_id_mutex.lock()
 	var msg_id = curr_msg_id
 	curr_msg_id += 1
+	curr_msg_id_mutex.unlock()
 	if ack:
 		self.prepare_for_ack(msg_id)
-	# TODO: Construct and write message
+	
+	var msg_full = StreamPeerBuffer.new()
+	
+	# Write start byte
+	msg_full.put_u8(START_BYTE)
+	
+	# Write msg_id (escaped as needed)
+	var id_high = (msg_id >> 8) & 0xFF
+	var id_low = msg_id & 0xFF
+	if id_high == START_BYTE or id_high == END_BYTE or id_high == ESCAPE_BYTE:
+		msg_full.put_u8(ESCAPE_BYTE)
+	msg_full.put_u8(id_high)
+	if id_low == START_BYTE or id_low == END_BYTE or id_low == ESCAPE_BYTE:
+		msg_full.put_u8(ESCAPE_BYTE)
+	msg_full.put_u8(id_low)
+	
+	# Write each byte of msg escaping as needed
+	for b in msg.data_array:
+		if b == START_BYTE or b == END_BYTE or b == ESCAPE_BYTE:
+			msg_full.put_u8(ESCAPE_BYTE)
+		msg_full.put_u8(b)
+	
+	# Calculate and write CRC
+	var idbuf = PoolByteArray([id_high, id_low])
+	var crc = crc16_ccitt_false(msg.data_array, crc16_ccitt_false(idbuf))
+	var crc_high = (crc >> 8) & 0xFF
+	var crc_low = (crc >> 8) & 0xFF
+	if crc_high == START_BYTE or crc_high == END_BYTE or crc_high == ESCAPE_BYTE:
+		msg_full.put_u8(ESCAPE_BYTE)
+	msg_full.put_u8(crc_high)
+	if crc_low == START_BYTE or crc_low == END_BYTE or crc_low == ESCAPE_BYTE:
+		msg_full.put_u8(ESCAPE_BYTE)
+	msg_full.put_u8(crc_low)
+	
+	# Write end byte
+	msg_full.put_u8(END_BYTE)
+	
+	self.write_raw(msg_full.data_array)
 	return msg_id
 
 
-# Write raw data to control board (must already be formatted properly)
-func write_raw(msg: PoolByteArray):
-	# TODO
-	pass
+# Write raw data to control board
+func write_raw(data: PoolByteArray):
+	ser.write(data.get_string_from_ascii())
+
 
 # Read and handle messages from control board
 func read_task(userdata):
@@ -130,5 +189,23 @@ func read_task(userdata):
 	while connected:
 		# TODO
 		pass
+
+
+# Calcualte 16-bit CRC (CCITT-FALSE algorithm) on some data
+func crc16_ccitt_false(msg: PoolByteArray, initial: int = 0xFFFF) -> int:
+	var crc = initial
+	var pos = 0
+	while pos < msg.size():
+		var b = msg[pos]
+		for i in range(8):
+			var bit = ((b >> (7 - i) & 1) == 1)
+			var c15 = ((crc >> 15 & 1) == 1)
+			crc <<= 1
+			crc &= 0xFFFF
+			if c15 ^ bit:
+				crc ^= 0x1021
+				crc &= 0xFFFF
+		pos += 1
+	return crc & 0xFFFF
 
 ################################################################################
