@@ -17,24 +17,24 @@ onready var def_robot_max_force = robot.max_force
 onready var def_robot_max_torque = robot.max_torque
 
 # TCP stuff
-var cmd_server = TCP_Server.new()
-var cmd_client: StreamPeerTCP = null
+var sim_server = TCP_Server.new()
+var sim_client: StreamPeerTCP = null
 const listen_addr = "127.0.0.1"
-const cmd_port = 5011
-var cmd_buffer = "";
+const sim_port = 5011
+var sim_buffer = "";
 
 # Control board state information
-var connected = false
-var wdog_killed = true
-var mode = "LOCAL"
+var cboard_connected = false
+var cboard_wdog_killed = true
+var cboard_mode = "LOCAL"
 
 
 func _ready():
 	self.ui.connect("sim_reset", self, "reset_sim")
 	
 	# Start TCP servers
-	if cmd_server.listen(cmd_port, listen_addr) != OK:
-		OS.alert("Failed to start command sever (%s:%d)" % [listen_addr, cmd_port], "Startup Error")
+	if sim_server.listen(sim_port, listen_addr) != OK:
+		OS.alert("Failed to start command sever (%s:%d)" % [listen_addr, sim_port], "Startup Error")
 		get_tree().quit()
 
 
@@ -52,35 +52,36 @@ func process_ui(_delta):
 	ui.robot_pos = robot.translation
 	ui.robot_quat = Quat(robot.rotation)
 	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) / PI * 180.0
-	
-	# TODO
-	ui.mode_value = "???"
+	ui.connected = cboard_connected
+	ui.mode_value = cboard_mode
 
 
 func process_network(_delta):
-	if cmd_client != null:
+	if sim_client != null:
 		# Make sure still connected
-		if cmd_client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
+		if sim_client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
 			# Connection lost
-			# TODO: Stop motor motion
-			return
+			cboard_connected = false
+			cboard_wdog_killed = true
+			move_local(0, 0, 0, 0, 0, 0)
 		
 		# Connected. Handle data if any.
-		if cmd_client.get_available_bytes() > 0:
-			var new_str = cmd_client.get_string(cmd_client.get_available_bytes())
+		if sim_client.get_available_bytes() > 0:
+			var new_str = sim_client.get_string(sim_client.get_available_bytes())
 			while true:
 				var idx = new_str.find("\n")
 				if idx == -1:
-					cmd_buffer += new_str
+					sim_buffer += new_str
 					break
 				else:
-					var res = handle_command(cmd_buffer + new_str.substr(0, idx))
-					cmd_client.put_data(("%s\n" % res).to_ascii())
-					cmd_buffer = ""
+					var res = handle_command(sim_buffer + new_str.substr(0, idx))
+					sim_client.put_data(("%s\n" % res).to_ascii())
+					sim_buffer = ""
 					new_str = new_str.substr(idx+1)
-	elif cmd_server.is_connection_available():
+	elif sim_server.is_connection_available():
 		# Accept incoming connections if nothing currently connected
-		cmd_client = cmd_server.take_connection()
+		sim_client = sim_server.take_connection()
+		cboard_connected = true
 
 
 func reset_sim():
@@ -99,8 +100,8 @@ func reset_sim():
 
 
 func move_local(x, y, z, pitch, roll, yaw):
-	# TODO
-	pass
+	robot.curr_force = Vector3(x, y, z)
+	robot.curr_torque = Vector3(pitch, roll, yaw)
 
 
 # Error codes:
@@ -167,6 +168,20 @@ func handle_command(cmd: String) -> String:
 		if len(parts) != 1:
 			return "1"
 		reset_sim()
+		return "0"
+	
+	# from_cboard mode wdg_killed x y z pitch roll yaw
+	if parts[0] == "cboard_state":
+		if len(parts) != 9:
+			return "1"
+		# TODO: Handle data
+		return "0"
+	
+	# to_cboard -> EC [w x y z depth]
+	if parts[0] == "to_cboard":
+		if len(parts) != 1:
+			return "1"
+		# TODO: Handle data
 		return "0"
 	
 	# Unknown command
