@@ -44,7 +44,7 @@ margin_bottom = -10.0
 
 [node name="MainGrid" type="GridContainer" parent="UIRoot/VBoxContainer"]
 margin_right = 1260.0
-margin_bottom = 484.0
+margin_bottom = 511.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/vseparation = 10
@@ -53,7 +53,7 @@ columns = 3
 
 [node name="RearView" type="Control" parent="UIRoot/VBoxContainer/MainGrid"]
 margin_right = 414.0
-margin_bottom = 484.0
+margin_bottom = 511.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -65,7 +65,7 @@ size_flags_vertical = 3
 stretch = true
 
 [node name="Viewport" type="Viewport" parent="UIRoot/VBoxContainer/MainGrid/RearView/ViewportContainer"]
-size = Vector2( 414, 484 )
+size = Vector2( 414, 511 )
 handle_input_locally = false
 render_target_update_mode = 3
 
@@ -88,7 +88,7 @@ align = 1
 [node name="RightView" type="Control" parent="UIRoot/VBoxContainer/MainGrid"]
 margin_left = 424.0
 margin_right = 837.0
-margin_bottom = 484.0
+margin_bottom = 511.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -100,7 +100,7 @@ size_flags_vertical = 3
 stretch = true
 
 [node name="Viewport" type="Viewport" parent="UIRoot/VBoxContainer/MainGrid/RightView/ViewportContainer2"]
-size = Vector2( 413, 484 )
+size = Vector2( 413, 511 )
 handle_input_locally = false
 render_target_update_mode = 3
 
@@ -123,7 +123,7 @@ align = 1
 [node name="TopView" type="Control" parent="UIRoot/VBoxContainer/MainGrid"]
 margin_left = 847.0
 margin_right = 1260.0
-margin_bottom = 484.0
+margin_bottom = 511.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -135,7 +135,7 @@ size_flags_vertical = 3
 stretch = true
 
 [node name="Viewport" type="Viewport" parent="UIRoot/VBoxContainer/MainGrid/TopView/ViewportContainer2"]
-size = Vector2( 413, 484 )
+size = Vector2( 413, 511 )
 handle_input_locally = false
 render_target_update_mode = 3
 
@@ -157,13 +157,13 @@ text = "Top View"
 align = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UIRoot/VBoxContainer"]
-margin_top = 488.0
+margin_top = 515.0
 margin_right = 1260.0
 margin_bottom = 700.0
 
 [node name="StatusPanel" type="GridContainer" parent="UIRoot/VBoxContainer/HBoxContainer"]
 margin_right = 837.0
-margin_bottom = 212.0
+margin_bottom = 185.0
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 custom_constants/hseparation = 10
@@ -286,45 +286,28 @@ custom_fonts/font = ExtResource( 3 )
 text = "Killed"
 clip_text = true
 
-[node name="ConnectionLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
-margin_top = 189.0
-margin_right = 147.0
-margin_bottom = 212.0
-custom_fonts/font = ExtResource( 2 )
-text = "Sim Connection:"
-
-[node name="ConnectionValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
-margin_left = 157.0
-margin_top = 189.0
-margin_right = 837.0
-margin_bottom = 212.0
-size_flags_horizontal = 3
-custom_fonts/font = ExtResource( 3 )
-text = "Not Connected"
-clip_text = true
-
 [node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/VBoxContainer/HBoxContainer"]
 margin_left = 841.0
 margin_right = 1260.0
-margin_bottom = 212.0
+margin_bottom = 185.0
 size_flags_horizontal = 3
 
 [node name="spacer" type="Control" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_right = 419.0
-margin_bottom = 146.0
+margin_bottom = 119.0
 size_flags_vertical = 3
 
 [node name="ResetButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
-margin_top = 150.0
+margin_top = 123.0
 margin_right = 419.0
-margin_bottom = 179.0
+margin_bottom = 152.0
 custom_fonts/font = ExtResource( 3 )
 text = "Reset Simulator"
 
 [node name="CopyButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
-margin_top = 183.0
+margin_top = 156.0
 margin_right = 419.0
-margin_bottom = 212.0
+margin_bottom = 185.0
 custom_fonts/font = ExtResource( 3 )
 text = "Copy to Clipboard"
 

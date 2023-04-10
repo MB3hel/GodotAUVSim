@@ -12,16 +12,15 @@ var connected = false
 
 
 # UI elements
-onready var translation_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/TranslationValue")
-onready var rotation_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/RotationValue")
-onready var pos_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/PosValue")
-onready var euler_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/EulerValue")
-onready var quat_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/QuatValue")
-onready var mode_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/ModeValue")
-onready var wdg_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/MotorWDGValue")
-onready var conn_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/ConnectionValue")
-onready var copy_button = get_node("VBoxContainer/HBoxContainer/VBoxContainer/CopyButton")
-onready var reset_button = get_node("VBoxContainer/HBoxContainer/VBoxContainer/ResetButton")
+onready var translation_label = find_node("TranslationValue")
+onready var rotation_label = find_node("RotationValue")
+onready var pos_label = find_node("PosValue")
+onready var euler_label = find_node("EulerValue")
+onready var quat_label = find_node("QuatValue")
+onready var mode_label = find_node("ModeValue")
+onready var wdg_label = find_node("MotorWDGValue")
+onready var copy_button = find_node("CopyButton")
+onready var reset_button = find_node("ResetButton")
 
 
 const translation_template = "(x=%+.2f, y=%+.2f, z=%+.2f)"
@@ -45,10 +44,6 @@ func _process(_delta):
 	quat_label.text = quat_template % [robot_quat.w, robot_quat.x, robot_quat.y, robot_quat.z]
 	mode_label.text = mode_value
 	wdg_label.text = wdg_status
-	if connected:
-		conn_label.text = "Connected"
-	else:
-		conn_label.text = "Not Connected"
 
 func copy_to_clipboard():
 	var info = "Local Translation: {0}\r\nLocal Rotation: {1}\r\nEuler Orientation: {2}\r\nQuaternion Orientation: {3}\r\nCboard Mode: {4}\r\nMotor Watchdog: {5}\r\n"
