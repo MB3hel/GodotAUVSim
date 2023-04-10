@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://fonts/viewport_label_font.tres" type="DynamicFont" id=1]
 [ext_resource path="res://fonts/status_label_font.tres" type="DynamicFont" id=2]
@@ -9,6 +9,7 @@
 [ext_resource path="res://simulation.gd" type="Script" id=7]
 [ext_resource path="res://gdsercomm/GDsercomm.gdns" type="Script" id=8]
 [ext_resource path="res://cboard.gd" type="Script" id=9]
+[ext_resource path="res://fonts/status_value_font_italic.tres" type="DynamicFont" id=10]
 
 [sub_resource type="BoxShape" id=1]
 extents = Vector3( 0.45, 0.32, 0.21 )
@@ -311,6 +312,94 @@ margin_right = 419.0
 margin_bottom = 185.0
 custom_fonts/font = ExtResource( 3 )
 text = "Copy to Clipboard"
+
+[node name="ConnectDialog" type="PopupDialog" parent="UIRoot"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 300.0
+margin_top = 180.0
+margin_right = -300.0
+margin_bottom = -180.0
+popup_exclusive = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/ConnectDialog"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -8.0
+
+[node name="CboardSelLabel" type="Label" parent="UIRoot/ConnectDialog/VBoxContainer"]
+margin_right = 664.0
+margin_bottom = 45.0
+custom_fonts/font = ExtResource( 1 )
+text = "Select Control Board"
+
+[node name="HSeparator" type="HSeparator" parent="UIRoot/ConnectDialog/VBoxContainer"]
+margin_top = 49.0
+margin_right = 664.0
+margin_bottom = 53.0
+
+[node name="CboardSelDesc" type="Label" parent="UIRoot/ConnectDialog/VBoxContainer"]
+margin_top = 57.0
+margin_right = 664.0
+margin_bottom = 158.0
+custom_fonts/font = ExtResource( 3 )
+text = "This simulator is used to test the actual control board firmware. As such, a connection to a physical control board is required for operation.
+Select a UART device below to connect to. The selected device must be a control board running the correct firmware."
+autowrap = true
+
+[node name="SpacerLabel" type="Label" parent="UIRoot/ConnectDialog/VBoxContainer"]
+margin_top = 162.0
+margin_right = 664.0
+margin_bottom = 176.0
+
+[node name="UARTLabel" type="Label" parent="UIRoot/ConnectDialog/VBoxContainer"]
+margin_top = 180.0
+margin_right = 664.0
+margin_bottom = 203.0
+custom_fonts/font = ExtResource( 3 )
+text = "UART Ports:"
+
+[node name="PortsSelector" type="OptionButton" parent="UIRoot/ConnectDialog/VBoxContainer"]
+margin_top = 207.0
+margin_right = 664.0
+margin_bottom = 236.0
+custom_fonts/font = ExtResource( 3 )
+
+[node name="SpacerLabel2" type="Label" parent="UIRoot/ConnectDialog/VBoxContainer"]
+margin_top = 255.0
+margin_right = 664.0
+margin_bottom = 269.0
+size_flags_vertical = 6
+
+[node name="ErrorLabel" type="Label" parent="UIRoot/ConnectDialog/VBoxContainer"]
+margin_top = 288.0
+margin_right = 664.0
+margin_bottom = 311.0
+custom_fonts/font = ExtResource( 10 )
+autowrap = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UIRoot/ConnectDialog/VBoxContainer"]
+margin_top = 315.0
+margin_right = 664.0
+margin_bottom = 344.0
+
+[node name="ConnectButton" type="Button" parent="UIRoot/ConnectDialog/VBoxContainer/HBoxContainer"]
+margin_right = 330.0
+margin_bottom = 29.0
+size_flags_horizontal = 3
+custom_fonts/font = ExtResource( 3 )
+text = "Connect"
+
+[node name="ExitButton" type="Button" parent="UIRoot/ConnectDialog/VBoxContainer/HBoxContainer"]
+margin_left = 334.0
+margin_right = 664.0
+margin_bottom = 29.0
+size_flags_horizontal = 3
+custom_fonts/font = ExtResource( 3 )
+text = "Exit"
 
 [node name="ControlBoard" type="Node" parent="."]
 script = ExtResource( 9 )

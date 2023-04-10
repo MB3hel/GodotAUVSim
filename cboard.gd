@@ -50,21 +50,21 @@ func _ready():
 # Connection management
 ################################################################################
 
-func connect_uart(port: String) -> bool:
+func connect_uart(port: String) -> String:
 	if connected:
 		disconnect_uart()
 	var ports = ser.list_ports()
 	if not port in ports:
-		return false
+		return "Invalid port. Did the port get disconnected?"
 	ser.open(port, 115200, 0)
 	if self.sim_hijack(true) != AckError.NONE:
 		ser.close()
-		return false
+		return "Failed to hijack control board. Is the selected port really a control board? Is the firmware flashed?"
 	read_thread = Thread.new()
 	connected = true
 	read_thread.start(self, "read_task")
 	sensor_data_timer.start(0.015)
-	return true
+	return "No error."
 
 
 func disconnect_uart():
@@ -89,7 +89,7 @@ func sim_hijack(hijack: bool) -> int:
 	else:
 		msg.append(0)
 	var msg_id = self.write_msg(msg, true)
-	var res = self.wait_for_ack(msg_id, 0.1)
+	var res = self.wait_for_ack(msg_id, 0.5)
 	return res[0]
 	
 
@@ -130,7 +130,7 @@ func wait_for_ack(msg_id: int, timeout: float) -> Array:
 
 
 # Write a message to control board formatted properly
-func write_msg(msg: StreamPeerBuffer, ack: bool = false) -> int:
+func write_msg(msg: PoolByteArray, ack: bool = false) -> int:
 	curr_msg_id_mutex.lock()
 	var msg_id = curr_msg_id
 	curr_msg_id += 1
@@ -154,14 +154,14 @@ func write_msg(msg: StreamPeerBuffer, ack: bool = false) -> int:
 	msg_full.put_u8(id_low)
 	
 	# Write each byte of msg escaping as needed
-	for b in msg.data_array:
+	for b in msg:
 		if b == START_BYTE or b == END_BYTE or b == ESCAPE_BYTE:
 			msg_full.put_u8(ESCAPE_BYTE)
 		msg_full.put_u8(b)
 	
 	# Calculate and write CRC
 	var idbuf = PoolByteArray([id_high, id_low])
-	var crc = crc16_ccitt_false(msg.data_array, crc16_ccitt_false(idbuf))
+	var crc = crc16_ccitt_false(msg, crc16_ccitt_false(idbuf))
 	var crc_high = (crc >> 8) & 0xFF
 	var crc_low = (crc >> 8) & 0xFF
 	if crc_high == START_BYTE or crc_high == END_BYTE or crc_high == ESCAPE_BYTE:
@@ -198,8 +198,8 @@ func crc16_ccitt_false(msg: PoolByteArray, initial: int = 0xFFFF) -> int:
 	while pos < msg.size():
 		var b = msg[pos]
 		for i in range(8):
-			var bit = ((b >> (7 - i) & 1) == 1)
-			var c15 = ((crc >> 15 & 1) == 1)
+			var bit = int((b >> (7 - i) & 1) == 1)
+			var c15 = int((crc >> 15 & 1) == 1)
 			crc <<= 1
 			crc &= 0xFFFF
 			if c15 ^ bit:
