@@ -5,6 +5,7 @@ class_name Simulator
 # Resousrces used during simulation
 onready var robot = get_node("Robot")
 onready var ui = get_node("UIRoot")
+onready var gdsercomm = get_node("GDSercomm")
 
 # Store default parameters
 onready var def_robot_rotation = robot.rotation
@@ -17,11 +18,11 @@ onready var def_robot_max_force = robot.max_force
 onready var def_robot_max_torque = robot.max_torque
 
 # TCP stuff
-var sim_server = TCP_Server.new()
-var sim_client: StreamPeerTCP = null
+var cmd_server = TCP_Server.new()
+var cmd_client: StreamPeerTCP = null
 const listen_addr = "127.0.0.1"
-const sim_port = 5011
-var sim_buffer = "";
+const cmd_port = 5011
+var cmd_buffer = "";
 
 # Control board state information
 var cboard_connected = false
@@ -33,9 +34,12 @@ func _ready():
 	self.ui.connect("sim_reset", self, "reset_sim")
 	
 	# Start TCP servers
-	if sim_server.listen(sim_port, listen_addr) != OK:
-		OS.alert("Failed to start command sever (%s:%d)" % [listen_addr, sim_port], "Startup Error")
+	if cmd_server.listen(cmd_port, listen_addr) != OK:
+		OS.alert("Failed to start command sever (%s:%d)" % [listen_addr, cmd_port], "Startup Error")
 		get_tree().quit()
+	
+	
+	print(gdsercomm.list_ports())
 
 
 # Called every frame
@@ -57,30 +61,30 @@ func process_ui(_delta):
 
 
 func process_network(_delta):
-	if sim_client != null:
+	if cmd_client != null:
 		# Make sure still connected
-		if sim_client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
+		if cmd_client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
 			# Connection lost
 			cboard_connected = false
 			cboard_wdog_killed = true
 			move_local(0, 0, 0, 0, 0, 0)
 		
 		# Connected. Handle data if any.
-		if sim_client.get_available_bytes() > 0:
-			var new_str = sim_client.get_string(sim_client.get_available_bytes())
+		if cmd_client.get_available_bytes() > 0:
+			var new_str = cmd_client.get_string(cmd_client.get_available_bytes())
 			while true:
 				var idx = new_str.find("\n")
 				if idx == -1:
-					sim_buffer += new_str
+					cmd_buffer += new_str
 					break
 				else:
-					var res = handle_command(sim_buffer + new_str.substr(0, idx))
-					sim_client.put_data(("%s\n" % res).to_ascii())
-					sim_buffer = ""
+					var res = handle_command(cmd_buffer + new_str.substr(0, idx))
+					cmd_client.put_data(("%s\n" % res).to_ascii())
+					cmd_buffer = ""
 					new_str = new_str.substr(idx+1)
-	elif sim_server.is_connection_available():
+	elif cmd_server.is_connection_available():
 		# Accept incoming connections if nothing currently connected
-		sim_client = sim_server.take_connection()
+		cmd_client = cmd_server.take_connection()
 		cboard_connected = true
 
 
