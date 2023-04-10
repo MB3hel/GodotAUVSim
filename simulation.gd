@@ -5,12 +5,12 @@ class_name Simulator
 # Resousrces used during simulation
 onready var robot = get_node("Robot")
 onready var ui = get_node("UIRoot")
-onready var cboard = ControlBoard.new(robot)
 
 # Store default parameters
 onready var def_robot_rotation = robot.rotation
 onready var def_robot_translation = robot.translation
 onready var def_robot_weight = robot.weight
+onready var def_robot_mass = robot.mass
 onready var def_robot_linear_damp = robot.linear_damp
 onready var def_robot_angular_damp = robot.angular_damp
 onready var def_robot_max_force = robot.max_force
@@ -18,91 +18,53 @@ onready var def_robot_max_torque = robot.max_torque
 
 # TCP stuff
 var cmd_server = TCP_Server.new()
-var cboard_server = TCP_Server.new()
 var cmd_client: StreamPeerTCP = null
-var cboard_client: StreamPeerTCP = null
 const listen_addr = "127.0.0.1"
 const cmd_port = 5011
-const cboard_port = 5012
-
-
-# Buffer for received command data
 var cmd_buffer = "";
 
-
-var hijacked = false;
-var devmode_node = null
-
-var reset_now = false
+# Control board state information
+var connected = false
+var wdog_killed = true
+var mode = "LOCAL"
 
 
 func _ready():
-	add_child(cboard)
 	self.ui.connect("sim_reset", self, "reset_sim")
-	
-	# See devmode.gd for details
-	var dm = load("res://devmode.gd").new()
-	if dm.should_hijack():
-		hijacked = true
-		dm.sim = self
-		dm.robot = robot
-		dm.cboard = cboard
-		devmode_node = dm
-		add_child(dm)
-		get_node("UIRoot/DevmodeLabel").show()
-		# Simulator hijacked. Not starting tcp.
-		return
-		
 	
 	# Start TCP servers
 	if cmd_server.listen(cmd_port, listen_addr) != OK:
 		OS.alert("Failed to start command sever (%s:%d)" % [listen_addr, cmd_port], "Startup Error")
 		get_tree().quit()
-	if cboard_server.listen(cboard_port, listen_addr) != OK:
-		OS.alert("Failed to start cboard sever (%s:%d)" % [listen_addr, cboard_port], "Startup Error")
-		get_tree().quit()
 
 
-func _process(_delta):
-	if reset_now:
-		do_reset_sim()
-		reset_now = false
-	
-	# Update UI 
+# Called every frame
+# delta is time between last call and now in seconds
+# This function is called as fast as possible!
+func _process(delta):
+	process_ui(delta)
+	process_network(delta)
+
+
+func process_ui(_delta):
 	ui.curr_translation = robot.curr_force
 	ui.curr_rotation = robot.curr_torque
 	ui.robot_pos = robot.translation
 	ui.robot_quat = Quat(robot.rotation)
 	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) / PI * 180.0
-	if cboard.mode == cboard.MODE_LOCAL:
-		ui.mode_value = "LOCAL"
-	elif cboard.mode == cboard.MODE_GLOBAL:
-		ui.mode_value = "GLOBAL"
-	elif cboard.mode == cboard.MODE_SASSIST:
-		ui.mode_value = "SASSIST"
-	elif cboard.mode == cboard.MODE_DHOLD:
-		ui.mode_value = "DHOLD"
-	else:
-		ui.mode_value = "???"
-	if cboard.motors_killed:
-		ui.wdg_status = "Killed"
-	else:
-		ui.wdg_status = "Active"
+	
+	# TODO
+	ui.mode_value = "???"
+
+
+func process_network(_delta):
+	if cmd_client != null:
+		# Make sure still connected
+		if cmd_client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
+			# Connection lost
+			# TODO: Stop motor motion
+			return
 		
-	
-	# Skip network stuff if devmode override
-	if self.hijacked:
-		return
-	
-	# Network stuff
-	if cmd_client != null and cboard_client != null:
-		# Handle disconnects
-		if cmd_client.get_status() != StreamPeerTCP.STATUS_CONNECTED or cboard_client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
-			cmd_client.disconnect_from_host()
-			cmd_client = null
-			cboard_client.disconnect_from_host()
-			cboard_client = null
-	if cmd_client != null and cboard_client != null:
 		# Connected. Handle data if any.
 		if cmd_client.get_available_bytes() > 0:
 			var new_str = cmd_client.get_string(cmd_client.get_available_bytes())
@@ -116,30 +78,29 @@ func _process(_delta):
 					cmd_client.put_data(("%s\n" % res).to_ascii())
 					cmd_buffer = ""
 					new_str = new_str.substr(idx+1)
-		
-		# Handle data if any
-		if cboard_client.get_available_bytes() > 0:
-			var res = cboard_client.get_data(cboard_client.get_available_bytes())
-			cboard.handle_data(res[1])
-		
-		# Send data back from cboard if any
-		cboard.write_buffer_mutex.lock()
-		if cboard.write_buffer.get_size() > 0:
-			cboard_client.put_data(cboard.write_buffer.data_array)
-			cboard.write_buffer.clear()
-		cboard.write_buffer_mutex.unlock()
-	else:
-		# Check for and handle new connections
-		if cmd_server.is_connection_available() and cboard_server.is_connection_available():
-			cmd_client = cmd_server.take_connection()
-			cboard_client= cboard_server.take_connection()
-			if cmd_client.get_connected_host() != cboard_client.get_connected_host():
-				# Connections from two different hosts. Invalid setup.
-				cmd_client.disconnect_from_host()
-				cmd_client = null
-				cboard_client.disconnect_from_host()
-				cboard_client = null
-	
+	elif cmd_server.is_connection_available():
+		# Accept incoming connections if nothing currently connected
+		cmd_client = cmd_server.take_connection()
+
+
+func reset_sim():
+	robot.curr_force = Vector3(0, 0, 0)
+	robot.curr_torque = Vector3(0, 0, 0)
+	robot.linear_velocity = Vector3(0, 0, 0)
+	robot.angular_velocity = Vector3(0, 0, 0)
+	robot.translation = def_robot_translation
+	robot.rotation = def_robot_rotation
+	robot.max_force = def_robot_max_force
+	robot.max_torque = def_robot_max_torque
+	robot.weight = def_robot_weight
+	robot.mass = def_robot_mass
+	robot.linear_damp = def_robot_linear_damp
+	robot.angular_damp = def_robot_angular_damp
+
+
+func move_local(x, y, z, pitch, roll, yaw):
+	# TODO
+	pass
 
 
 # Error codes:
@@ -210,31 +171,3 @@ func handle_command(cmd: String) -> String:
 	
 	# Unknown command
 	return "2"
-
-
-func reset_sim():
-	reset_now = true
-
-func do_reset_sim():
-	cboard.reset()
-	robot.curr_force = Vector3(0, 0, 0)
-	robot.curr_torque = Vector3(0, 0, 0)
-	robot.linear_velocity = Vector3(0, 0, 0)
-	robot.angular_velocity = Vector3(0, 0, 0)
-	robot.translation = def_robot_translation
-	robot.rotation = def_robot_rotation
-	robot.max_force = def_robot_max_force
-	robot.max_torque = def_robot_max_torque
-	robot.weight = def_robot_weight
-	robot.linear_damp = def_robot_linear_damp
-	robot.angular_damp = def_robot_angular_damp
-	
-	if devmode_node != null:
-		# Reset devmode script too
-		remove_child(devmode_node)
-		var dm = load("res://devmode.gd").new()
-		dm.sim = self
-		dm.robot = robot
-		dm.cboard = cboard
-		devmode_node = dm
-		add_child(dm)

@@ -8,6 +8,7 @@ var robot_quat = Quat(0.0, 0.0, 0.0, 1.0)
 var robot_pos = Vector3(0.0, 0.0, 0.0)
 var mode_value = "LOCAL"
 var wdg_status = "Killed"
+var connected = false
 
 
 # UI elements
@@ -18,9 +19,9 @@ onready var euler_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/Eule
 onready var quat_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/QuatValue")
 onready var mode_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/ModeValue")
 onready var wdg_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/MotorWDGValue")
+onready var conn_label = get_node("VBoxContainer/HBoxContainer/StatusPanel/ConnectionValue")
 onready var copy_button = get_node("VBoxContainer/HBoxContainer/VBoxContainer/CopyButton")
 onready var reset_button = get_node("VBoxContainer/HBoxContainer/VBoxContainer/ResetButton")
-
 
 
 const translation_template = "(x=%+.2f, y=%+.2f, z=%+.2f)"
@@ -44,6 +45,10 @@ func _process(_delta):
 	quat_label.text = quat_template % [robot_quat.w, robot_quat.x, robot_quat.y, robot_quat.z]
 	mode_label.text = mode_value
 	wdg_label.text = wdg_status
+	if connected:
+		conn_label.text = "Connected"
+	else:
+		conn_label.text = "Not Connected"
 
 func copy_to_clipboard():
 	var info = "Local Translation: {0}\r\nLocal Rotation: {1}\r\nEuler Orientation: {2}\r\nQuaternion Orientation: {3}\r\nCboard Mode: {4}\r\nMotor Watchdog: {5}\r\n"

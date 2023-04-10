@@ -9,21 +9,6 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "Node",
-"class": "ControlBoard",
-"language": "GDScript",
-"path": "res://cboard.gd"
-}, {
-"base": "Reference",
-"class": "Matrix",
-"language": "GDScript",
-"path": "res://matrix.gd"
-}, {
-"base": "Node",
-"class": "PIDController",
-"language": "GDScript",
-"path": "res://pid.gd"
-}, {
 "base": "RigidBody",
 "class": "Robot",
 "language": "GDScript",
@@ -35,9 +20,6 @@ _global_script_classes=[ {
 "path": "res://simulation.gd"
 } ]
 _global_script_class_icons={
-"ControlBoard": "",
-"Matrix": "",
-"PIDController": "",
 "Robot": "",
 "Simulator": ""
 }
