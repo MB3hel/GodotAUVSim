@@ -38,7 +38,6 @@ func _ready():
 		OS.alert("Failed to start command sever (%s:%d)" % [listen_addr, cmd_port], "Startup Error")
 		get_tree().quit()
 	
-	
 	print(gdsercomm.list_ports())
 
 

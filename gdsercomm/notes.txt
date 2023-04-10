@@ -1,0 +1,3 @@
+Making it work on linux without putting libsercom.so in /usr/lib
+- Use rpath to add a runtime search path for libraries
+- patchelf --add-rpath gdsercomm/linux64 gdsercomm/linux64/libGDSercomm.so
