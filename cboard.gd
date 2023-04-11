@@ -115,9 +115,26 @@ func sim_hijack(hijack: bool) -> int:
 	
 
 # Called periodically by timer to write sensor data to control board
-func write_sensor_data():
-	# TODO: Write sensor data
-	pass
+func write_sensor_data() -> int:
+	var curr_quat = Angles.godot_euler_to_quat(robot.rotation)
+	var curr_depth = robot.translation.z
+	var accum_euler = robot.accum_euler
+	
+	var buf = StreamPeerBuffer.new()
+	buf.big_endian = false
+	buf.put_data("SIMDAT".to_ascii())
+	buf.put_float(curr_quat.w)
+	buf.put_float(curr_quat.x)
+	buf.put_float(curr_quat.y)
+	buf.put_float(curr_quat.z)
+	buf.put_float(accum_euler.x)
+	buf.put_float(accum_euler.y)
+	buf.put_float(accum_euler.z)
+	buf.put_float(curr_depth)
+	
+	var msg_id = self.write_msg(buf.data_array, true)
+	var res = self.wait_for_ack(msg_id, 0.1)
+	return res[0]
 
 ################################################################################
 

@@ -13,12 +13,6 @@ onready var cboard = get_node("ControlBoard")
 # Store default parameters
 onready var def_robot_rotation = robot.rotation
 onready var def_robot_translation = robot.translation
-onready var def_robot_weight = robot.weight
-onready var def_robot_mass = robot.mass
-onready var def_robot_linear_damp = robot.linear_damp
-onready var def_robot_angular_damp = robot.angular_damp
-onready var def_robot_max_force = robot.max_force
-onready var def_robot_max_torque = robot.max_torque
 
 
 func _ready():
@@ -67,14 +61,6 @@ func reset_sim():
 	# Set position and rotation
 	robot.set_trans(def_robot_translation)
 	robot.set_rot(def_robot_rotation)
-	
-	# Set motion / physics parameters
-	robot.max_force = def_robot_max_force
-	robot.max_torque = def_robot_max_torque
-	robot.weight = def_robot_weight
-	robot.mass = def_robot_mass
-	robot.linear_damp = def_robot_linear_damp
-	robot.angular_damp = def_robot_angular_damp
 
 
 func refresh_ports():
@@ -99,6 +85,8 @@ func do_cboard_connect(port):
 	var err = cboard.connect_uart(port)
 	if cboard.connected:
 		ui.hide_connect_dialog()
+		robot.curr_torque = Vector3(0, 0, 0.5)
+		robot.curr_force = Vector3(0, 0, -0.05)
 	else:
 		ui.set_connect_error(err)
 
