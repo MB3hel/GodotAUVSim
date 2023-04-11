@@ -320,8 +320,20 @@ margin_top = 60.0
 margin_right = 416.0
 margin_bottom = 64.0
 
-[node name="spacer" type="Control" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+[node name="NetConnLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_top = 68.0
+margin_right = 416.0
+margin_bottom = 91.0
+custom_fonts/font = ExtResource( 3 )
+text = "No Connection!"
+
+[node name="HSeparator2" type="HSeparator" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+margin_top = 95.0
+margin_right = 416.0
+margin_bottom = 99.0
+
+[node name="spacer" type="Control" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+margin_top = 103.0
 margin_right = 416.0
 margin_bottom = 119.0
 size_flags_vertical = 3
@@ -331,7 +343,7 @@ margin_top = 123.0
 margin_right = 416.0
 margin_bottom = 152.0
 custom_fonts/font = ExtResource( 3 )
-text = "Reset Simulator"
+text = "Reset Vehicle"
 
 [node name="CopyButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_top = 156.0

@@ -52,6 +52,7 @@ func update_ui():
 	ui.mode_value = cboard.mode
 	ui.wdg_status = "Killed" if cboard.watchdog_killed else "Not Killed"
 	ui.portname = cboard.portname
+	ui.tcpclient = netiface.tcpclient
 
 
 func reset_vehicle():

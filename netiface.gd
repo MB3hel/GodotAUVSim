@@ -7,7 +7,7 @@ signal reset_vehicle()
 
 var write_mutex = Mutex.new()
 
-const listen_addr = "127.0.0.1"
+const listen_addr = "*"
 const cmd_port = 5011
 const cboard_port = 5012
 
@@ -17,6 +17,7 @@ var cboard_server = TCP_Server.new()
 var cmd_client: StreamPeerTCP = null
 var cboard_client: StreamPeerTCP = null
 var connected = false
+var tcpclient = ""
 var accepts_connections = false   # Only true when connected to control board
 
 func _ready():
@@ -44,10 +45,12 @@ func _process(_delta):
 		if accepts_connections:
 			cmd_client = cmd_server.take_connection()
 			cboard_client= cboard_server.take_connection()
-			connected = true
 			if cmd_client.get_connected_host() != cboard_client.get_connected_host():
 				# Connections from two different hosts. Invalid setup.
 				do_disconnect()
+			else:
+				connected = true
+				tcpclient = cmd_client.get_connected_host()
 		else:
 			cmd_server.take_connection().disconnect_from_host()
 			cboard_server.take_connection().disconnect_from_host()
@@ -64,6 +67,7 @@ func do_disconnect():
 	cmd_client = null
 	cboard_client = null
 	connected = false
+	tcpclient = ""
 
 ################################################################################
 # Command server

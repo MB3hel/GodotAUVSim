@@ -9,6 +9,7 @@ var robot_pos = Vector3(0.0, 0.0, 0.0)
 var mode_value = "LOCAL"
 var wdg_status = "Killed"
 var portname = ""
+var tcpclient = ""
 
 var uart_ports = []
 var old_uart_ports = []
@@ -21,6 +22,7 @@ onready var quat_label = find_node("QuatValue")
 onready var mode_label = find_node("ModeValue")
 onready var wdg_label = find_node("MotorWDGValue")
 onready var conn_label = find_node("ConnLabel")
+onready var netconn_label = find_node("NetConnLabel")
 
 onready var copy_button = find_node("CopyButton")
 onready var reset_button = find_node("ResetButton")
@@ -70,9 +72,13 @@ func _process(_delta):
 	mode_label.text = mode_value
 	wdg_label.text = wdg_status
 	if portname == "":
-		conn_label.text = "Not Connected"
+		conn_label.text = "Control Board: Not Connected"
 	else:
-		conn_label.text = "Connected to Control Board on {0}".format([portname])
+		conn_label.text = "Control Board: {0}".format([portname])
+	if tcpclient == "":
+		netconn_label.text = "Sim TCP: Not Connected"
+	else:
+		netconn_label.text = "Sim TCP: {0}".format([tcpclient])
 
 func copy_to_clipboard():
 	# TODO: Update this
