@@ -69,7 +69,20 @@ func reset_sim():
 
 func refresh_ports():
 	if not cboard.connected:
-		ui.uart_ports = cboard.ser.list_ports()
+		var allports = cboard.ser.list_ports()
+		var subports = []
+		for p in allports:
+			# Omit /dev/ttyS devices on Linux. There are a lot of these...
+			# Control board will be ACM device anyways
+			if p.begins_with("/dev/ttyS"):
+				continue
+			
+			# Skip LPT devices on windows. Control board will be COM port
+			if p.begins_with("LPT"):
+				continue
+			
+			subports.append(p)
+		ui.uart_ports = subports
 
 
 func connect_cboard(port):

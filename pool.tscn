@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=13 format=2]
 
 [ext_resource path="res://fonts/viewport_label_font.tres" type="DynamicFont" id=1]
 [ext_resource path="res://fonts/status_label_font.tres" type="DynamicFont" id=2]
@@ -13,6 +13,9 @@
 
 [sub_resource type="BoxShape" id=1]
 extents = Vector3( 0.45, 0.32, 0.21 )
+
+[sub_resource type="Theme" id=2]
+default_font = ExtResource( 3 )
 
 [node name="root" type="Spatial"]
 script = ExtResource( 7 )
@@ -334,7 +337,7 @@ margin_top = 156.0
 margin_right = 416.0
 margin_bottom = 185.0
 custom_fonts/font = ExtResource( 3 )
-text = "Copy to Clipboard"
+text = "Copy State to Clipboard"
 
 [node name="ConnectDialog" type="PopupDialog" parent="UIRoot"]
 anchor_right = 1.0
@@ -389,7 +392,7 @@ text = "UART Ports:"
 margin_top = 207.0
 margin_right = 664.0
 margin_bottom = 236.0
-custom_fonts/font = ExtResource( 3 )
+theme = SubResource( 2 )
 
 [node name="SpacerLabel2" type="Label" parent="UIRoot/ConnectDialog/VBoxContainer"]
 margin_top = 255.0
