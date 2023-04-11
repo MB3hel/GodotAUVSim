@@ -57,21 +57,27 @@ func connect_uart(port: String) -> String:
 	if not port in ports:
 		return "Invalid port. Did the port get disconnected?"
 	ser.open(port, 115200, 0)
-	if self.sim_hijack(true) != AckError.NONE:
-		ser.close()
-		return "Failed to hijack control board. Is the selected port really a control board? Is the firmware flashed?"
+	
 	read_thread = Thread.new()
 	connected = true
 	read_thread.start(self, "read_task")
+	
+	if self.sim_hijack(true) != AckError.NONE:
+		disconnect_uart()
+		return "Failed to hijack control board. Is the selected port really a control board? Is the firmware flashed?"
+	
 	sensor_data_timer.start(0.015)
 	return "No error."
 
 
 func disconnect_uart():
+	if not connected:
+		return
 	sensor_data_timer.stop()
 	connected = false
-	read_thread.wait_to_finish()
 	ser.close()
+	read_thread.wait_to_finish()
+	read_thread = null
 
 ################################################################################
 
@@ -163,7 +169,7 @@ func write_msg(msg: PoolByteArray, ack: bool = false) -> int:
 	var idbuf = PoolByteArray([id_high, id_low])
 	var crc = crc16_ccitt_false(msg, crc16_ccitt_false(idbuf))
 	var crc_high = (crc >> 8) & 0xFF
-	var crc_low = (crc >> 8) & 0xFF
+	var crc_low =  crc & 0xFF
 	if crc_high == START_BYTE or crc_high == END_BYTE or crc_high == ESCAPE_BYTE:
 		msg_full.put_u8(ESCAPE_BYTE)
 	msg_full.put_u8(crc_high)
@@ -180,15 +186,25 @@ func write_msg(msg: PoolByteArray, ack: bool = false) -> int:
 
 # Write raw data to control board
 func write_raw(data: PoolByteArray):
-	ser.write(data.get_string_from_ascii())
+	for b in data:
+		if ser.write_raw(b) < 0:
+			disconnect_uart()
+
 
 
 # Read and handle messages from control board
 func read_task(userdata):
 	var msg = PoolByteArray([])
+	var parse_escaped = false
+	var parse_started = true
 	while connected:
-		# TODO
-		pass
+		var b = ser.read(true)
+		if b < 0:
+			disconnect_uart()
+			break
+		
+		# TODO: handle data
+		print(b)
 
 
 # Calcualte 16-bit CRC (CCITT-FALSE algorithm) on some data
