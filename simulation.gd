@@ -24,6 +24,7 @@ onready var def_robot_max_torque = robot.max_torque
 func _ready():
 	self.ui.connect("sim_reset", self, "reset_sim")
 	self.ui.connect("cboard_connect", self, "connect_cboard")
+	self.ui.connect("cboard_disconnect", self, "disconnect_cboard")
 	add_child(port_refresh_timer)
 	port_refresh_timer.connect("timeout", self, "refresh_ports")
 	port_refresh_timer.start(1)
@@ -48,6 +49,7 @@ func process_ui(_delta):
 	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) / PI * 180.0
 	ui.mode_value = "???"
 	ui.wdg_status = "???"
+	ui.portname = cboard.portname
 
 
 func reset_sim():
@@ -76,3 +78,7 @@ func connect_cboard(port):
 		ui.hide_connect_dialog()
 	else:
 		ui.set_connect_error(err)
+
+
+func disconnect_cboard():
+	cboard.disconnect_uart()

@@ -164,7 +164,7 @@ margin_right = 1260.0
 margin_bottom = 700.0
 
 [node name="StatusPanel" type="GridContainer" parent="UIRoot/VBoxContainer/HBoxContainer"]
-margin_right = 837.0
+margin_right = 832.0
 margin_bottom = 185.0
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
@@ -179,7 +179,7 @@ text = "Local Trans Speed:"
 
 [node name="TranslationValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
 margin_left = 157.0
-margin_right = 837.0
+margin_right = 832.0
 margin_bottom = 23.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
@@ -196,7 +196,7 @@ text = "Local Rot Speed:"
 [node name="RotationValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
 margin_left = 157.0
 margin_top = 27.0
-margin_right = 837.0
+margin_right = 832.0
 margin_bottom = 50.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
@@ -213,7 +213,7 @@ text = "Position:"
 [node name="PosValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
 margin_left = 157.0
 margin_top = 54.0
-margin_right = 837.0
+margin_right = 832.0
 margin_bottom = 77.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
@@ -230,7 +230,7 @@ text = "Euler Orientation:"
 [node name="EulerValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
 margin_left = 157.0
 margin_top = 81.0
-margin_right = 837.0
+margin_right = 832.0
 margin_bottom = 104.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
@@ -247,7 +247,7 @@ text = "Quat Orientation:"
 [node name="QuatValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
 margin_left = 157.0
 margin_top = 108.0
-margin_right = 837.0
+margin_right = 832.0
 margin_bottom = 131.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
@@ -264,7 +264,7 @@ text = "Cboard Mode:"
 [node name="ModeValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
 margin_left = 157.0
 margin_top = 135.0
-margin_right = 837.0
+margin_right = 832.0
 margin_bottom = 158.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
@@ -281,34 +281,57 @@ text = "Motor Watchdog:"
 [node name="MotorWDGValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
 margin_left = 157.0
 margin_top = 162.0
-margin_right = 837.0
+margin_right = 832.0
 margin_bottom = 185.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
 text = "Killed"
 clip_text = true
 
+[node name="VSeparator" type="VSeparator" parent="UIRoot/VBoxContainer/HBoxContainer"]
+margin_left = 836.0
+margin_right = 840.0
+margin_bottom = 185.0
+
 [node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/VBoxContainer/HBoxContainer"]
-margin_left = 841.0
+margin_left = 844.0
 margin_right = 1260.0
 margin_bottom = 185.0
 size_flags_horizontal = 3
 
+[node name="ConnLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+margin_right = 416.0
+margin_bottom = 23.0
+custom_fonts/font = ExtResource( 3 )
+
+[node name="DisconnectButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+margin_top = 27.0
+margin_right = 416.0
+margin_bottom = 56.0
+custom_fonts/font = ExtResource( 3 )
+text = "Disconnect"
+
+[node name="HSeparator" type="HSeparator" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+margin_top = 60.0
+margin_right = 416.0
+margin_bottom = 64.0
+
 [node name="spacer" type="Control" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
-margin_right = 419.0
+margin_top = 68.0
+margin_right = 416.0
 margin_bottom = 119.0
 size_flags_vertical = 3
 
 [node name="ResetButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_top = 123.0
-margin_right = 419.0
+margin_right = 416.0
 margin_bottom = 152.0
 custom_fonts/font = ExtResource( 3 )
 text = "Reset Simulator"
 
 [node name="CopyButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_top = 156.0
-margin_right = 419.0
+margin_right = 416.0
 margin_bottom = 185.0
 custom_fonts/font = ExtResource( 3 )
 text = "Copy to Clipboard"

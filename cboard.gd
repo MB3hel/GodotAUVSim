@@ -24,6 +24,7 @@ onready var ser = get_node("GDSercomm")
 
 # Is connected to control board via UART
 var connected = false
+var portname = ""
 
 # Current msg_id
 # Simulator uses IDs 60000-65535
@@ -70,6 +71,7 @@ func connect_uart(port: String) -> String:
 	
 	read_thread = Thread.new()
 	connected = true
+	portname = port
 	read_thread.start(self, "read_task")
 	
 	if self.sim_hijack(true) != AckError.NONE:
@@ -85,6 +87,7 @@ func disconnect_uart():
 		return
 	sensor_data_timer.stop()
 	connected = false
+	portname = ""
 	ser.close()
 	read_thread.wait_to_finish()
 	read_thread = null

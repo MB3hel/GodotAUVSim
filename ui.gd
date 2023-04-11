@@ -8,6 +8,7 @@ var robot_quat = Quat(0.0, 0.0, 0.0, 1.0)
 var robot_pos = Vector3(0.0, 0.0, 0.0)
 var mode_value = "LOCAL"
 var wdg_status = "Killed"
+var portname = ""
 
 var uart_ports = []
 var old_uart_ports = []
@@ -19,9 +20,11 @@ onready var euler_label = find_node("EulerValue")
 onready var quat_label = find_node("QuatValue")
 onready var mode_label = find_node("ModeValue")
 onready var wdg_label = find_node("MotorWDGValue")
+onready var conn_label = find_node("ConnLabel")
 
 onready var copy_button = find_node("CopyButton")
 onready var reset_button = find_node("ResetButton")
+onready var disconnect_button = find_node("DisconnectButton")
 
 onready var connect_dialog = get_node("ConnectDialog")
 onready var connect_btn = connect_dialog.find_node("ConnectButton")
@@ -37,6 +40,7 @@ const quat_template = "(w=%+.4f, x=%+.4f, y=%+.4f, z=%+.4f)"
 
 signal sim_reset
 signal cboard_connect(port)
+signal cboard_disconnect
 
 
 func _ready():
@@ -44,6 +48,7 @@ func _ready():
 	reset_button.connect("pressed", self, "reset_pressed")
 	connect_btn.connect("pressed", self, "connect_pressed")
 	exit_btn.connect("pressed", self, "exit_pressed")
+	disconnect_button.connect("pressed", self, "disconnect_pressed")
 
 func _process(_delta):
 	if connect_dialog.visible and len(uart_ports) != len(old_uart_ports):
@@ -64,6 +69,10 @@ func _process(_delta):
 	quat_label.text = quat_template % [robot_quat.w, robot_quat.x, robot_quat.y, robot_quat.z]
 	mode_label.text = mode_value
 	wdg_label.text = wdg_status
+	if portname == "":
+		conn_label.text = "Not Connected"
+	else:
+		conn_label.text = "Connected to Control Board on {0}".format([portname])
 
 func copy_to_clipboard():
 	var info = "Local Translation: {0}\r\nLocal Rotation: {1}\r\nEuler Orientation: {2}\r\nQuaternion Orientation: {3}\r\nCboard Mode: {4}\r\nMotor Watchdog: {5}\r\n"
@@ -91,6 +100,9 @@ func connect_pressed():
 		return
 	var port = uart_dropdown.get_item_text(uart_dropdown.get_selected_id())
 	self.emit_signal("cboard_connect", port)
+
+func disconnect_pressed():
+	self.emit_signal("cboard_disconnect")
 
 func exit_pressed():
 	get_tree().quit()
