@@ -33,14 +33,15 @@ func _ready():
 # Called every frame
 # delta is time between last call and now in seconds
 # This function is called as fast as possible!
-func _process(delta):
-	process_ui(delta)
-
-
-func process_ui(_delta):
+func _process(_delta):
 	if not cboard.connected:
+		robot.curr_force = Vector3(0, 0, 0)
+		robot.curr_torque = Vector3(0, 0, 0)
 		ui.show_connect_dialog()
-	
+	update_ui()
+
+
+func update_ui():
 	# Update data to be displayed in UI
 	ui.curr_translation = robot.curr_force
 	ui.curr_rotation = robot.curr_torque
@@ -53,12 +54,19 @@ func process_ui(_delta):
 
 
 func reset_sim():
+	# Set force and torque (local mode targets) to zero
 	robot.curr_force = Vector3(0, 0, 0)
 	robot.curr_torque = Vector3(0, 0, 0)
+	
+	# Stop motion fully now
 	robot.linear_velocity = Vector3(0, 0, 0)
 	robot.angular_velocity = Vector3(0, 0, 0)
-	robot.translation = def_robot_translation
-	robot.rotation = def_robot_rotation
+	
+	# Set position and rotation
+	robot.set_trans(def_robot_translation)
+	robot.set_rot(def_robot_rotation)
+	
+	# Set motion / physics parameters
 	robot.max_force = def_robot_max_force
 	robot.max_torque = def_robot_max_torque
 	robot.weight = def_robot_weight
@@ -89,6 +97,7 @@ func connect_cboard(port):
 	var err = cboard.connect_uart(port)
 	if cboard.connected:
 		ui.hide_connect_dialog()
+		robot.curr_torque = Vector3(0, 0, 0.5)
 	else:
 		ui.set_connect_error(err)
 
