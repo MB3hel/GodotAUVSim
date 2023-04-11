@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://fonts/viewport_label_font.tres" type="DynamicFont" id=1]
 [ext_resource path="res://fonts/status_label_font.tres" type="DynamicFont" id=2]
@@ -10,6 +10,7 @@
 [ext_resource path="res://gdsercomm/GDsercomm.gdns" type="Script" id=8]
 [ext_resource path="res://cboard.gd" type="Script" id=9]
 [ext_resource path="res://fonts/status_value_font_italic.tres" type="DynamicFont" id=10]
+[ext_resource path="res://netiface.gd" type="Script" id=11]
 
 [sub_resource type="BoxShape" id=1]
 extents = Vector3( 0.45, 0.32, 0.21 )
@@ -432,3 +433,6 @@ script = ExtResource( 9 )
 
 [node name="GDSercomm" type="Node" parent="ControlBoard"]
 script = ExtResource( 8 )
+
+[node name="NetIface" type="Node" parent="."]
+script = ExtResource( 11 )

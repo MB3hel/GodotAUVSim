@@ -75,6 +75,7 @@ func _process(_delta):
 		conn_label.text = "Connected to Control Board on {0}".format([portname])
 
 func copy_to_clipboard():
+	# TODO: Update this
 	var info = "Local Translation: {0}\r\nLocal Rotation: {1}\r\nEuler Orientation: {2}\r\nQuaternion Orientation: {3}\r\nCboard Mode: {4}\r\nMotor Watchdog: {5}\r\n"
 	info = info.format(
 		[translation_label.text, rotation_label.text, euler_label.text, quat_label.text, mode_label.text, wdg_label.text]

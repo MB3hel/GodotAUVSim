@@ -8,6 +8,7 @@ var port_refresh_timer = Timer.new()
 onready var robot = get_node("Robot")
 onready var ui = get_node("UIRoot")
 onready var cboard = get_node("ControlBoard")
+onready var netiface = get_node("NetIface")
 
 
 # Store default parameters
@@ -16,11 +17,15 @@ onready var def_robot_translation = robot.translation
 
 
 func _ready():
-	self.ui.connect("sim_reset", self, "reset_sim")
+	self.ui.connect("sim_reset", self, "reset_vehicle")
 	self.ui.connect("cboard_connect", self, "do_cboard_connect")
 	self.ui.connect("cboard_disconnect", cboard, "disconnect_uart")
 	
 	self.cboard.connect("disconnected_uart", self, "cboard_disconnected")
+	self.cboard.connect("msg_received", netiface, "write_raw")
+	
+	self.netiface.connect("msg_received", cboard, "write_raw")
+	self.netiface.connect("reset_vehicle", self, "reset_vehicle")
 	
 	add_child(port_refresh_timer)
 	port_refresh_timer.connect("timeout", self, "refresh_ports")
@@ -49,7 +54,7 @@ func update_ui():
 	ui.portname = cboard.portname
 
 
-func reset_sim():
+func reset_vehicle():
 	# Set force and torque (local mode targets) to zero
 	robot.curr_force = Vector3(0, 0, 0)
 	robot.curr_torque = Vector3(0, 0, 0)

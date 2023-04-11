@@ -10,6 +10,9 @@ class_name ControlBoard
 # Everything else is forwarded without alteration.
 signal msg_received(msgfull)
 
+
+var write_mutex = Mutex.new()
+
 # Emitted when uart disconnects (due to read / write failure or due to call of disconnect_uart)
 signal disconnected_uart
 
@@ -221,9 +224,11 @@ func write_msg(msg: PoolByteArray, ack: bool = false) -> int:
 
 # Write raw data to control board
 func write_raw(data: PoolByteArray):
+	write_mutex.lock()
 	for b in data:
 		if ser.write_raw(b) < 0:
 			disconnect_uart()
+	write_mutex.unlock()
 
 
 
