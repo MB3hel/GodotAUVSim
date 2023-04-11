@@ -137,6 +137,7 @@ func wait_for_ack(msg_id: int, timeout: float) -> Array:
 
 
 # Write a message to control board formatted properly
+# THIS MESSAGE WRITES A PAYLOAD!!! DO NOT USE FOR FORMATTED DATA!
 func write_msg(msg: PoolByteArray, ack: bool = false) -> int:
 	curr_msg_id_mutex.lock()
 	var msg_id = curr_msg_id
@@ -196,8 +197,15 @@ func write_raw(data: PoolByteArray):
 
 
 # Read and handle messages from control board
+# Modified version of the same parser used on cboard and in iface scripts
+# However, in this version msgfull contains escape characters
+# msg does not
+# This way msg can be used for comparison, but msgfull can be forwarded to TCP
+# when needed. This ensures that message IDs on messages forwarded from control
+# board to TCP are not altered.
 func read_task(userdata):
 	var msg = PoolByteArray([])
+	var msgfull = PoolByteArray([])
 	var parse_escaped = false
 	var parse_started = true
 	while connected:
@@ -206,8 +214,32 @@ func read_task(userdata):
 			disconnect_uart()
 			break
 		
-		# TODO: handle data
-		print(b)
+		# Unparsed (full) message here
+		msgfull.append(b)
+		
+		# Parse into msg
+		if parse_escaped:
+			if b == START_BYTE or b == END_BYTE or b == ESCAPE_BYTE:
+				msg.append(b)
+		elif parse_started:
+			if b == START_BYTE:
+				msg = PoolByteArray([])
+				msgfull = PoolByteArray([])
+			elif b == END_BYTE:
+				var calc_crc = crc16_ccitt_false(msg.subarray(0, msg.size() - 3))
+				var read_crc = msg[msg.size() - 2] << 8 | msg[msg.size() - 1]
+				if read_crc == calc_crc:
+					var read_id = msg[0] << 8 | msg[1]
+					print("got message with id " + str(read_id))
+					print(msg.subarray(2, msg.size() - 3))
+			elif b == ESCAPE_BYTE:
+				parse_escaped = true
+			else:
+				msg.append(b)
+		elif b == START_BYTE:
+			parse_started = true
+			msg = PoolByteArray([])
+			msgfull = PoolByteArray([])
 
 
 # Calcualte 16-bit CRC (CCITT-FALSE algorithm) on some data
