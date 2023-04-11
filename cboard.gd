@@ -233,6 +233,7 @@ func read_task(userdata):
 		if parse_escaped:
 			if b == START_BYTE or b == END_BYTE or b == ESCAPE_BYTE:
 				msg.append(b)
+			parse_escaped = false
 		elif parse_started:
 			if b == START_BYTE:
 				msg = PoolByteArray([])
