@@ -24,6 +24,7 @@ var ack_waits = {}
 
 # Sercomm instance (used for UART)
 onready var ser = get_node("GDSercomm")
+onready var robot = get_parent().get_node("Robot")
 
 # Is connected to control board via UART
 var connected = false
@@ -35,6 +36,7 @@ var curr_msg_id_mutex = Mutex.new()
 var curr_msg_id = 60000
 
 # Received from control board periodically
+var mode = "UNKNOWN"
 var watchdog_killed = true
 var local_x = 0.0		# x
 var local_y = 0.0		# y
@@ -42,10 +44,6 @@ var local_z = 0.0		# z
 var local_p = 0.0		# pitch
 var local_r = 0.0		# roll
 var local_h = 0.0		# yaw / heading
-
-# Sent to control board periodically
-var curr_quat = Quat(0.0, 0.0, 0.0, 1.0)
-var curr_depth = 0.0
 
 # Write simulated sensor data periodically
 var sensor_data_timer = Timer.new()

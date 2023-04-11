@@ -33,6 +33,7 @@ func _ready():
 	port_refresh_timer.start(1)
 	
 	cboard_disconnected()
+	refresh_ports()
 
 
 # Called every frame
@@ -49,8 +50,8 @@ func update_ui():
 	ui.robot_pos = robot.translation
 	ui.robot_quat = Quat(robot.rotation)
 	ui.robot_euler = Angles.quat_to_cboard_euler(ui.robot_quat) / PI * 180.0
-	ui.mode_value = "???"
-	ui.wdg_status = "???"
+	ui.mode_value = cboard.mode
+	ui.wdg_status = "Killed" if cboard.watchdog_killed else "Not Killed"
 	ui.portname = cboard.portname
 
 
@@ -98,7 +99,6 @@ func do_cboard_connect(port):
 	var err = cboard.connect_uart(port)
 	if cboard.connected:
 		ui.hide_connect_dialog()
-		robot.curr_torque = Vector3(0, 0, 0.5)
 	else:
 		ui.set_connect_error(err)
 
