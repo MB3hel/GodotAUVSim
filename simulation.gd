@@ -23,21 +23,22 @@ onready var def_robot_max_torque = robot.max_torque
 
 func _ready():
 	self.ui.connect("sim_reset", self, "reset_sim")
-	self.ui.connect("cboard_connect", self, "connect_cboard")
-	self.ui.connect("cboard_disconnect", self, "disconnect_cboard")
+	self.ui.connect("cboard_connect", self, "do_cboard_connect")
+	self.ui.connect("cboard_disconnect", cboard, "disconnect_uart")
+	
+	self.cboard.connect("disconnected_uart", self, "cboard_disconnected")
+	
 	add_child(port_refresh_timer)
 	port_refresh_timer.connect("timeout", self, "refresh_ports")
 	port_refresh_timer.start(1)
+	
+	cboard_disconnected()
 
 
 # Called every frame
 # delta is time between last call and now in seconds
 # This function is called as fast as possible!
 func _process(_delta):
-	if not cboard.connected:
-		robot.curr_force = Vector3(0, 0, 0)
-		robot.curr_torque = Vector3(0, 0, 0)
-		ui.show_connect_dialog()
 	update_ui()
 
 
@@ -93,7 +94,7 @@ func refresh_ports():
 		ui.uart_ports = subports
 
 
-func connect_cboard(port):
+func do_cboard_connect(port):
 	var err = cboard.connect_uart(port)
 	if cboard.connected:
 		ui.hide_connect_dialog()
@@ -102,5 +103,7 @@ func connect_cboard(port):
 		ui.set_connect_error(err)
 
 
-func disconnect_cboard():
-	cboard.disconnect_uart()
+func cboard_disconnected():
+	robot.curr_force = Vector3(0, 0, 0)
+	robot.curr_torque = Vector3(0, 0, 0)
+	ui.show_connect_dialog()

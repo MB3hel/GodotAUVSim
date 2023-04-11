@@ -10,6 +10,9 @@ class_name ControlBoard
 # Everything else is forwarded without alteration.
 signal msg_received(msgfull)
 
+# Emitted when uart disconnects (due to read / write failure or due to call of disconnect_uart)
+signal disconnected_uart
+
 enum AckError {NONE = 0, UNKNOWN_MSG = 1, INVALID_ARGS = 2, INVALID_CMD = 3, TIMEOUT = 255}
 
 const START_BYTE = 253
@@ -91,6 +94,7 @@ func disconnect_uart():
 	ser.close()
 	read_thread.wait_to_finish()
 	read_thread = null
+	emit_signal("disconnected_uart")
 
 ################################################################################
 
