@@ -17,6 +17,7 @@ var cboard_server = TCP_Server.new()
 var cmd_client: StreamPeerTCP = null
 var cboard_client: StreamPeerTCP = null
 var connected = false
+var accepts_connections = false   # Only true when connected to control board
 
 func _ready():
 	if cmd_server.listen(cmd_port, listen_addr) != OK:
@@ -34,13 +35,22 @@ func _process(_delta):
 			do_disconnect()
 		elif cboard_client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
 			do_disconnect()
+		
+		# Handle forced disconnects
+		if not accepts_connections:
+			do_disconnect()
 	elif cmd_server.is_connection_available() and cboard_server.is_connection_available():
 		# Handle connections.
-		cmd_client = cmd_server.take_connection()
-		cboard_client= cboard_server.take_connection()
-		if cmd_client.get_connected_host() != cboard_client.get_connected_host():
-			# Connections from two different hosts. Invalid setup.
-			do_disconnect()
+		if accepts_connections:
+			cmd_client = cmd_server.take_connection()
+			cboard_client= cboard_server.take_connection()
+			connected = true
+			if cmd_client.get_connected_host() != cboard_client.get_connected_host():
+				# Connections from two different hosts. Invalid setup.
+				do_disconnect()
+		else:
+			cmd_server.take_connection().disconnect_from_host()
+			cboard_server.take_connection().disconnect_from_host()
 	
 	# Handle network stuff
 	if connected:

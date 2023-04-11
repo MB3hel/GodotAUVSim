@@ -90,11 +90,13 @@ func do_cboard_connect(port):
 	var err = cboard.connect_uart(port)
 	if cboard.connected:
 		ui.hide_connect_dialog()
+		netiface.accepts_connections = true
 	else:
 		ui.set_connect_error(err)
 
 
 func cboard_disconnected():
+	netiface.accepts_connections = false
 	robot.curr_force = Vector3(0, 0, 0)
 	robot.curr_torque = Vector3(0, 0, 0)
 	ui.show_connect_dialog()
