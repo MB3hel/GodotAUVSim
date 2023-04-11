@@ -85,8 +85,6 @@ func do_cboard_connect(port):
 	var err = cboard.connect_uart(port)
 	if cboard.connected:
 		ui.hide_connect_dialog()
-		robot.curr_torque = Vector3(0, 0, 0.5)
-		robot.curr_force = Vector3(0, 0, -0.05)
 	else:
 		ui.set_connect_error(err)
 

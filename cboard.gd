@@ -287,10 +287,37 @@ func handle_msg(read_id: int, msg: PoolByteArray, msgfull: PoolByteArray):
 			ack_waits[ack_id] = [ack_err, ack_dat]
 			return # This message is handled here. Do not forward.
 	elif data_starts_with(msg, "SIMSTAT".to_ascii()):
-		# TODO: Handle this message
+		var buf = StreamPeerBuffer.new()
+		buf.data_array = msg
+		buf.big_endian = false
+		buf.seek(7)
+		local_x = buf.get_float()
+		local_y = buf.get_float()
+		local_z = buf.get_float()
+		local_p = buf.get_float()
+		local_r = buf.get_float()
+		local_h = buf.get_float()
+		mode = mode_name(buf.get_u8())
+		watchdog_killed = buf.get_u8() == 1
 		return # This message is handled here. Do not forward.
 	
 	self.emit_signal("msg_received", msgfull)
+
+
+func mode_name(i: int) -> String:
+	if i == 0:
+		return "RAW"
+	elif i == 1:
+		return "LOCAL"
+	elif i == 2:
+		return "GLOBAL"
+	elif i == 3:
+		return "SASSIST"
+	elif i == 4:
+		return "DHOLD"
+	else:
+		return "UNKNOWN"
+
 
 # Calcualte 16-bit CRC (CCITT-FALSE algorithm) on some data
 func crc16_ccitt_false(msg: PoolByteArray, initial: int = 0xFFFF) -> int:
