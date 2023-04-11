@@ -17,8 +17,9 @@ onready var ser = get_node("GDSercomm")
 var connected = false
 
 # Current msg_id
+# Simulator uses IDs 60000-65535
 var curr_msg_id_mutex = Mutex.new()
-var curr_msg_id = 0
+var curr_msg_id = 60000
 
 # Received from control board periodically
 var watchdog_killed = true
@@ -140,6 +141,8 @@ func write_msg(msg: PoolByteArray, ack: bool = false) -> int:
 	curr_msg_id_mutex.lock()
 	var msg_id = curr_msg_id
 	curr_msg_id += 1
+	if curr_msg_id == 65535:
+		curr_msg_id = 60000
 	curr_msg_id_mutex.unlock()
 	if ack:
 		self.prepare_for_ack(msg_id)
