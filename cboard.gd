@@ -252,7 +252,6 @@ func read_task(userdata):
 			msgfull.append(b)
 
 func handle_msg(read_id: int, msg: PoolByteArray, msgfull: PoolByteArray):
-	print(msg)
 	if data_starts_with(msg, "ACK".to_ascii()):
 		var ack_id = msg[3] << 8 | msg[4]
 		var ack_err = msg[5]
