@@ -1,6 +1,15 @@
 extends Node
 class_name ControlBoard
 
+# Used to signal simulation manager that there is a message to be forwarded
+# to TCP interface
+# This is NOT called for messages that are handled by this class
+# Messages handled by this class include
+#   SIMSTAT messages
+#   ACK messages for an id for which this class is waiting
+# Everything else is forwarded without alteration.
+signal msg_received(msgfull)
+
 enum AckError {NONE = 0, UNKNOWN_MSG = 1, INVALID_ARGS = 2, INVALID_CMD = 3, TIMEOUT = 255}
 
 const START_BYTE = 253
@@ -225,13 +234,13 @@ func read_task(userdata):
 			if b == START_BYTE:
 				msg = PoolByteArray([])
 				msgfull = PoolByteArray([])
+				msgfull.append(b)
 			elif b == END_BYTE:
 				var calc_crc = crc16_ccitt_false(msg.subarray(0, msg.size() - 3))
 				var read_crc = msg[msg.size() - 2] << 8 | msg[msg.size() - 1]
 				if read_crc == calc_crc:
 					var read_id = msg[0] << 8 | msg[1]
-					print("got message with id " + str(read_id))
-					print(msg.subarray(2, msg.size() - 3))
+					handle_msg(read_id, msg.subarray(2, msg.size() - 1), msgfull)
 			elif b == ESCAPE_BYTE:
 				parse_escaped = true
 			else:
@@ -240,7 +249,26 @@ func read_task(userdata):
 			parse_started = true
 			msg = PoolByteArray([])
 			msgfull = PoolByteArray([])
+			msgfull.append(b)
 
+func handle_msg(read_id: int, msg: PoolByteArray, msgfull: PoolByteArray):
+	print(msg)
+	if data_starts_with(msg, "ACK".to_ascii()):
+		var ack_id = msg[3] << 8 | msg[4]
+		var ack_err = msg[5]
+		var ack_dat
+		if msg.size() > 6:
+			ack_dat = msg.subarray(6, msg.size() - 1)
+		else:
+			ack_dat = PoolByteArray([])
+		if ack_waits.has(ack_id):
+			ack_waits[ack_id] = [ack_err, ack_dat]
+			return # This message is handled here. Do not forward.
+	elif data_starts_with(msg, "SIMSTAT".to_ascii()):
+		# TODO: Handle this message
+		return # This message is handled here. Do not forward.
+	
+	self.emit_signal("msg_received", msgfull)
 
 # Calcualte 16-bit CRC (CCITT-FALSE algorithm) on some data
 func crc16_ccitt_false(msg: PoolByteArray, initial: int = 0xFFFF) -> int:
@@ -260,3 +288,19 @@ func crc16_ccitt_false(msg: PoolByteArray, initial: int = 0xFFFF) -> int:
 	return crc & 0xFFFF
 
 ################################################################################
+
+func data_starts_with(full: PoolByteArray, prefix: PoolByteArray) -> bool:
+	if prefix.size() > full.size():
+		return false
+	for i in range(prefix.size()):
+		if full[i] != prefix[i]:
+			return false
+	return true
+
+func data_matches(a: PoolByteArray, b: PoolByteArray) -> bool:
+	if a.size() != b.size():
+		return false
+	for i in range(a.size()):
+		if a[i] != b[i]:
+			return false
+	return true
