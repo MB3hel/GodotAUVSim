@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://fonts/viewport_label_font.tres" type="DynamicFont" id=1]
 [ext_resource path="res://fonts/status_label_font.tres" type="DynamicFont" id=2]
@@ -7,7 +7,6 @@
 [ext_resource path="res://mesh/SeaWolf8-Simplified.obj" type="ArrayMesh" id=5]
 [ext_resource path="res://robot.gd" type="Script" id=6]
 [ext_resource path="res://simulation.gd" type="Script" id=7]
-[ext_resource path="res://gdsercomm/GDsercomm.gdns" type="Script" id=8]
 [ext_resource path="res://cboard.gd" type="Script" id=9]
 [ext_resource path="res://fonts/status_value_font_italic.tres" type="DynamicFont" id=10]
 [ext_resource path="res://netiface.gd" type="Script" id=11]
@@ -685,9 +684,6 @@ text = "Cancel"
 
 [node name="ControlBoard" type="Node" parent="."]
 script = ExtResource( 9 )
-
-[node name="GDSercomm" type="Node" parent="ControlBoard"]
-script = ExtResource( 8 )
 
 [node name="NetIface" type="Node" parent="."]
 script = ExtResource( 11 )

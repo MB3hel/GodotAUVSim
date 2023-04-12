@@ -25,8 +25,9 @@ const ESCAPE_BYTE = 255
 # Array of ack_waits[msg_id] = [err, res]
 var ack_waits = {}
 
-# Sercomm instance (used for UART)
-onready var ser = get_node("GDSercomm")
+# GDSerial instance (used for UART)
+onready var ser = preload("res://GDSerial/GDSerial.gdns").new()
+
 onready var robot = get_parent().get_node("Robot")
 
 # Is connected to control board via UART
@@ -71,7 +72,11 @@ func connect_uart(port: String) -> String:
 	var ports = ser.list_ports()
 	if not port in ports:
 		return "Invalid port. Did the port get disconnected?"
-	ser.open(port, 115200, 0)
+	ser.setPort(port)
+	ser.setBaudrate(115200)
+	ser.open()
+	if not ser.isOpen():
+		return "Failed to open port. Did the port get disconnected?"
 	
 	read_thread = Thread.new()
 	connected = true
@@ -225,9 +230,8 @@ func write_msg(msg: PoolByteArray, ack: bool = false) -> int:
 # Write raw data to control board
 func write_raw(data: PoolByteArray):
 	write_mutex.lock()
-	for b in data:
-		if ser.write_raw(b) < 0:
-			disconnect_uart()
+	if ser.write(data) != data.size():
+		disconnect_uart()
 	write_mutex.unlock()
 
 
@@ -245,7 +249,7 @@ func read_task(userdata):
 	var parse_escaped = false
 	var parse_started = true
 	while connected:
-		var b = ser.read(true)
+		var b = ser.read(1)
 		if b < 0:
 			disconnect_uart()
 			break
