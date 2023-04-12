@@ -27,6 +27,7 @@ onready var netconn_label = find_node("NetConnLabel")
 onready var copy_button = find_node("CopyButton")
 onready var reset_button = find_node("ResetButton")
 onready var disconnect_button = find_node("DisconnectButton")
+onready var disconnect_tcp_button = find_node("DisconnectNetButton")
 
 onready var connect_dialog = get_node("ConnectDialog")
 onready var connect_btn = connect_dialog.find_node("ConnectButton")
@@ -43,6 +44,7 @@ const quat_template = "(w=%+.4f, x=%+.4f, y=%+.4f, z=%+.4f)"
 signal sim_reset
 signal cboard_connect(port)
 signal cboard_disconnect
+signal net_disconnect
 
 
 func _ready():
@@ -51,6 +53,7 @@ func _ready():
 	connect_btn.connect("pressed", self, "connect_pressed")
 	exit_btn.connect("pressed", self, "exit_pressed")
 	disconnect_button.connect("pressed", self, "disconnect_pressed")
+	disconnect_tcp_button.connect("pressed", self, "disconnect_net_pressed")
 
 func _process(_delta):
 	if connect_dialog.visible and len(uart_ports) != len(old_uart_ports):
@@ -110,6 +113,9 @@ func connect_pressed():
 
 func disconnect_pressed():
 	self.emit_signal("cboard_disconnect")
+
+func disconnect_net_pressed():
+	self.emit_signal("net_disconnect")
 
 func exit_pressed():
 	get_tree().quit()

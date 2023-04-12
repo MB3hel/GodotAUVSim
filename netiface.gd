@@ -62,6 +62,8 @@ func _process(_delta):
 
 
 func do_disconnect():
+	if not connected:
+		return
 	cmd_client.disconnect_from_host()
 	cboard_client.disconnect_from_host()
 	cmd_client = null

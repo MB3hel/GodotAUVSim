@@ -20,6 +20,7 @@ func _ready():
 	self.ui.connect("sim_reset", self, "reset_vehicle")
 	self.ui.connect("cboard_connect", self, "do_cboard_connect")
 	self.ui.connect("cboard_disconnect", cboard, "disconnect_uart")
+	self.ui.connect("net_disconnect", netiface, "do_disconnect")
 	
 	self.cboard.connect("disconnected_uart", self, "cboard_disconnected")
 	self.cboard.connect("msg_received", netiface, "write_raw")

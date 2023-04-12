@@ -50,7 +50,7 @@ margin_bottom = -10.0
 
 [node name="MainGrid" type="GridContainer" parent="UIRoot/VBoxContainer"]
 margin_right = 1260.0
-margin_bottom = 511.0
+margin_bottom = 478.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/vseparation = 10
@@ -59,7 +59,7 @@ columns = 3
 
 [node name="RearView" type="Control" parent="UIRoot/VBoxContainer/MainGrid"]
 margin_right = 414.0
-margin_bottom = 511.0
+margin_bottom = 478.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -71,7 +71,7 @@ size_flags_vertical = 3
 stretch = true
 
 [node name="Viewport" type="Viewport" parent="UIRoot/VBoxContainer/MainGrid/RearView/ViewportContainer"]
-size = Vector2( 414, 511 )
+size = Vector2( 414, 478 )
 handle_input_locally = false
 render_target_update_mode = 3
 
@@ -94,7 +94,7 @@ align = 1
 [node name="RightView" type="Control" parent="UIRoot/VBoxContainer/MainGrid"]
 margin_left = 424.0
 margin_right = 837.0
-margin_bottom = 511.0
+margin_bottom = 478.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -106,7 +106,7 @@ size_flags_vertical = 3
 stretch = true
 
 [node name="Viewport" type="Viewport" parent="UIRoot/VBoxContainer/MainGrid/RightView/ViewportContainer2"]
-size = Vector2( 413, 511 )
+size = Vector2( 413, 478 )
 handle_input_locally = false
 render_target_update_mode = 3
 
@@ -129,7 +129,7 @@ align = 1
 [node name="TopView" type="Control" parent="UIRoot/VBoxContainer/MainGrid"]
 margin_left = 847.0
 margin_right = 1260.0
-margin_bottom = 511.0
+margin_bottom = 478.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -141,7 +141,7 @@ size_flags_vertical = 3
 stretch = true
 
 [node name="Viewport" type="Viewport" parent="UIRoot/VBoxContainer/MainGrid/TopView/ViewportContainer2"]
-size = Vector2( 413, 511 )
+size = Vector2( 413, 478 )
 handle_input_locally = false
 render_target_update_mode = 3
 
@@ -163,11 +163,17 @@ text = "Top View"
 align = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UIRoot/VBoxContainer"]
-margin_top = 515.0
+margin_top = 482.0
 margin_right = 1260.0
 margin_bottom = 700.0
 
-[node name="StatusPanel" type="GridContainer" parent="UIRoot/VBoxContainer/HBoxContainer"]
+[node name="VBoxContainer2" type="VBoxContainer" parent="UIRoot/VBoxContainer/HBoxContainer"]
+margin_right = 832.0
+margin_bottom = 218.0
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="StatusPanel" type="GridContainer" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2"]
 margin_right = 832.0
 margin_bottom = 185.0
 size_flags_horizontal = 3
@@ -175,13 +181,13 @@ size_flags_stretch_ratio = 2.0
 custom_constants/hseparation = 10
 columns = 2
 
-[node name="TranslationLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="TranslationLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_right = 147.0
 margin_bottom = 23.0
 custom_fonts/font = ExtResource( 2 )
 text = "Local Trans Speed:"
 
-[node name="TranslationValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="TranslationValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_left = 157.0
 margin_right = 832.0
 margin_bottom = 23.0
@@ -190,14 +196,14 @@ custom_fonts/font = ExtResource( 3 )
 text = "(x=0.0, y=0.0, z=0.0)"
 clip_text = true
 
-[node name="RotationLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="RotationLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_top = 27.0
 margin_right = 147.0
 margin_bottom = 50.0
 custom_fonts/font = ExtResource( 2 )
 text = "Local Rot Speed:"
 
-[node name="RotationValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="RotationValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_left = 157.0
 margin_top = 27.0
 margin_right = 832.0
@@ -207,14 +213,14 @@ custom_fonts/font = ExtResource( 3 )
 text = "(p=0.0, r=0.0, y=0.0)"
 clip_text = true
 
-[node name="PosLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="PosLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_top = 54.0
 margin_right = 147.0
 margin_bottom = 77.0
 custom_fonts/font = ExtResource( 2 )
 text = "Position:"
 
-[node name="PosValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="PosValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_left = 157.0
 margin_top = 54.0
 margin_right = 832.0
@@ -224,14 +230,14 @@ custom_fonts/font = ExtResource( 3 )
 text = "(x=0.0, y=0.0, z=0.0)"
 clip_text = true
 
-[node name="EulerLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="EulerLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_top = 81.0
 margin_right = 147.0
 margin_bottom = 104.0
 custom_fonts/font = ExtResource( 2 )
 text = "Euler Orientation:"
 
-[node name="EulerValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="EulerValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_left = 157.0
 margin_top = 81.0
 margin_right = 832.0
@@ -241,14 +247,14 @@ custom_fonts/font = ExtResource( 3 )
 text = "(p=0.0, r=0.0, y=0.0)"
 clip_text = true
 
-[node name="QuatLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="QuatLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_top = 108.0
 margin_right = 147.0
 margin_bottom = 131.0
 custom_fonts/font = ExtResource( 2 )
 text = "Quat Orientation:"
 
-[node name="QuatValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="QuatValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_left = 157.0
 margin_top = 108.0
 margin_right = 832.0
@@ -258,14 +264,14 @@ custom_fonts/font = ExtResource( 3 )
 text = "(w=0.0, x=0.0, y=0.0, z=0.0)"
 clip_text = true
 
-[node name="ModeLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="ModeLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_top = 135.0
 margin_right = 147.0
 margin_bottom = 158.0
 custom_fonts/font = ExtResource( 2 )
 text = "Cboard Mode:"
 
-[node name="ModeValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="ModeValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_left = 157.0
 margin_top = 135.0
 margin_right = 832.0
@@ -275,14 +281,14 @@ custom_fonts/font = ExtResource( 3 )
 text = "LOCAL"
 clip_text = true
 
-[node name="MotorWDGLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="MotorWDGLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_top = 162.0
 margin_right = 147.0
 margin_bottom = 185.0
 custom_fonts/font = ExtResource( 2 )
 text = "Motor Watchdog:"
 
-[node name="MotorWDGValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/StatusPanel"]
+[node name="MotorWDGValue" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2/StatusPanel"]
 margin_left = 157.0
 margin_top = 162.0
 margin_right = 832.0
@@ -292,15 +298,22 @@ custom_fonts/font = ExtResource( 3 )
 text = "Killed"
 clip_text = true
 
+[node name="CopyButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2"]
+margin_top = 189.0
+margin_right = 832.0
+margin_bottom = 218.0
+custom_fonts/font = ExtResource( 3 )
+text = "Copy State to Clipboard"
+
 [node name="VSeparator" type="VSeparator" parent="UIRoot/VBoxContainer/HBoxContainer"]
 margin_left = 836.0
 margin_right = 840.0
-margin_bottom = 185.0
+margin_bottom = 218.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/VBoxContainer/HBoxContainer"]
 margin_left = 844.0
 margin_right = 1260.0
-margin_bottom = 185.0
+margin_bottom = 218.0
 size_flags_horizontal = 3
 
 [node name="ConnLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
@@ -313,7 +326,7 @@ margin_top = 27.0
 margin_right = 416.0
 margin_bottom = 56.0
 custom_fonts/font = ExtResource( 3 )
-text = "Disconnect"
+text = "Disconnect Control Board"
 
 [node name="HSeparator" type="HSeparator" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_top = 60.0
@@ -325,32 +338,38 @@ margin_top = 68.0
 margin_right = 416.0
 margin_bottom = 91.0
 custom_fonts/font = ExtResource( 3 )
-text = "No Connection!"
 
-[node name="HSeparator2" type="HSeparator" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+[node name="DisconnectNetButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_top = 95.0
 margin_right = 416.0
-margin_bottom = 99.0
+margin_bottom = 124.0
+custom_fonts/font = ExtResource( 3 )
+text = "Disconnect TCP"
+
+[node name="HSeparator2" type="HSeparator" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+margin_top = 128.0
+margin_right = 416.0
+margin_bottom = 132.0
 
 [node name="spacer" type="Control" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
-margin_top = 103.0
-margin_right = 416.0
-margin_bottom = 119.0
-size_flags_vertical = 3
-
-[node name="ResetButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
-margin_top = 123.0
+margin_top = 136.0
 margin_right = 416.0
 margin_bottom = 152.0
-custom_fonts/font = ExtResource( 3 )
-text = "Reset Vehicle"
+size_flags_vertical = 3
 
-[node name="CopyButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+[node name="SetButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_top = 156.0
 margin_right = 416.0
 margin_bottom = 185.0
 custom_fonts/font = ExtResource( 3 )
-text = "Copy State to Clipboard"
+text = "Configure Vehicle"
+
+[node name="ResetButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+margin_top = 189.0
+margin_right = 416.0
+margin_bottom = 218.0
+custom_fonts/font = ExtResource( 3 )
+text = "Reset Vehicle"
 
 [node name="ConnectDialog" type="PopupDialog" parent="UIRoot"]
 anchor_right = 1.0
