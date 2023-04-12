@@ -21,6 +21,7 @@ func _ready():
 	self.ui.connect("cboard_connect", self, "do_cboard_connect")
 	self.ui.connect("cboard_disconnect", cboard, "disconnect_uart")
 	self.ui.connect("net_disconnect", netiface, "do_disconnect")
+	self.ui.connect("sim_config", self, "config_vehicle")
 	
 	self.cboard.connect("disconnected_uart", self, "cboard_disconnected")
 	self.cboard.connect("msg_received", netiface, "write_raw")
@@ -68,6 +69,11 @@ func reset_vehicle():
 	# Set position and rotation
 	robot.set_trans(def_robot_translation)
 	robot.set_rot(def_robot_rotation)
+
+func config_vehicle():
+	var curr_rot = Angles.godot_euler_to_cboard_euler(robot.rotation)
+	var curr_pos = robot.translation
+	ui.show_config_dialog(curr_pos.x, curr_pos.y, curr_pos.z, curr_rot.x, curr_rot.y, curr_rot.z)
 
 
 func refresh_ports():

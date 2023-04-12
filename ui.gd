@@ -28,12 +28,24 @@ onready var copy_button = find_node("CopyButton")
 onready var reset_button = find_node("ResetButton")
 onready var disconnect_button = find_node("DisconnectButton")
 onready var disconnect_tcp_button = find_node("DisconnectNetButton")
+onready var config_button = find_node("SetButton")
 
 onready var connect_dialog = get_node("ConnectDialog")
 onready var connect_btn = connect_dialog.find_node("ConnectButton")
 onready var exit_btn = connect_dialog.find_node("ExitButton")
 onready var uart_dropdown = connect_dialog.find_node("PortsSelector")
 onready var connect_err = connect_dialog.find_node("ErrorLabel")
+
+onready var config_dialog = get_node("SetRobotDialog")
+onready var config_ok_btn = config_dialog.find_node("OKButton")
+onready var config_cancel_btn = config_dialog.find_node("CancelButton")
+onready var config_xbox = config_dialog.find_node("xBox")
+onready var config_ybox = config_dialog.find_node("yBox")
+onready var config_zbox = config_dialog.find_node("zBox")
+onready var config_pbox = config_dialog.find_node("pBox")
+onready var config_rbox = config_dialog.find_node("rBox")
+onready var config_hbox = config_dialog.find_node("hBox")
+
 
 const translation_template = "(x=%+.2f, y=%+.2f, z=%+.2f)"
 const rotation_template = "(p=%+.2f, r=%+.2f, y=%+.2f)"
@@ -45,6 +57,7 @@ signal sim_reset
 signal cboard_connect(port)
 signal cboard_disconnect
 signal net_disconnect
+signal sim_config
 
 
 func _ready():
@@ -52,6 +65,7 @@ func _ready():
 	reset_button.connect("pressed", self, "reset_pressed")
 	connect_btn.connect("pressed", self, "connect_pressed")
 	exit_btn.connect("pressed", self, "exit_pressed")
+	config_button.connect("pressed", self, "config_pressed")
 	disconnect_button.connect("pressed", self, "disconnect_pressed")
 	disconnect_tcp_button.connect("pressed", self, "disconnect_net_pressed")
 
@@ -94,6 +108,9 @@ func copy_to_clipboard():
 func reset_pressed():
 	self.emit_signal("sim_reset")
 
+func config_pressed():
+	self.emit_signal("sim_config")
+
 func show_connect_dialog():
 	if not self.connect_dialog.visible:
 		connect_err.text = ""
@@ -101,6 +118,19 @@ func show_connect_dialog():
 
 func hide_connect_dialog():
 	self.connect_dialog.hide()
+
+func show_config_dialog(x, y, z, p, r, h):
+	if not config_dialog.visible:
+		config_xbox.value = x
+		config_ybox.value = y
+		config_zbox.value = z
+		config_pbox.value = p
+		config_rbox.value = r
+		config_hbox.value = h
+		config_dialog.popup()
+
+func hide_config_dialog():
+	config_dialog.hide()
 
 func set_connect_error(err: String):
 	connect_err.text = err
@@ -119,3 +149,6 @@ func disconnect_net_pressed():
 
 func exit_pressed():
 	get_tree().quit()
+
+func set_robot():
+	pass
