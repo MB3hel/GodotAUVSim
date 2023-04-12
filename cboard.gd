@@ -74,6 +74,7 @@ func connect_uart(port: String) -> String:
 		return "Invalid port. Did the port get disconnected?"
 	ser.setPort(port)
 	ser.setBaudrate(115200)
+	ser.setTimeout(ser.simpleTimeout(ser.timeoutMax()))
 	ser.open()
 	if not ser.isOpen():
 		return "Failed to open port. Did the port get disconnected?"
@@ -230,7 +231,10 @@ func write_msg(msg: PoolByteArray, ack: bool = false) -> int:
 # Write raw data to control board
 func write_raw(data: PoolByteArray):
 	write_mutex.lock()
-	if ser.write(data) != data.size():
+	var written = ser.write(data)
+	if written != data.size():
+		# Write failed.
+		# TODO: Check for exceptions
 		disconnect_uart()
 	write_mutex.unlock()
 
@@ -250,9 +254,14 @@ func read_task(userdata):
 	var parse_started = true
 	while connected:
 		var b = ser.read(1)
-		if b < 0:
-			disconnect_uart()
-			break
+		if b.size() != 1:
+			# if ser.has_exception()
+			# 	disconnect_uart()
+			# else:
+			# Read timed out
+			continue
+		
+		b = b[0]
 		
 		# Unparsed (full) message here
 		msgfull.append(b)
