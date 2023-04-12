@@ -30,9 +30,8 @@ onready var ser = preload("res://GDSerial/GDSerial.gdns").new()
 
 onready var robot = get_parent().get_node("Robot")
 
-# Is connected to control board via UART
-var connected = false
 var portname = ""
+var stop_read_thread = false
 
 # Current msg_id
 # Simulator uses IDs 60000-65535
@@ -62,12 +61,17 @@ func _ready():
 	sensor_data_timer.connect("timeout", self, "write_sensor_data")
 
 
+func _process(delta):
+	if ser.isError():
+		print(ser.errorMessage())
+		disconnect_uart()
+
 ################################################################################
 # Connection management
 ################################################################################
 
 func connect_uart(port: String) -> String:
-	if connected:
+	if ser.isOpen():
 		disconnect_uart()
 	var ports = ser.list_ports()
 	if not port in ports:
@@ -79,8 +83,8 @@ func connect_uart(port: String) -> String:
 	if not ser.isOpen():
 		return "Failed to open port. Did the port get disconnected?"
 	
+	stop_read_thread = false
 	read_thread = Thread.new()
-	connected = true
 	portname = port
 	read_thread.start(self, "read_task")
 	
@@ -93,15 +97,18 @@ func connect_uart(port: String) -> String:
 
 
 func disconnect_uart():
-	if not connected:
+	if not ser.isOpen():
 		return
 	sensor_data_timer.stop()
-	connected = false
 	portname = ""
-	ser.close()
+	stop_read_thread = true
 	read_thread.wait_to_finish()
 	read_thread = null
+	ser.close()
 	emit_signal("disconnected_uart")
+	
+func is_connected_to_cboard():
+	return ser.isOpen()
 
 ################################################################################
 
@@ -231,11 +238,7 @@ func write_msg(msg: PoolByteArray, ack: bool = false) -> int:
 # Write raw data to control board
 func write_raw(data: PoolByteArray):
 	write_mutex.lock()
-	var written = ser.write(data)
-	if written != data.size():
-		# Write failed.
-		# TODO: Check for exceptions
-		disconnect_uart()
+	ser.write(data)
 	write_mutex.unlock()
 
 
@@ -252,13 +255,9 @@ func read_task(userdata):
 	var msgfull = PoolByteArray([])
 	var parse_escaped = false
 	var parse_started = true
-	while connected:
+	while ser.isOpen() and not stop_read_thread:
 		var b = ser.read(1)
 		if b.size() != 1:
-			# if ser.has_exception()
-			# 	disconnect_uart()
-			# else:
-			# Read timed out
 			continue
 		
 		b = b[0]

@@ -83,7 +83,7 @@ func do_configure_vehicle(x, y, z, p, r, h):
 	robot.set_rot(rot)
 
 func refresh_ports():
-	if not cboard.connected:
+	if not cboard.is_connected_to_cboard():
 		var allports = cboard.ser.list_ports()
 		var subports = []
 		for p in allports:
@@ -102,7 +102,7 @@ func refresh_ports():
 
 func do_cboard_connect(port):
 	var err = cboard.connect_uart(port)
-	if cboard.connected:
+	if cboard.is_connected_to_cboard():
 		ui.hide_connect_dialog()
 		netiface.accepts_connections = true
 	else:
