@@ -37,7 +37,7 @@ onready var uart_dropdown = connect_dialog.find_node("PortsSelector")
 onready var connect_err = connect_dialog.find_node("ErrorLabel")
 
 onready var config_dialog = get_node("SetRobotDialog")
-onready var config_ok_btn = config_dialog.find_node("OKButton")
+onready var config_ok_btn = config_dialog.find_node("OkButton")
 onready var config_cancel_btn = config_dialog.find_node("CancelButton")
 onready var config_xbox = config_dialog.find_node("xBox")
 onready var config_ybox = config_dialog.find_node("yBox")
@@ -49,7 +49,7 @@ onready var config_hbox = config_dialog.find_node("hBox")
 
 const translation_template = "(x=%+.2f, y=%+.2f, z=%+.2f)"
 const rotation_template = "(p=%+.2f, r=%+.2f, y=%+.2f)"
-const euler_template = "(p=%+.2f, r=%+.2f, y=%+.2f)"
+const euler_template = "(p=%+.2f, r=%+.2f, h=%+.2f)"
 const quat_template = "(w=%+.4f, x=%+.4f, y=%+.4f, z=%+.4f)"
 
 
@@ -58,6 +58,7 @@ signal cboard_connect(port)
 signal cboard_disconnect
 signal net_disconnect
 signal sim_config
+signal do_configure_vehicle(x, y, z, p, r, h)
 
 
 func _ready():
@@ -66,6 +67,8 @@ func _ready():
 	connect_btn.connect("pressed", self, "connect_pressed")
 	exit_btn.connect("pressed", self, "exit_pressed")
 	config_button.connect("pressed", self, "config_pressed")
+	config_ok_btn.connect("pressed", self, "do_configure")
+	config_cancel_btn.connect("pressed", self, "hide_config_dialog")
 	disconnect_button.connect("pressed", self, "disconnect_pressed")
 	disconnect_tcp_button.connect("pressed", self, "disconnect_net_pressed")
 
@@ -128,6 +131,16 @@ func show_config_dialog(x, y, z, p, r, h):
 		config_rbox.value = r
 		config_hbox.value = h
 		config_dialog.popup()
+
+func do_configure():
+	var x = config_xbox.value
+	var y = config_ybox.value
+	var z = config_zbox.value
+	var p = config_pbox.value
+	var r = config_rbox.value
+	var h = config_hbox.value
+	config_dialog.hide()
+	emit_signal("do_configure_vehicle", x, y, z, p, r, h)
 
 func hide_config_dialog():
 	config_dialog.hide()

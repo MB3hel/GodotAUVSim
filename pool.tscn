@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://fonts/viewport_label_font.tres" type="DynamicFont" id=1]
 [ext_resource path="res://fonts/status_label_font.tres" type="DynamicFont" id=2]
@@ -16,6 +16,9 @@
 extents = Vector3( 0.45, 0.32, 0.21 )
 
 [sub_resource type="Theme" id=2]
+default_font = ExtResource( 3 )
+
+[sub_resource type="Theme" id=3]
 default_font = ExtResource( 3 )
 
 [node name="root" type="Spatial"]
@@ -463,9 +466,9 @@ text = "Exit"
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 300.0
-margin_top = 180.0
+margin_top = 150.0
 margin_right = -300.0
-margin_bottom = -180.0
+margin_bottom = -150.0
 popup_exclusive = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/SetRobotDialog"]
@@ -497,18 +500,19 @@ text = "Vehicle Position"
 [node name="GridContainer" type="GridContainer" parent="UIRoot/SetRobotDialog/VBoxContainer"]
 margin_top = 84.0
 margin_right = 664.0
-margin_bottom = 164.0
+margin_bottom = 191.0
 columns = 3
 
 [node name="Label4" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer"]
-margin_top = 5.0
+margin_top = 9.0
 margin_right = 16.0
-margin_bottom = 19.0
+margin_bottom = 23.0
 
 [node name="Label" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer"]
 margin_left = 20.0
+margin_top = 5.0
 margin_right = 66.0
-margin_bottom = 23.0
+margin_bottom = 28.0
 rect_min_size = Vector2( 46, 0 )
 custom_fonts/font = ExtResource( 3 )
 text = "X: "
@@ -516,146 +520,153 @@ text = "X: "
 [node name="xBox" type="SpinBox" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer"]
 margin_left = 70.0
 margin_right = 664.0
-margin_bottom = 24.0
+margin_bottom = 33.0
 size_flags_horizontal = 3
+theme = SubResource( 3 )
 min_value = -1000.0
 max_value = 1000.0
 step = 0.1
 
 [node name="Label5" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer"]
-margin_top = 33.0
+margin_top = 46.0
 margin_right = 16.0
-margin_bottom = 47.0
+margin_bottom = 60.0
 
 [node name="Label2" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer"]
 margin_left = 20.0
-margin_top = 28.0
+margin_top = 42.0
 margin_right = 66.0
-margin_bottom = 51.0
+margin_bottom = 65.0
 custom_fonts/font = ExtResource( 3 )
 text = "Y: "
 
 [node name="yBox" type="SpinBox" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer"]
 margin_left = 70.0
-margin_top = 28.0
+margin_top = 37.0
 margin_right = 664.0
-margin_bottom = 52.0
+margin_bottom = 70.0
+theme = SubResource( 3 )
 min_value = -1000.0
 max_value = 1000.0
 step = 0.1
 
 [node name="Label6" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer"]
-margin_top = 61.0
+margin_top = 83.0
 margin_right = 16.0
-margin_bottom = 75.0
+margin_bottom = 97.0
 text = "    "
 
 [node name="Label3" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer"]
 margin_left = 20.0
-margin_top = 56.0
+margin_top = 79.0
 margin_right = 66.0
-margin_bottom = 79.0
+margin_bottom = 102.0
 custom_fonts/font = ExtResource( 3 )
 text = "Z: "
 
 [node name="zBox" type="SpinBox" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer"]
 margin_left = 70.0
-margin_top = 56.0
+margin_top = 74.0
 margin_right = 664.0
-margin_bottom = 80.0
+margin_bottom = 107.0
+theme = SubResource( 3 )
 min_value = -1000.0
 max_value = 1000.0
 step = 0.1
 
 [node name="Label2" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer"]
-margin_top = 168.0
+margin_top = 195.0
 margin_right = 664.0
-margin_bottom = 191.0
+margin_bottom = 218.0
 custom_fonts/font = ExtResource( 2 )
 text = "Vehicle Orientation"
 
 [node name="GridContainer2" type="GridContainer" parent="UIRoot/SetRobotDialog/VBoxContainer"]
-margin_top = 195.0
+margin_top = 222.0
 margin_right = 664.0
-margin_bottom = 275.0
+margin_bottom = 329.0
 columns = 3
 
 [node name="Label4" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer2"]
-margin_top = 5.0
+margin_top = 9.0
 margin_right = 16.0
-margin_bottom = 19.0
+margin_bottom = 23.0
 
 [node name="Label" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer2"]
 margin_left = 20.0
+margin_top = 5.0
 margin_right = 66.0
-margin_bottom = 23.0
+margin_bottom = 28.0
 custom_fonts/font = ExtResource( 3 )
 text = "Pitch: "
 
 [node name="pBox" type="SpinBox" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer2"]
 margin_left = 70.0
 margin_right = 664.0
-margin_bottom = 24.0
+margin_bottom = 33.0
 size_flags_horizontal = 3
+theme = SubResource( 3 )
 min_value = -90.0
 max_value = 90.0
 step = 0.1
 
 [node name="Label5" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer2"]
-margin_top = 33.0
+margin_top = 46.0
 margin_right = 16.0
-margin_bottom = 47.0
+margin_bottom = 60.0
 
 [node name="Label2" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer2"]
 margin_left = 20.0
-margin_top = 28.0
+margin_top = 42.0
 margin_right = 66.0
-margin_bottom = 51.0
+margin_bottom = 65.0
 custom_fonts/font = ExtResource( 3 )
 text = "Roll: "
 
 [node name="rBox" type="SpinBox" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer2"]
 margin_left = 70.0
-margin_top = 28.0
+margin_top = 37.0
 margin_right = 664.0
-margin_bottom = 52.0
+margin_bottom = 70.0
+theme = SubResource( 3 )
 min_value = -180.0
 max_value = 180.0
 step = 0.1
 
 [node name="Label6" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer2"]
-margin_top = 61.0
+margin_top = 83.0
 margin_right = 16.0
-margin_bottom = 75.0
+margin_bottom = 97.0
 text = "    "
 
 [node name="Label3" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer2"]
 margin_left = 20.0
-margin_top = 56.0
+margin_top = 79.0
 margin_right = 66.0
-margin_bottom = 79.0
+margin_bottom = 102.0
 custom_fonts/font = ExtResource( 3 )
 text = "Yaw: "
 
 [node name="hBox" type="SpinBox" parent="UIRoot/SetRobotDialog/VBoxContainer/GridContainer2"]
 margin_left = 70.0
-margin_top = 56.0
+margin_top = 74.0
 margin_right = 664.0
-margin_bottom = 80.0
+margin_bottom = 107.0
+theme = SubResource( 3 )
 min_value = -180.0
 max_value = 180.0
 step = 0.1
 
 [node name="SpacerLabel2" type="Label" parent="UIRoot/SetRobotDialog/VBoxContainer"]
-margin_top = 288.0
+margin_top = 345.0
 margin_right = 664.0
-margin_bottom = 302.0
+margin_bottom = 359.0
 size_flags_vertical = 6
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UIRoot/SetRobotDialog/VBoxContainer"]
-margin_top = 315.0
+margin_top = 375.0
 margin_right = 664.0
-margin_bottom = 344.0
+margin_bottom = 404.0
 
 [node name="OkButton" type="Button" parent="UIRoot/SetRobotDialog/VBoxContainer/HBoxContainer"]
 margin_right = 330.0
