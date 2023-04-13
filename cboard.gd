@@ -22,6 +22,9 @@ signal cboard_connect_fail(reason)
 # Emitted when a message is received from the control board
 signal msg_received(msgfull)
 
+# Emitted when a simstat message is received
+signal simstat(mode, wdg_killed, x, y, z, p, r, h)
+
 ################################################################################
 
 
@@ -53,6 +56,10 @@ var _simhijack_id = 0
 var _simdata_ids = []
 
 # GDSerial instance
+# NOTE: GDNative instances seem to NOT be thread safe
+# Can easily cause crashes in the engine by having two threads
+# access the same GDNative object instance. This is why
+# read_task is not its own thread, but runs in _process instead.
 onready var _ser = preload("res://GDSerial/GDSerial.gdns").new()
 
 # Current serial port name
@@ -72,6 +79,8 @@ func _ready():
 func _process(delta):
 	# TODO: If connected to UART check for connection drop
 	# Primarily check by isError function
+	
+	# TODO: Run read task (limit to reading finite bytes to ensure bounded time)
 	pass
 
 ################################################################################
@@ -153,8 +162,10 @@ func _handle_msg():
 	# If ack to simhijack msg id
 	# 	Cancel timer
 	# 	Either emit connection failed or connected signal
-	# If ack to simdata msg id:
+	# Else If ack to simdata msg id:
 	# 	ignore the message
+	# Else If SIMSTAT message
+	#   Parse message and emit simstat signal
 	# Else
 	# 	Emit msg_received signal
 	pass
