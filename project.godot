@@ -6,35 +6,14 @@
 ;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
-config_version=4
-
-_global_script_classes=[ {
-"base": "Node",
-"class": "ControlBoard",
-"language": "GDScript",
-"path": "res://cboard.gd"
-}, {
-"base": "RigidBody",
-"class": "Robot",
-"language": "GDScript",
-"path": "res://robot.gd"
-}, {
-"base": "Spatial",
-"class": "Simulator",
-"language": "GDScript",
-"path": "res://simulation.gd"
-} ]
-_global_script_class_icons={
-"ControlBoard": "",
-"Robot": "",
-"Simulator": ""
-}
+config_version=5
 
 [application]
 
 config/name="Godot AUV Sim"
 config/description="AUV simulator for AUVControlBoard math development"
 run/main_scene="res://pool.tscn"
+config/features=PackedStringArray("4.0")
 boot_splash/show_image=false
 config/icon="res://images/icon.png"
 config/macos_native_icon="res://images/icon.icns"
@@ -46,9 +25,8 @@ Angles="*res://angles.gd"
 
 [display]
 
-window/size/width=1280
-window/size/height=720
-window/dpi/allow_hidpi=true
+window/size/viewport_width=1280
+window/size/viewport_height=720
 
 [global]
 
@@ -61,9 +39,10 @@ common/drop_mouse_on_gui_input_disabled=true
 
 [physics]
 
+3d/default_gravity_vector=Vector3(0, 0, -1)
 common/enable_pause_aware_picking=true
 
 [rendering]
 
+environment/defaults/default_environment="res://default_env.tres"
 quality/driver/fallback_to_gles2=true
-environment/default_environment="res://default_env.tres"

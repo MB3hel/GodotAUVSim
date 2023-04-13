@@ -1,0 +1,21 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://cjjiqroq6p5cs"
+path="res://.godot/imported/SeaWolf8-Simplified.obj-d5542f1aa2e3a940897732d0ed6d6f73.mesh"
+
+[deps]
+
+files=["res://.godot/imported/SeaWolf8-Simplified.obj-d5542f1aa2e3a940897732d0ed6d6f73.mesh"]
+
+source_file="res://3d/SeaWolf8-Simplified.obj"
+dest_files=["res://.godot/imported/SeaWolf8-Simplified.obj-d5542f1aa2e3a940897732d0ed6d6f73.mesh", "res://.godot/imported/SeaWolf8-Simplified.obj-d5542f1aa2e3a940897732d0ed6d6f73.mesh"]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+optimize_mesh=true

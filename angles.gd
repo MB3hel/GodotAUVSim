@@ -25,13 +25,13 @@ extends Node
 # 
 ####################################################################################################
 
-func quat_to_godot_euler(q: Quat) -> Vector3:
+func quat_to_godot_euler(q: Quaternion) -> Vector3:
 	return q.get_euler()
 
-func godot_euler_to_quat(e: Vector3) -> Quat:
-	return Quat(e)
+func godot_euler_to_quat(e: Vector3) -> Quaternion:
+	return Quaternion.from_euler(e)
 	
-func quat_to_cboard_euler(q: Quat) -> Vector3:
+func quat_to_cboard_euler(q: Quaternion) -> Vector3:
 	var pitch = asin(2.0 * (q.y*q.z + q.w*q.x))
 	var roll
 	var yaw
@@ -61,11 +61,11 @@ func quat_to_cboard_euler(q: Quat) -> Vector3:
 # Yaw about z
 # Pitch about x'
 # Roll about y''
-func cboard_euler_to_quat(e: Vector3) -> Quat:
+func cboard_euler_to_quat(e: Vector3) -> Quaternion:
 	var pitch = e.x
 	var roll = e.y
 	var yaw = e.z
-	var q = Quat()
+	var q = Quaternion()
 	var cr = cos(roll / 2.0)
 	var sr = sin(roll / 2.0)
 	var cp = cos(pitch / 2.0)
