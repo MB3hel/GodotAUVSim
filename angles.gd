@@ -1,29 +1,14 @@
-extends Node
+################################################################################
+# file: angles.gd
+# author: Marcus Behel
+################################################################################
+# The control board and Godot use different euler angle conventions.
+# Godot uses a Y-X'-Z'' convention
+# Control Board uses a Z-X'-Y'' convention
+# NOTE THAT ALL EULER ANGLES MUST BE IN RADIANS FOR THESE FUNCTIONS TO WORK
+################################################################################
 
-####################################################################################################
-# NOTE: Control board and godot use different euler angle conventions
-# Godot uses a "first Y, then X, and Z last" convention (doesn't explicitly 
-# state intrinsic vs extrinsic either). Note: This is composition order
-#
-# Control baord uses intrinsic angles (specifically Tait–Bryan angles) cooresponding to what
-# are typically referred to as pitch (attitude), roll (bank), and yaw (heading)
-# However, the control board uses a less standard coordinate system (differnt from what is 
-# typically used with aircraft these angles are commonly used with). For the control board,
-# yaw is about z, roll is about y, and pitch is about x (and positive z is up not down).
-# Thus the convention used is z-x'-y'' (yaw around world z, the pitch about object x, finally
-# roll around object y). The terms yaw, roll, and pitch refer to the same things though.
-# Yaw is the heading of the robot in the world. Pitch is the front of the robot raising or lowering
-# and roll is a banking motion about the pitched (and yawed) y axis.
-#
-# When applying rotations to godot objects, the godot convention must be used
-# When passing angles to the control board script (and displaying in UIs)
-# the control board convention is used
-#
-# Quaternions are used as a go between
-# 
-# NOTE THAT ALL EULER ANGLES MUST BE IN RADIANS FOR THESE FUNCTIONS!!!
-# 
-####################################################################################################
+extends Node
 
 func quat_to_godot_euler(q: Quat) -> Vector3:
 	return q.get_euler()
@@ -56,11 +41,6 @@ func quat_to_cboard_euler(q: Quat) -> Vector3:
 	
 	return Vector3(pitch, roll, yaw)
 
-# z-x'-y'' convention
-# Yaw then pitch then roll
-# Yaw about z
-# Pitch about x'
-# Roll about y''
 func cboard_euler_to_quat(e: Vector3) -> Quat:
 	var pitch = e.x
 	var roll = e.y
