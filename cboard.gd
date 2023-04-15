@@ -24,7 +24,7 @@ signal cboard_disconnected()
 signal cboard_connect_fail(reason)
 
 # Emitted when an unhandled message is received from the control board
-signal msg_received(msgfull)
+signal msg_received(msg_full)
 
 # Emitted when a simstat message is received
 signal simstat(mode, wdg_killed, x, y, z, p, r, h)
@@ -36,6 +36,11 @@ signal simstat(mode, wdg_killed, x, y, z, p, r, h)
 ################################################################################
 # Globals
 ################################################################################
+
+# Constants for cboard communication
+const START_BYTE = 253
+const END_BYTE = 254
+const ESCAPE_BYTE = 255
 
 # Connection status
 var _uart_connected = false
@@ -185,6 +190,23 @@ func _simhijack_timeout():
 # Communication
 ################################################################################
 
+# Calcualte 16-bit CRC (CCITT-FALSE algorithm) on some data
+func crc16_ccitt_false(msg: PoolByteArray, initial: int = 0xFFFF) -> int:
+	var crc = initial
+	var pos = 0
+	while pos < msg.size():
+		var b = msg[pos]
+		for i in range(8):
+			var bit = int((b >> (7 - i) & 1) == 1)
+			var c15 = int((crc >> 15 & 1) == 1)
+			crc <<= 1
+			crc &= 0xFFFF
+			if c15 ^ bit:
+				crc ^= 0x1021
+				crc &= 0xFFFF
+		pos += 1
+	return crc & 0xFFFF
+
 func _next_msg_id() -> int:
 	var msg_id = self._curr_msg_id
 	self._curr_msg_id += 1
@@ -193,28 +215,73 @@ func _next_msg_id() -> int:
 # Write a message to the control board
 # The provided data is the PAYLOAD not a formatted message
 func _write_msg(msg_id: int, data: PoolByteArray):
-	# TODO: Implement
-	pass
+	var msg_full = StreamPeerBuffer.new()
+	
+	# Write start byte
+	msg_full.put_u8(START_BYTE)
+	
+	# Write msg_id (escaped as needed)
+	var id_high = (msg_id >> 8) & 0xFF
+	var id_low = msg_id & 0xFF
+	if id_high == START_BYTE or id_high == END_BYTE or id_high == ESCAPE_BYTE:
+		msg_full.put_u8(ESCAPE_BYTE)
+	msg_full.put_u8(id_high)
+	if id_low == START_BYTE or id_low == END_BYTE or id_low == ESCAPE_BYTE:
+		msg_full.put_u8(ESCAPE_BYTE)
+	msg_full.put_u8(id_low)
+	
+	# Write each byte of msg escaping as needed
+	for b in data:
+		if b == START_BYTE or b == END_BYTE or b == ESCAPE_BYTE:
+			msg_full.put_u8(ESCAPE_BYTE)
+		msg_full.put_u8(b)
+	
+	# Calculate and write CRC
+	var idbuf = PoolByteArray([id_high, id_low])
+	var crc = crc16_ccitt_false(data, crc16_ccitt_false(idbuf))
+	var crc_high = (crc >> 8) & 0xFF
+	var crc_low =  crc & 0xFF
+	if crc_high == START_BYTE or crc_high == END_BYTE or crc_high == ESCAPE_BYTE:
+		msg_full.put_u8(ESCAPE_BYTE)
+	msg_full.put_u8(crc_high)
+	if crc_low == START_BYTE or crc_low == END_BYTE or crc_low == ESCAPE_BYTE:
+		msg_full.put_u8(ESCAPE_BYTE)
+	msg_full.put_u8(crc_low)
+	
+	# Write end byte
+	msg_full.put_u8(END_BYTE)
+	
+	# Actually write the message
+	self.write_raw(msg_full.data_array)
 
 # Write to the control board
 # The provided data must already be in the format of a message
 func write_raw(data: PoolByteArray):
 	if _uart_connected:
-		# TODO: Write to uart
-		pass
+		self._ser.write(data)
 	elif _sim_connected:
-		# TODO: Read from uart
+		# TODO: Write to simcb
 		pass
 
 # Read any available bytes from connected control board
 # Returns true when a complete message is in _read_buf
 func _read_task():
 	if _uart_connected:
-		# TODO: Read from UART until no bytes available
-		pass
+		var avail = self._ser.available()
+		if avail == 0:
+			return # Nothing to read
+		var data = self._ser.read(avail)
+		if data.size() != avail:
+			return # Probably an error. Let _process handle it.
+		self._parse_msg(data)
 	elif _sim_connected:
 		# TODO: Read from simcb until no bytes available
 		pass
+
+# Parse some bytes as a control board message
+func _parse_msg(data: PoolByteArray):
+	# TODO
+	pass
 
 # Handle a complete (valid) message in the read buffer
 func _handle_msg():
