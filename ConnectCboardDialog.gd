@@ -39,8 +39,11 @@ func update_ports():
 	# Update dropdown if number of ports changed
 	# keep the same selection unless that port is no longer present
 	if len(ports) != len(self.curr_ports):
-		var sel = obtn_uart.get_item_text(obtn_uart.get_selected_id())
-		var selIdx = -1
+		var selIdx = obtn_uart.get_selected_id()
+		var sel = ""
+		if selIdx >= 0:
+			sel = obtn_uart.get_item_text(selIdx)
+		selIdx = -1
 		obtn_uart.clear()
 		for opt in ports:
 			obtn_uart.add_item(opt)
