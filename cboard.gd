@@ -52,6 +52,10 @@ var _read_msg = PoolByteArray()
 # Holds full data of message received from control board
 var _read_data = PoolByteArray()
 
+# Parser status
+var _parse_escaped = false
+var _parse_started = false
+
 # Used by write_msg
 var _curr_msg_id = 60000
 
@@ -279,12 +283,41 @@ func _read_task():
 		pass
 
 # Parse some bytes as a control board message
+# Modified version of the parser used on cboard and in iface scripts
+# This version keeps the full message data (_read_data)
+# in addition to the parsed pessage (_read_msg)
+# This allows echoing unhandled messages to the network interface
+# without modifying them at all (including their IDs)
 func _parse_msg(data: PoolByteArray):
-	# TODO
-	pass
+	for b in data:
+		self._read_data.append(b)
+		if _parse_escaped:
+			if b == START_BYTE or b == END_BYTE or b == ESCAPE_BYTE:
+				self._read_msg.append(b)
+			_parse_escaped = false
+		elif _parse_started:
+			if b == START_BYTE:
+				_read_msg = PoolByteArray()
+				_read_data = PoolByteArray()
+				_read_data.append(b)
+			elif b == END_BYTE:
+				var calc_crc = crc16_ccitt_false(_read_msg.subarray(0, _read_msg.size() - 3))
+				var read_crc = _read_msg[_read_msg.size() - 2] << 8 | _read_msg[_read_msg.size() - 1]
+				if read_crc == calc_crc:
+					var read_id = _read_msg[0] << 8 | _read_msg[1]
+					_handle_msg(read_id, _read_msg.subarray(2, _read_msg.size() - 3), _read_data)
+			elif b == ESCAPE_BYTE:
+				_parse_escaped = true
+			else:
+				_read_msg.append(b)
+		elif b == START_BYTE:
+			_parse_started = true
+			_read_msg = PoolByteArray()
+			_read_data = PoolByteArray()
+			_read_data.append(b)
 
 # Handle a complete (valid) message in the read buffer
-func _handle_msg():
+func _handle_msg(read_id: int, msg: PoolByteArray, msg_full: PoolByteArray):
 	# If ack to simhijack msg id
 	# 	Cancel timer
 	# 	Either emit connection failed or connected signal
@@ -294,6 +327,53 @@ func _handle_msg():
 	#   Parse message and emit simstat signal
 	# Else
 	# 	Emit msg_received signal
-	pass
+	if data_starts_with(msg, "ACK".to_ascii()):
+		var ack_id = msg[3] << 8 | msg[4]
+		var ack_err = msg[5]
+		var ack_dat
+		if msg.size() > 6:
+			ack_dat = msg.subarray(6, msg.size() - 1)
+		else:
+			ack_dat = PoolByteArray([])
+		
+		if ack_id == self._simhijack_id:
+			# ACK of the SIMHIJACK command
+			# Handle the result and don't forward this message
+			self._simhijack_timer.stop()
+			if ack_err == 0:
+				self.emit_signal("cboard_connected")
+			else:
+				self.disconnect_uart(false)
+				self.emit_signal("cboard_connect_fail", "Control board rejected hijack.")
+			return
+		elif ack_id in self._simdata_ids:
+			# ACK of a SIMSTAT command
+			# Ignore the results, but don't forward this message
+			return
+		
+		# All other ACKs should be forwarded
+	elif data_starts_with(msg, "SIMSTAT".to_ascii()):
+		# TODO: handle data
+		# Don't forward this message
+		return
+	
+	# All messages not handled above should be forwarded
+	self.emit_signal("msg_received", msg_full)
+
+func data_starts_with(full: PoolByteArray, prefix: PoolByteArray) -> bool:
+	if prefix.size() > full.size():
+		return false
+	for i in range(prefix.size()):
+		if full[i] != prefix[i]:
+			return false
+	return true
+
+func data_matches(a: PoolByteArray, b: PoolByteArray) -> bool:
+	if a.size() != b.size():
+		return false
+	for i in range(a.size()):
+		if a[i] != b[i]:
+			return false
+	return true
 
 ################################################################################
