@@ -38,6 +38,7 @@ func _ready():
 	connect_cb_dialog.connect("connect_cboard", self, "conncet_cboard")
 	cboard.connect("cboard_connect_fail", self, "cboard_connect_fail")
 	cboard.connect("cboard_connected", self, "cboard_connected")
+	cboard.connect("cboard_disconnected", self, "cboard_disconnected")
 	
 	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()
