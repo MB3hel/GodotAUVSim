@@ -14,11 +14,13 @@ extends Node
 # Globals
 ################################################################################
 
+# Simulation objects
 onready var vehicle = get_node("Vehicle")
-onready var cboard = preload("res://cboard.gd").new()
+var cboard = load("res://cboard.gd").new()
 # onready var net = preload("res://netiface.gd).new()
 
-# TODO: UI Elements
+# UI Elements
+onready var connect_cb_dialog = get_node("UIRoot/ConnectCboardDialog")
 
 ################################################################################
 
@@ -29,7 +31,7 @@ onready var cboard = preload("res://cboard.gd").new()
 ################################################################################
 
 func _ready():
-	pass
+	connect_cb_dialog.show_dialog()
 
 func _process(delta):
 	pass

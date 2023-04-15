@@ -1,8 +1,9 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://fonts/viewport_label_font.tres" type="DynamicFont" id=1]
 [ext_resource path="res://fonts/status_label_font.tres" type="DynamicFont" id=2]
 [ext_resource path="res://fonts/status_value_font.tres" type="DynamicFont" id=3]
+[ext_resource path="res://ConnectCboardDialog.gd" type="Script" id=4]
 [ext_resource path="res://mesh/SeaWolf8-Simplified.obj" type="ArrayMesh" id=5]
 [ext_resource path="res://vehicle.gd" type="Script" id=6]
 [ext_resource path="res://simulation.gd" type="Script" id=7]
@@ -377,6 +378,7 @@ margin_top = 180.0
 margin_right = -300.0
 margin_bottom = -180.0
 popup_exclusive = true
+script = ExtResource( 4 )
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/ConnectCboardDialog"]
 anchor_right = 1.0
@@ -400,34 +402,33 @@ margin_bottom = 53.0
 [node name="CboardSelDesc" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
 margin_top = 57.0
 margin_right = 664.0
-margin_bottom = 158.0
+margin_bottom = 80.0
 custom_fonts/font = ExtResource( 3 )
-text = "This simulator is used to test the actual control board firmware. As such, a connection to a physical control board is required for operation.
-Select a UART device below to connect to. The selected device must be a control board running the correct firmware."
+text = "Select a control board to connect to"
 autowrap = true
 
 [node name="SpacerLabel" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
-margin_top = 162.0
+margin_top = 84.0
 margin_right = 664.0
-margin_bottom = 176.0
+margin_bottom = 98.0
 
 [node name="UARTLabel" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
-margin_top = 180.0
+margin_top = 102.0
 margin_right = 664.0
-margin_bottom = 203.0
+margin_bottom = 125.0
 custom_fonts/font = ExtResource( 3 )
 text = "UART Ports:"
 
 [node name="PortsSelector" type="OptionButton" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
-margin_top = 207.0
+margin_top = 129.0
 margin_right = 664.0
-margin_bottom = 236.0
+margin_bottom = 158.0
 theme = SubResource( 2 )
 
 [node name="SpacerLabel2" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
-margin_top = 255.0
+margin_top = 216.0
 margin_right = 664.0
-margin_bottom = 269.0
+margin_bottom = 230.0
 size_flags_vertical = 6
 
 [node name="ErrorLabel" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
