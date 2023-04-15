@@ -29,7 +29,7 @@ func _ready():
 
 func update_ports():
 	var ports = ser.list_ports()
-	for i in range(len(ports)):
+	for i in range(ports.size()-1, 0, -1):
 		var port = ports[i]
 		if port.begins_with("/dev/ttyS"):
 			ports.remove(i)
