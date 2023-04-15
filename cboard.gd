@@ -64,7 +64,7 @@ var _simdata_ids = []
 # Can easily cause crashes in the engine by having two threads
 # access the same GDNative object instance. This is why
 # read_task is not its own thread, but runs in _process instead.
-onready var _ser = preload("res://GDSerial/GDSerial.gdns").new()
+var _ser = load("res://GDSerial/GDSerial.gdns").new()
 
 # Current serial port name
 var _portname = ""
@@ -135,6 +135,9 @@ func connect_uart(port: String):
 	cmd.append(1)
 	self._simhijack_id = self._next_msg_id()
 	self._write_msg(self._simhijack_id, cmd)
+	
+	# Start SIMHIJACK timeout timer
+	self._simhijack_timer.start(1)
 
 # Disconnect from real control board
 func disconnect_uart(sig: bool = true):

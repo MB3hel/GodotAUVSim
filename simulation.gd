@@ -31,9 +31,37 @@ onready var connect_cb_dialog = get_node("UIRoot/ConnectCboardDialog")
 ################################################################################
 
 func _ready():
+	# Add cboard as a child so "_ready" actually gets called
+	add_child(cboard)
+	
+	# Connect signals
+	connect_cb_dialog.connect("connect_cboard", self, "conncet_cboard")
+	cboard.connect("cboard_connect_fail", self, "cboard_connect_fail")
+	cboard.connect("cboard_connected", self, "cboard_connected")
+	
+	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()
 
 func _process(delta):
 	pass
 
 ################################################################################
+
+# When user clicks Connect button in connect dialog
+func conncet_cboard(port):
+	if port == "SIM":
+		self.cboard.connect_sim()
+	else:
+		self.cboard.connect_uart(port)
+
+# When connect to control board fails
+func cboard_connect_fail(reason: String):
+	self.connect_cb_dialog.show_error(reason)
+
+# When connceted to control board successfully
+func cboard_connected():
+	self.connect_cb_dialog.hide_dialog()
+
+# When cboard disconnected (comm lost or due to user request)
+func cboard_disconnected():
+	self.connect_cb_dialog.show_dialog()

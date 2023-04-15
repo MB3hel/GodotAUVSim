@@ -1,5 +1,8 @@
 extends PopupDialog
 
+# Emitted when user clicks "connect" button
+signal connect_cboard(port)
+
 # UI elements
 onready var lbl_error = find_node("ErrorLabel")
 onready var obtn_uart = find_node("PortsSelector")
@@ -47,12 +50,14 @@ func update_ports():
 		self.curr_ports = ports
 
 func do_connect():
-	pass
+	self.btn_connect.disabled = true
+	self.emit_signal("connect_cboard", self.obtn_uart.get_item_text(self.obtn_uart.selected))
 
 func do_exit():
 	get_tree().quit()
 
 func show_dialog():
+	self.btn_connect.disabled = false
 	self.update_ports()
 	self.popup()
 
@@ -60,4 +65,5 @@ func hide_dialog():
 	self.hide()
 
 func show_error(msg: String):
+	self.btn_connect.disabled = false
 	lbl_error.text = msg
