@@ -186,6 +186,9 @@ func _simhijack_timeout():
 	# Emit failure signal
 	self.emit_signal("cboard_connect_fail", "Timeout while hijacking control board.")
 
+func get_portname() -> String:
+	return self._portname
+
 ################################################################################
 
 

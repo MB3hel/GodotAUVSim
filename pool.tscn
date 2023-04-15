@@ -320,7 +320,7 @@ margin_right = 416.0
 margin_bottom = 23.0
 custom_fonts/font = ExtResource( 3 )
 
-[node name="DisconnectButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+[node name="DisconnectCboardButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_top = 27.0
 margin_right = 416.0
 margin_bottom = 56.0

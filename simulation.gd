@@ -20,7 +20,9 @@ var cboard = load("res://cboard.gd").new()
 # onready var net = preload("res://netiface.gd).new()
 
 # UI Elements
-onready var connect_cb_dialog = get_node("UIRoot/ConnectCboardDialog")
+onready var ui_root = get_node("UIRoot")
+onready var connect_cb_dialog = ui_root.find_node("ConnectCboardDialog")
+onready var btn_disconnect_cb = ui_root.find_node("DisconnectCboardButton")
 
 ################################################################################
 
@@ -36,6 +38,7 @@ func _ready():
 	
 	# Connect signals
 	connect_cb_dialog.connect("connect_cboard", self, "conncet_cboard")
+	btn_disconnect_cb.connect("pressed", self, "disconnect_cboard")
 	cboard.connect("cboard_connect_fail", self, "cboard_connect_fail")
 	cboard.connect("cboard_connected", self, "cboard_connected")
 	cboard.connect("cboard_disconnected", self, "cboard_disconnected")
@@ -54,6 +57,13 @@ func conncet_cboard(port):
 		self.cboard.connect_sim()
 	else:
 		self.cboard.connect_uart(port)
+
+# When user clicks disconnect control board button in UI
+func disconnect_cboard():
+	if self.cboard.get_portname() == "SIM":
+		self.cboard.disconnect_sim()
+	else:
+		self.cboard.disconnect_uart()
 
 # When connect to control board fails
 func cboard_connect_fail(reason: String):
