@@ -14,12 +14,16 @@ extends Node
 # Signals
 ################################################################################
 
-# Emitted on connection state changes
+# Connected to control board (UART or SIM)
 signal cboard_connected()
+
+# Disconnected from control board (UART or SIM)
 signal cboard_disconnected()
+
+# Failed to connect to control board (UART; won't happen for SIM)
 signal cboard_connect_fail(reason)
 
-# Emitted when a message is received from the control board
+# Emitted when an unhandled message is received from the control board
 signal msg_received(msgfull)
 
 # Emitted when a simstat message is received
@@ -75,13 +79,25 @@ var _portname = ""
 func _ready():
 	add_child(_simhijack_timer)
 	_simhijack_timer.one_shot = true
+	_simhijack_timer.connect("timeout", self, "_simhijack_timeout")
 
 func _process(delta):
-	# TODO: If connected to UART check for connection drop
-	# Primarily check by isError function
+	if self._uart_connected:
+		# Check for connection drop
+		# Assume connection dropped if there was a UART error
+		# This error would either be from a _ser.write or _ser.read call
+		if self._ser.isError():
+			printerr(self._ser.errorMessage())
+			if self._simhijack_timer.time_left > 0:
+				# Conncetion lost while waiting for simhijack
+				# Emit connect fail signal, not disconnect signal
+				self.disconnect_uart(false)
+				self.emit_signal("cboard_connect_fail", "UART connection lost while hijacking control board.")
+			else:
+				self.disconnect_uart()
 	
-	# TODO: Run read task (limit to reading finite bytes to ensure bounded time)
-	pass
+	# Read data if any
+	self._read_task()
 
 ################################################################################
 
@@ -93,18 +109,49 @@ func _process(delta):
 
 # Connect to real control board on the given port
 func connect_uart(port: String):
-	# Connect to UART
-	# Send SIMHIJACK command
-	# Do NOT wait for ACK
-	# Make sure to set _portname
-	pass
+	# Disconnect if already connected
+	if self._sim_connected:
+		self.disconnect_sim()
+	elif self._uart_connected:
+		self.disconnect_uart()
+	
+	# Connect to UART (8N1; baud != 1200)
+	_ser.setPort(port)
+	_ser.setBaudrate(115200)
+	_ser.setBytesize(_ser.BYTESIZE_EIGHTBITS)
+	_ser.setParity(_ser.PARITY_NONE)
+	_ser.setStopbits(_ser.STOPBITS_ONE)
+	
+	_ser.isError()			# Clear old error flag (if any)
+	_ser.open()
+	if _ser.isError():
+		self.emit_signal("cboard_connect_fail", "Failed to open serial port.")
+		return
+	self._uart_connected = true
+	self._portname = port
+	
+	# Send SIMHIJACK preparing to wait for ACK
+	var cmd = "SIMHIJACK".to_ascii()
+	cmd.append(1)
+	self._simhijack_id = self._next_msg_id()
+	self._write_msg(self._simhijack_id, cmd)
 
 # Disconnect from real control board
-func disconnect_uart():
-	# TODO: Disconnect UART
-	# Make sure to clear _portname
-	# Emit signal
-	pass
+func disconnect_uart(sig: bool = true):
+	if not self._uart_connected:
+		return
+	
+	# Cancel simhijack timer
+	self._simhijack_timer.stop()
+	
+	# Disconnect UART
+	_ser.close()
+	self._uart_connected = false
+	self._portname = ""
+	
+	# Emit signal if required
+	if sig:
+		self.emit_signal("cboard_disconnected")
 
 # Connect to simulated control board (internal)
 func connect_sim():
@@ -112,13 +159,19 @@ func connect_sim():
 	pass
 
 # Disconnect from simulated control board (internal)
-func disconnect_sim():
+func disconnect_sim(sig: bool = true):
 	# TODO: Implement
-	# TODO: Cancel any simhijack timer
 	pass
 
 # Called when timeout while waiting on SIMHIJACK command
-func _connect_timeout():
+func _simhijack_timeout():
+	# Disconnect now (no signal)
+	if self._uart_connected:
+		self.disconnect_uart(false)
+	elif self._sim_connected:
+		self.disconnect_sim(false)
+	
+	# Emit failure signal
 	self.emit_signal("cboard_connect_fail", "Timeout while hijacking control board.")
 
 ################################################################################
@@ -129,13 +182,16 @@ func _connect_timeout():
 # Communication
 ################################################################################
 
+func _next_msg_id() -> int:
+	var msg_id = self._curr_msg_id
+	self._curr_msg_id += 1
+	return msg_id
+
 # Write a message to the control board
 # The provided data is the PAYLOAD not a formatted message
-# NOTE: There is currently no support for waiting for ACK
-# returns msg_id
-func write_msg(data: PoolByteArray) -> int:
+func _write_msg(msg_id: int, data: PoolByteArray):
 	# TODO: Implement
-	return 0
+	pass
 
 # Write to the control board
 # The provided data must already be in the format of a message
