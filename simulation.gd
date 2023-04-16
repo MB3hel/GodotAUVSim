@@ -145,7 +145,7 @@ func cboard_simstat(mode: String, wdg_killed: bool, x: float, y: float, z: float
 	vehicle.move_local(x, y, z, p, r, h)
 
 # When user clicks reset vehicle button
-# TODO: Or reset command received from network interface
+# Can also be called direclty from netiface
 func reset_vehicle():
 	vehicle.move_local(0, 0, 0, 0, 0, 0)
 	vehicle.translation = Vector3(0, 0, 0)
@@ -167,9 +167,24 @@ func config_vehicle():
 	config_vehicle_dialog.show_dialog(trans.x, trans.y, trans.z, rot.x, rot.y, rot.z)
 
 # When user applies (ok button) vehicle config
-# TODO: Or when simulator command received over netinterface
 func apply_vehicle_config(x, y, z, p, r, h):
 	vehicle.translation = Vector3(x, y, z)
 	vehicle.rotation = Angles.cboard_euler_to_godot_euler(Vector3(p, r, h) * PI / 180.0)
+
+# Called by netiface
+func set_pos(x: float, y: float, z: float):
+	vehicle.translation = Vector3(x, y, z)
+
+# Called by netiface
+func get_pos() -> Vector3:
+	return vehicle.translation
+
+# Called by netiface
+func set_rot(w:float, x: float, y: float, z: float):
+	vehicle.rotation = Angles.quat_to_godot_euler(Quat(x, y, z, w))
+
+# Called by netiface
+func get_rot() -> Quat:
+	return Angles.godot_euler_to_quat(vehicle.rotation)
 
 ################################################################################

@@ -141,7 +141,7 @@ func _handle_cmd(line: String) -> String:
 		var x = float(parts[1])
 		var y = float(parts[2])
 		var z = float(parts[3])
-		# TODO: Handle this command
+		_sim.set_pos(x, y, z)
 		return "0"
 	
 	# get_pos -> EC [x y z]
@@ -149,11 +149,8 @@ func _handle_cmd(line: String) -> String:
 		if len(parts) != 1:
 			# Invalid arts
 			return "1"
-		# TODO: Handle this command
-		var x = 0
-		var y = 0
-		var z = 0
-		return "%d %f %f %f" % [0, x, y, z]
+		var pos = _sim.get_pos()
+		return "%d %f %f %f" % [0, pos.x, pos.y, pos.z]
 		
 	# set_rot w x y z -> EC
 	if parts[0] == "set_rot":
@@ -170,7 +167,7 @@ func _handle_cmd(line: String) -> String:
 		var x = float(parts[2])
 		var y = float(parts[3])
 		var z = float(parts[4])
-		# TODO: Handle this command
+		_sim.set_rot(w, x, y, z)
 		return "0"
 	
 	# get_rot -> EC [w x y z]
@@ -178,15 +175,14 @@ func _handle_cmd(line: String) -> String:
 		if len(parts) != 1:
 			# Invalid args
 			return "1"
-		# TODO: handle this command
-		var q = Quat(0, 0, 0, 1)
+		var q = _sim.get_rot()
 		return "%d %f %f %f %f" % [0, q.w, q.x, q.y, q.z]
 	
 	# reset_vehicle -> EC
 	if parts[0] == "reset_vehicle":
 		if len(parts) != 1:
 			return "1"
-		# TODO: Handle this command
+		_sim.reset_vehicle()
 		return "0"
 	
 	# Unknown command
