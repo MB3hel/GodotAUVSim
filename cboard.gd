@@ -372,10 +372,10 @@ func _handle_msg(read_id: int, msg: PoolByteArray, msg_full: PoolByteArray):
 		# All other ACKs should be forwarded
 	elif _data_starts_with(msg, "SIMSTAT".to_ascii()):
 		# Handle data
-
 		var msgbuf = StreamPeerBuffer.new()
 		msgbuf.data_array = msg
 		msgbuf.big_endian = false
+		msgbuf.seek(7)
 		var x = msgbuf.get_float()
 		var y = msgbuf.get_float()
 		var z = msgbuf.get_float()

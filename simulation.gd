@@ -23,6 +23,8 @@ var cboard = load("res://cboard.gd").new()
 onready var ui_root = get_node("UIRoot")
 onready var connect_cb_dialog = ui_root.find_node("ConnectCboardDialog")
 onready var btn_disconnect_cb = ui_root.find_node("DisconnectCboardButton")
+onready var lbl_mode = ui_root.find_node("ModeValue")
+onready var lbl_wdg = ui_root.find_node("MotorWDGValue")
 
 # Used to send SIMDAT messages to control board periodically
 # Sends simulated sensor data (orientation and depth) to control board
@@ -52,6 +54,7 @@ func _ready():
 	cboard.connect("cboard_connect_fail", self, "cboard_connect_fail")
 	cboard.connect("cboard_connected", self, "cboard_connected")
 	cboard.connect("cboard_disconnected", self, "cboard_disconnected")
+	cboard.connect("simstat", self, "cboard_simstat")
 	
 	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()
@@ -91,3 +94,12 @@ func cboard_disconnected():
 func send_simdat():
 	if self.cboard.get_portname() != "":
 		self.cboard.send_simdat(Angles.godot_euler_to_quat(vehicle.rotation), vehicle.translation.z)
+
+# When control board interface receives SIMSTAT (periodic)
+func cboard_simstat(mode: String, wdg_killed: bool, x: float, y: float, z: float, p: float, r: float, h: float):
+	lbl_mode.text = mode
+	if wdg_killed:
+		lbl_wdg.text = "Killed"
+	else:
+		lbl_wdg.text = "Not Killed"
+	vehicle.move_local(x, y, z, p, r, h)
