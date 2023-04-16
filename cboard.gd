@@ -372,15 +372,18 @@ func _handle_msg(read_id: int, msg: PoolByteArray, msg_full: PoolByteArray):
 		# All other ACKs should be forwarded
 	elif _data_starts_with(msg, "SIMSTAT".to_ascii()):
 		# Handle data
-		# TODO: Actually parse the data
-		var mode = ""
-		var wdg_killed = true
-		var x = 0.0
-		var y = 0.0
-		var z = 0.0
-		var p = 0.0
-		var r = 0.0
-		var h = 0.0
+
+		var msgbuf = StreamPeerBuffer.new()
+		msgbuf.data_array = msg
+		msgbuf.big_endian = false
+		var x = msgbuf.get_float()
+		var y = msgbuf.get_float()
+		var z = msgbuf.get_float()
+		var p = msgbuf.get_float()
+		var r = msgbuf.get_float()
+		var h = msgbuf.get_float()
+		var mode = _mode_name(msgbuf.get_u8())
+		var wdg_killed = msgbuf.get_u8() != 0
 		self.emit_signal("simstat", mode, wdg_killed, x, y, z, p, r, h)
 
 		# Don't forward this message
@@ -404,5 +407,19 @@ func _data_matches(a: PoolByteArray, b: PoolByteArray) -> bool:
 		if a[i] != b[i]:
 			return false
 	return true
+
+func _mode_name(mode: int) -> String:
+	if mode == 0:
+		return "RAW"
+	elif mode == 1:
+		return "LOCAL"
+	elif mode == 2:
+		return "GLOBAL"
+	elif mode == 3:
+		return "SASSIST"
+	elif mode == 4:
+		return "DHOLD"
+	else:
+		return "UNKNOWN"
 
 ################################################################################
