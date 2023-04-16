@@ -297,7 +297,7 @@ custom_fonts/font = ExtResource( 3 )
 text = "Killed"
 clip_text = true
 
-[node name="CopyButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2"]
+[node name="CopyStatusButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer2"]
 margin_top = 189.0
 margin_right = 832.0
 margin_bottom = 218.0

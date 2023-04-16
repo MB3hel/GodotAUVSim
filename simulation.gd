@@ -32,6 +32,8 @@ onready var lbl_euler = ui_root.find_node("EulerValue")
 onready var lbl_quat = ui_root.find_node("QuatValue")
 onready var lbl_cboard_conn = ui_root.find_node("CboardConnLabel")
 onready var btn_reset_vehicle = ui_root.find_node("ResetVehicleButton")
+onready var btn_copy_status = ui_root.find_node("CopyStatusButton")
+onready var status_panel = ui_root.find_node("StatusPanel")
 
 # Used to send SIMDAT messages to control board periodically
 # Sends simulated sensor data (orientation and depth) to control board
@@ -63,6 +65,7 @@ func _ready():
 	cboard.connect("cboard_disconnected", self, "cboard_disconnected")
 	cboard.connect("simstat", self, "cboard_simstat")
 	btn_reset_vehicle.connect("pressed", self, "reset_vehicle")
+	btn_copy_status.connect("pressed", self, "copy_to_clipboard")
 	
 	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()
@@ -134,5 +137,14 @@ func reset_vehicle():
 	vehicle.move_local(0, 0, 0, 0, 0, 0)
 	vehicle.translation = Vector3(0, 0, 0)
 	vehicle.rotation = Vector3(0, 0, 0)
+
+# When user clicks copy to clipboard button
+func copy_to_clipboard():
+	var data = ""
+	for i in range(0, status_panel.get_child_count(), 2):
+		var label = status_panel.get_child(i)
+		var value = status_panel.get_child(i+1)
+		data += label.text + " " + value.text + "\n"
+	OS.set_clipboard(data)
 
 ################################################################################
