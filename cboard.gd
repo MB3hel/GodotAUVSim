@@ -76,6 +76,8 @@ var _simdata_ids = []
 var _ser = load("res://GDSerial/GDSerial.gdns").new()
 
 # Current serial port name
+# SIM means connected to simcb
+# "" (empty string) means not connected
 var _portname = ""
 
 ################################################################################
@@ -197,8 +199,22 @@ func get_portname() -> String:
 # Communication
 ################################################################################
 
+# Send SIMDAT command (no wait for ACK)
+func send_simdat(quat: Quat, depth: float):
+	var msgbuf = StreamPeerBuffer.new()
+	msgbuf.big_endian = false
+	msgbuf.put_data("SIMDAT".to_ascii())
+	msgbuf.put_float(quat.w)
+	msgbuf.put_float(quat.x)
+	msgbuf.put_float(quat.y)
+	msgbuf.put_float(quat.z)
+	msgbuf.put_float(depth)
+	var msg_id = self._next_msg_id()
+	self._simdata_ids.append(msg_id)
+	self._write_msg(msg_id, msgbuf.data_array)
+
 # Calcualte 16-bit CRC (CCITT-FALSE algorithm) on some data
-func crc16_ccitt_false(msg: PoolByteArray, initial: int = 0xFFFF) -> int:
+func _crc16_ccitt_false(msg: PoolByteArray, initial: int = 0xFFFF) -> int:
 	var crc = initial
 	var pos = 0
 	while pos < msg.size():
@@ -245,7 +261,7 @@ func _write_msg(msg_id: int, data: PoolByteArray):
 	
 	# Calculate and write CRC
 	var idbuf = PoolByteArray([id_high, id_low])
-	var crc = crc16_ccitt_false(data, crc16_ccitt_false(idbuf))
+	var crc = _crc16_ccitt_false(data, _crc16_ccitt_false(idbuf))
 	var crc_high = (crc >> 8) & 0xFF
 	var crc_low =  crc & 0xFF
 	if crc_high == START_BYTE or crc_high == END_BYTE or crc_high == ESCAPE_BYTE:
@@ -304,7 +320,7 @@ func _parse_msg(data: PoolByteArray):
 				_read_data = PoolByteArray()
 				_read_data.append(b)
 			elif b == END_BYTE:
-				var calc_crc = crc16_ccitt_false(_read_msg.subarray(0, _read_msg.size() - 3))
+				var calc_crc = _crc16_ccitt_false(_read_msg.subarray(0, _read_msg.size() - 3))
 				var read_crc = _read_msg[_read_msg.size() - 2] << 8 | _read_msg[_read_msg.size() - 1]
 				if read_crc == calc_crc:
 					var read_id = _read_msg[0] << 8 | _read_msg[1]
@@ -330,7 +346,7 @@ func _handle_msg(read_id: int, msg: PoolByteArray, msg_full: PoolByteArray):
 	#   Parse message and emit simstat signal
 	# Else
 	# 	Emit msg_received signal
-	if data_starts_with(msg, "ACK".to_ascii()):
+	if _data_starts_with(msg, "ACK".to_ascii()):
 		var ack_id = msg[3] << 8 | msg[4]
 		var ack_err = msg[5]
 		var ack_dat
@@ -353,17 +369,27 @@ func _handle_msg(read_id: int, msg: PoolByteArray, msg_full: PoolByteArray):
 			# ACK of a SIMSTAT command
 			# Ignore the results, but don't forward this message
 			return
-		
 		# All other ACKs should be forwarded
-	elif data_starts_with(msg, "SIMSTAT".to_ascii()):
-		# TODO: handle data
+	elif _data_starts_with(msg, "SIMSTAT".to_ascii()):
+		# Handle data
+		# TODO: Actually parse the data
+		var mode = ""
+		var wdg_killed = true
+		var x = 0.0
+		var y = 0.0
+		var z = 0.0
+		var p = 0.0
+		var r = 0.0
+		var h = 0.0
+		self.emit_signal("simstat", mode, wdg_killed, x, y, z, p, r, h)
+
 		# Don't forward this message
 		return
 	
 	# All messages not handled above should be forwarded
 	self.emit_signal("msg_received", msg_full)
 
-func data_starts_with(full: PoolByteArray, prefix: PoolByteArray) -> bool:
+func _data_starts_with(full: PoolByteArray, prefix: PoolByteArray) -> bool:
 	if prefix.size() > full.size():
 		return false
 	for i in range(prefix.size()):
@@ -371,7 +397,7 @@ func data_starts_with(full: PoolByteArray, prefix: PoolByteArray) -> bool:
 			return false
 	return true
 
-func data_matches(a: PoolByteArray, b: PoolByteArray) -> bool:
+func _data_matches(a: PoolByteArray, b: PoolByteArray) -> bool:
 	if a.size() != b.size():
 		return false
 	for i in range(a.size()):

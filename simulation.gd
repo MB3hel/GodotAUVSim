@@ -24,6 +24,10 @@ onready var ui_root = get_node("UIRoot")
 onready var connect_cb_dialog = ui_root.find_node("ConnectCboardDialog")
 onready var btn_disconnect_cb = ui_root.find_node("DisconnectCboardButton")
 
+# Used to send SIMDAT messages to control board periodically
+# Sends simulated sensor data (orientation and depth) to control board
+var timer_simdat = Timer.new()
+
 ################################################################################
 
 
@@ -33,6 +37,12 @@ onready var btn_disconnect_cb = ui_root.find_node("DisconnectCboardButton")
 ################################################################################
 
 func _ready():
+	# Setup timers
+	add_child(self.timer_simdat)
+	self.timer_simdat.one_shot = false
+	timer_simdat.connect("timeout", self, "send_simdat")
+	self.timer_simdat.start(0.015)		# Send every 15ms (same rate control board polls sensors)
+	
 	# Add cboard as a child so "_ready" actually gets called
 	add_child(cboard)
 	
@@ -76,3 +86,8 @@ func cboard_connected():
 # When cboard disconnected (comm lost or due to user request)
 func cboard_disconnected():
 	self.connect_cb_dialog.show_dialog()
+
+# Called by timer to send SIMDAT periodically
+func send_simdat():
+	if self.cboard.get_portname() != "":
+		self.cboard.send_simdat(Angles.godot_euler_to_quat(vehicle.rotation), vehicle.translation.z)
