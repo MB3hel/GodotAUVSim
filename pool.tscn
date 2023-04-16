@@ -315,10 +315,11 @@ margin_right = 1260.0
 margin_bottom = 218.0
 size_flags_horizontal = 3
 
-[node name="ConnLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
+[node name="CboardConnLabel" type="Label" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_right = 416.0
 margin_bottom = 23.0
 custom_fonts/font = ExtResource( 3 )
+text = "Control Board: Not Connected"
 
 [node name="DisconnectCboardButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_top = 27.0

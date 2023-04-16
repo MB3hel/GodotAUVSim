@@ -30,6 +30,7 @@ onready var lbl_rot = ui_root.find_node("RotationValue")
 onready var lbl_pos = ui_root.find_node("PosValue")
 onready var lbl_euler = ui_root.find_node("EulerValue")
 onready var lbl_quat = ui_root.find_node("QuatValue")
+onready var lbl_cboard_conn = ui_root.find_node("CboardConnLabel")
 
 # Used to send SIMDAT messages to control board periodically
 # Sends simulated sensor data (orientation and depth) to control board
@@ -95,10 +96,12 @@ func cboard_connect_fail(reason: String):
 
 # When connceted to control board successfully
 func cboard_connected():
+	lbl_cboard_conn.text = "Control Board: " + cboard.get_portname()
 	self.connect_cb_dialog.hide_dialog()
 
 # When cboard disconnected (comm lost or due to user request)
 func cboard_disconnected():
+	lbl_cboard_conn.text = "Control Board: Not Connected"
 	self.connect_cb_dialog.show_dialog()
 
 # Called by timer to send SIMDAT periodically
