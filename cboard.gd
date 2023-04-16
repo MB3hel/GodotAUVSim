@@ -27,7 +27,7 @@ signal cboard_connect_fail(reason)
 signal msg_received(msg_full)
 
 # Emitted when a simstat message is received
-signal simstat(mode, wdg_killed, x, y, z, p, r, h)
+signal simstat(mode, wdg_killed, speeds)
 
 ################################################################################
 
@@ -358,6 +358,7 @@ func _handle_msg(read_id: int, msg: PoolByteArray, msg_full: PoolByteArray):
 		if ack_id == self._simhijack_id:
 			# ACK of the SIMHIJACK command
 			# Handle the result and don't forward this message
+			self._simhijack_id = -1
 			self._simhijack_timer.stop()
 			if ack_err == 0:
 				self.emit_signal("cboard_connected")
@@ -366,8 +367,9 @@ func _handle_msg(read_id: int, msg: PoolByteArray, msg_full: PoolByteArray):
 				self.emit_signal("cboard_connect_fail", "Control board rejected hijack.")
 			return
 		elif ack_id in self._simdata_ids:
-			# ACK of a SIMSTAT command
+			# ACK of a SIMDAT command
 			# Ignore the results, but don't forward this message
+			self._simdata_ids.remove(self._simdata_ids.find(ack_id))
 			return
 		# All other ACKs should be forwarded
 	elif _data_starts_with(msg, "SIMSTAT".to_ascii()):
@@ -376,15 +378,18 @@ func _handle_msg(read_id: int, msg: PoolByteArray, msg_full: PoolByteArray):
 		msgbuf.data_array = msg
 		msgbuf.big_endian = false
 		msgbuf.seek(7)
-		var x = msgbuf.get_float()
-		var y = msgbuf.get_float()
-		var z = msgbuf.get_float()
-		var p = msgbuf.get_float()
-		var r = msgbuf.get_float()
-		var h = msgbuf.get_float()
+		var speeds = []
+		speeds.append(msgbuf.get_float())
+		speeds.append(msgbuf.get_float())
+		speeds.append(msgbuf.get_float())
+		speeds.append(msgbuf.get_float())
+		speeds.append(msgbuf.get_float())
+		speeds.append(msgbuf.get_float())
+		speeds.append(msgbuf.get_float())
+		speeds.append(msgbuf.get_float())
 		var mode = _mode_name(msgbuf.get_u8())
 		var wdg_killed = msgbuf.get_u8() != 0
-		self.emit_signal("simstat", mode, wdg_killed, x, y, z, p, r, h)
+		self.emit_signal("simstat", mode, wdg_killed, speeds)
 
 		# Don't forward this message
 		return

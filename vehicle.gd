@@ -37,14 +37,14 @@ var _thr_force_pos = [
 ]
 
 var _thr_force_vec = [
-	Vector3(-1, 1, 0).normalized(),			# T1
-	Vector3(1, 1, 0).normalized(),			# T2
+	Vector3(1, -1, 0).normalized(),			# T1
+	Vector3(-1, -1, 0).normalized(),		# T2
 	Vector3(-1, -1, 0).normalized(),		# T3
 	Vector3(1, -1, 0).normalized(),			# T4
-	Vector3(0, 0, -1).normalized(),			# T5
+	Vector3(0, 0, 1).normalized(),			# T5
 	Vector3(0, 0, -1).normalized(),			# T6
 	Vector3(0, 0, -1).normalized(),			# T7
-	Vector3(0, 0, -1).normalized(),			# T8
+	Vector3(0, 0, 1).normalized(),			# T8
 ]
 
 # Values for T200@16V
@@ -127,7 +127,6 @@ func move_raw(speeds: Array):
 		if speeds[i] > 0.0:
 			_thr_forces[i] *= speeds[i] * _thr_force_pos_mag[i]
 		else:
-			# TODO: Use neg_mag
-			_thr_forces[i] *= speeds[i] * _thr_force_pos_mag[i]
+			_thr_forces[i] *= speeds[i] * _thr_force_neg_mag[i]
 
 ################################################################################

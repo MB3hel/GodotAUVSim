@@ -40,6 +40,16 @@ signal client_disconnected()
 # Globals
 ################################################################################
 
+const START_BYTE = 253
+const END_BYTE = 254
+const ESCAPE_BYTE = 255
+
+# Control board message parser
+var _read_msg = PoolByteArray()
+var _read_data = PoolByteArray()
+var _parse_escaped = false
+var _parse_started = false
+
 var _cmd_server = TCP_Server.new()
 var _cboard_server = TCP_Server.new()
 
@@ -202,14 +212,42 @@ func _handle_cmd(line: String) -> String:
 	# Unknown command
 	return "2"
 
-# This is  not a parser. Bytes read from TCP are just written to the
-# control board directly.
-# Unlike data coming from the control board, the simulator never
-# needs to use any data being sent to the control board.
+# This is a full parer. THIS IS REQUIRED. Messages MUST be set in full.
+# This is because the control board interface itself may send message
+# Thus, messages from this TCP port and simulator generated messages could be
+# interleaved. The control board would then be unable to handle either message.
+# Therefore, this parses messages from the control board. When a full one is
+# received, it is forwarded.
 func _process_cboard():
 	if _cboard_client.get_available_bytes() > 0:
 		var res = _cboard_client.get_data(_cboard_client.get_available_bytes())
-		self.emit_signal("cboard_data_received", res[1])
+		var data = res[1]
+		for b in data:
+			self._read_data.append(b)
+			if _parse_escaped:
+				if b == START_BYTE or b == END_BYTE or b == ESCAPE_BYTE:
+					self._read_msg.append(b)
+				_parse_escaped = false
+			elif _parse_started:
+				if b == START_BYTE:
+					_read_msg = PoolByteArray()
+					_read_data = PoolByteArray()
+					_read_data.append(b)
+				elif b == END_BYTE:
+					var calc_crc = _crc16_ccitt_false(_read_msg.subarray(0, _read_msg.size() - 3))
+					var read_crc = _read_msg[_read_msg.size() - 2] << 8 | _read_msg[_read_msg.size() - 1]
+					if read_crc == calc_crc:
+						var read_id = _read_msg[0] << 8 | _read_msg[1]
+						self.emit_signal("cboard_data_received", _read_data)
+				elif b == ESCAPE_BYTE:
+					_parse_escaped = true
+				else:
+					_read_msg.append(b)
+			elif b == START_BYTE:
+				_parse_started = true
+				_read_msg = PoolByteArray()
+				_read_data = PoolByteArray()
+				_read_data.append(b)
 
 func disconnect_client():
 	if self._connected:
@@ -225,3 +263,24 @@ func allow_connections():
 func disallow_connections():
 	disconnect_client()
 	self._allow_connections = false
+
+func write_cboard(msg_full: PoolByteArray):
+	if _connected:
+		self._cboard_client.put_data(msg_full)
+
+# Calcualte 16-bit CRC (CCITT-FALSE algorithm) on some data
+func _crc16_ccitt_false(msg: PoolByteArray, initial: int = 0xFFFF) -> int:
+	var crc = initial
+	var pos = 0
+	while pos < msg.size():
+		var b = msg[pos]
+		for i in range(8):
+			var bit = int((b >> (7 - i) & 1) == 1)
+			var c15 = int((crc >> 15 & 1) == 1)
+			crc <<= 1
+			crc &= 0xFFFF
+			if c15 ^ bit:
+				crc ^= 0x1021
+				crc &= 0xFFFF
+		pos += 1
+	return crc & 0xFFFF

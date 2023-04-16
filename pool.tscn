@@ -25,6 +25,8 @@ script = ExtResource( 7 )
 [node name="Vehicle" type="RigidBody" parent="."]
 mass = 7.65306
 gravity_scale = 0.0
+linear_damp = 1.2
+angular_damp = 1.2
 script = ExtResource( 6 )
 
 [node name="MeshInstance" type="MeshInstance" parent="Vehicle"]

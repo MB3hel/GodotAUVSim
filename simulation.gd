@@ -64,12 +64,13 @@ func _ready():
 	add_child(netiface)
 	
 	# Connect signals
-	connect_cb_dialog.connect("connect_cboard", self, "conncet_cboard")
+	connect_cb_dialog.connect("connect_cboard", self, "connect_cboard")
 	btn_disconnect_cb.connect("pressed", self, "disconnect_cboard")
 	cboard.connect("cboard_connect_fail", self, "cboard_connect_fail")
 	cboard.connect("cboard_connected", self, "cboard_connected")
 	cboard.connect("cboard_disconnected", self, "cboard_disconnected")
 	cboard.connect("simstat", self, "cboard_simstat")
+	cboard.connect("msg_received", netiface, "write_cboard")
 	btn_reset_vehicle.connect("pressed", self, "reset_vehicle")
 	btn_copy_status.connect("pressed", self, "copy_to_clipboard")
 	btn_config_vehicle.connect("pressed", self, "config_vehicle")
@@ -100,7 +101,7 @@ func _process(delta):
 ################################################################################
 
 # When user clicks Connect button in connect dialog
-func conncet_cboard(port):
+func connect_cboard(port):
 	if port == "SIM":
 		self.cboard.connect_sim()
 	else:
@@ -126,7 +127,7 @@ func cboard_connected():
 # When cboard disconnected (comm lost or due to user request)
 func cboard_disconnected():
 	# Make vehicle stop on disconnect from control board
-	cboard_simstat("RAW", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	cboard_simstat("RAW", true, [0, 0, 0, 0, 0, 0, 0, 0])
 	
 	self.netiface.disallow_connections()
 	lbl_cboard_conn.text = "Control Board: Not Connected"
@@ -138,20 +139,22 @@ func send_simdat():
 		self.cboard.send_simdat(Angles.godot_euler_to_quat(vehicle.rotation), vehicle.translation.z)
 
 # When control board interface receives SIMSTAT (periodic)
-func cboard_simstat(mode: String, wdg_killed: bool, x: float, y: float, z: float, p: float, r: float, h: float):
+func cboard_simstat(mode: String, wdg_killed: bool, speeds: Array):
 	lbl_mode.text = mode
 	if wdg_killed:
 		lbl_wdg.text = "Killed"
 	else:
 		lbl_wdg.text = "Not Killed"
-	lbl_trans.text = "(x=%+.2f, y=%+.2f, z=%+.2f)" % [x, y, z]
-	lbl_rot.text = "(p=%+.2f, r=%+.2f, y=%+.2f)" % [p, r, h]
-	# vehicle.move_local(x, y, z, p, r, h)
+	# TODO: UI
+	print(speeds)
+	vehicle.move_raw(speeds)
 
 # When user clicks reset vehicle button
 # Can also be called direclty from netiface
 func reset_vehicle():
 	vehicle.move_raw([0, 0, 0, 0, 0, 0, 0, 0])
+	vehicle.linear_velocity = Vector3(0, 0, 0)
+	vehicle.angular_velocity = Vector3(0, 0, 0)
 	vehicle.translation = Vector3(0, 0, 0)
 	vehicle.rotation = Vector3(0, 0, 0)
 
