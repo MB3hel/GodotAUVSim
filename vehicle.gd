@@ -37,11 +37,8 @@ var _ct = Vector3(0.0, 0.0, 0.0)
 
 func _ready():
 	# Initialize robot / physics properties
-	self.weight = 9.8
-	self.linear_damp = 3.8
-	self.angular_damp = 2.9
-	self.thruster_force = Vector3(4.2, 4.2, 4.2)
-	self.thruster_torque = Vector3(0.15, 0.3, 0.6)
+	self.thruster_force = Vector3(3.8, 3.8, 3.8)
+	self.thruster_torque = Vector3(0.25, 0.5, 1.0)
 
 func _process(delta):
 	# Apply forces & torques at center of the vehicle

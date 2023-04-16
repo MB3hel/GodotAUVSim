@@ -23,6 +23,7 @@ default_font = ExtResource( 3 )
 script = ExtResource( 7 )
 
 [node name="Vehicle" type="RigidBody" parent="."]
+mass = 7.65306
 gravity_scale = 0.0
 script = ExtResource( 6 )
 

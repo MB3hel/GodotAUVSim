@@ -158,6 +158,7 @@ func config_vehicle():
 	config_vehicle_dialog.show_dialog(trans.x, trans.y, trans.z, rot.x, rot.y, rot.z)
 
 # When user applies (ok button) vehicle config
+# TODO: Or when simulator command received over netinterface
 func apply_vehicle_config(x, y, z, p, r, h):
 	vehicle.translation = Vector3(x, y, z)
 	vehicle.rotation = Angles.cboard_euler_to_godot_euler(Vector3(p, r, h) * PI / 180.0)
