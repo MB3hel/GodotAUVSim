@@ -340,6 +340,7 @@ margin_top = 68.0
 margin_right = 416.0
 margin_bottom = 91.0
 custom_fonts/font = ExtResource( 3 )
+text = "TCP Client: Not Connected"
 
 [node name="DisconnectNetButton" type="Button" parent="UIRoot/VBoxContainer/HBoxContainer/VBoxContainer"]
 margin_top = 95.0

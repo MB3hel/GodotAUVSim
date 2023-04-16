@@ -28,6 +28,10 @@ extends Node
 # Received a message from cboard client port (should be forwarded)
 signal cboard_data_received(data)
 
+# Client conncetion state changes (used by simulation.gd for UI)
+signal client_connected()
+signal client_disconnected()
+
 ################################################################################
 
 
@@ -78,6 +82,12 @@ func _process(delta):
 			disconnect_client()
 		elif _cboard_client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
 			disconnect_client()
+		
+		# Reject further connections when something is already connected
+		if _cmd_server.is_connection_available():
+			self._cmd_server.take_connection().disconnect_from_host()
+		if _cboard_server.is_connection_available():
+			self._cboard_server.take_connection().disconnect_from_host()
 	else:
 		if not self._allow_connections:
 			# Reject connections when not allowed
@@ -94,6 +104,7 @@ func _process(delta):
 			else:
 				self._connected = true
 				self._client_addr = _cmd_client.get_connected_host()
+				self.emit_signal("client_connected")
 	
 	# Process network stuff
 	if self._connected:
@@ -101,6 +112,9 @@ func _process(delta):
 		_process_cboard()
 
 ################################################################################
+
+func get_client_addr() -> String:
+	return self._client_addr
 
 func _process_cmd():
 	if _cmd_client.get_available_bytes() > 0:
@@ -203,6 +217,7 @@ func disconnect_client():
 		self._cboard_client.disconnect_from_host()
 		self._connected = false
 		self._client_addr = ""
+		self.emit_signal("client_disconnected")
 
 func allow_connections():
 	self._allow_connections = true

@@ -37,6 +37,7 @@ onready var status_panel = ui_root.find_node("StatusPanel")
 onready var btn_config_vehicle = ui_root.find_node("ConfigVehicleButton")
 onready var config_vehicle_dialog = ui_root.find_node("VehicleConfigDialog")
 onready var btn_disconnect_tcp = ui_root.find_node("DisconnectNetButton")
+onready var lbl_tcp_client = ui_root.find_node("NetConnLabel")
 
 # Used to send SIMDAT messages to control board periodically
 # Sends simulated sensor data (orientation and depth) to control board
@@ -75,6 +76,8 @@ func _ready():
 	config_vehicle_dialog.connect("applied", self, "apply_vehicle_config")
 	btn_disconnect_tcp.connect("pressed", netiface, "disconnect_client")
 	netiface.connect("cboard_data_received", cboard, "write_raw")
+	netiface.connect("client_connected", self, "net_client_connected")
+	netiface.connect("client_disconnected", self, "net_client_disconnected")	
 	
 	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()
@@ -187,5 +190,13 @@ func set_rot(w:float, x: float, y: float, z: float):
 # Called by netiface
 func get_rot() -> Quat:
 	return Angles.godot_euler_to_quat(vehicle.rotation)
+
+# When client connects to TCP interface
+func net_client_connected():
+	lbl_tcp_client.text = "TCP Client: " + netiface.get_client_addr()
+
+# When client disconnects from TCP
+func net_client_disconnected():
+	lbl_tcp_client.text = "TCP Client: Not Connected"
 
 ################################################################################
