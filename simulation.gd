@@ -146,12 +146,12 @@ func cboard_simstat(mode: String, wdg_killed: bool, x: float, y: float, z: float
 		lbl_wdg.text = "Not Killed"
 	lbl_trans.text = "(x=%+.2f, y=%+.2f, z=%+.2f)" % [x, y, z]
 	lbl_rot.text = "(p=%+.2f, r=%+.2f, y=%+.2f)" % [p, r, h]
-	vehicle.move_local(x, y, z, p, r, h)
+	# vehicle.move_local(x, y, z, p, r, h)
 
 # When user clicks reset vehicle button
 # Can also be called direclty from netiface
 func reset_vehicle():
-	vehicle.move_local(0, 0, 0, 0, 0, 0)
+	vehicle.move_raw([0, 0, 0, 0, 0, 0, 0, 0])
 	vehicle.translation = Vector3(0, 0, 0)
 	vehicle.rotation = Vector3(0, 0, 0)
 
