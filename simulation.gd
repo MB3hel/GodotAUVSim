@@ -17,7 +17,7 @@ extends Node
 # Simulation objects
 onready var vehicle = get_node("Vehicle")
 var cboard = load("res://cboard.gd").new()
-# onready var net = preload("res://netiface.gd).new()
+var netiface = load("res://netiface.gd").new()
 
 # UI Elements
 onready var ui_root = get_node("UIRoot")
@@ -36,6 +36,7 @@ onready var btn_copy_status = ui_root.find_node("CopyStatusButton")
 onready var status_panel = ui_root.find_node("StatusPanel")
 onready var btn_config_vehicle = ui_root.find_node("ConfigVehicleButton")
 onready var config_vehicle_dialog = ui_root.find_node("VehicleConfigDialog")
+onready var btn_disconnect_tcp = ui_root.find_node("DisconnectNetButton")
 
 # Used to send SIMDAT messages to control board periodically
 # Sends simulated sensor data (orientation and depth) to control board
@@ -56,8 +57,10 @@ func _ready():
 	timer_simdat.connect("timeout", self, "send_simdat")
 	self.timer_simdat.start(0.015)		# Send every 15ms (same rate control board polls sensors)
 	
-	# Add cboard as a child so "_ready" actually gets called
+	# Add as children so "_ready" actually gets called
+	# Also means these nodes can add things like timers as their children
 	add_child(cboard)
+	add_child(netiface)
 	
 	# Connect signals
 	connect_cb_dialog.connect("connect_cboard", self, "conncet_cboard")
@@ -70,6 +73,7 @@ func _ready():
 	btn_copy_status.connect("pressed", self, "copy_to_clipboard")
 	btn_config_vehicle.connect("pressed", self, "config_vehicle")
 	config_vehicle_dialog.connect("applied", self, "apply_vehicle_config")
+	btn_disconnect_tcp.connect("pressed", netiface, "disconnect_client")
 	
 	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()
@@ -113,12 +117,14 @@ func cboard_connect_fail(reason: String):
 func cboard_connected():
 	lbl_cboard_conn.text = "Control Board: " + cboard.get_portname()
 	self.connect_cb_dialog.hide_dialog()
+	self.netiface.allow_connections()
 
 # When cboard disconnected (comm lost or due to user request)
 func cboard_disconnected():
 	# Make vehicle stop on disconnect from control board
 	cboard_simstat("RAW", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 	
+	self.netiface.disallow_connections()
 	lbl_cboard_conn.text = "Control Board: Not Connected"
 	self.connect_cb_dialog.show_dialog()
 
