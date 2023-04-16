@@ -31,6 +31,7 @@ onready var lbl_pos = ui_root.find_node("PosValue")
 onready var lbl_euler = ui_root.find_node("EulerValue")
 onready var lbl_quat = ui_root.find_node("QuatValue")
 onready var lbl_cboard_conn = ui_root.find_node("CboardConnLabel")
+onready var btn_reset_vehicle = ui_root.find_node("ResetVehicleButton")
 
 # Used to send SIMDAT messages to control board periodically
 # Sends simulated sensor data (orientation and depth) to control board
@@ -61,6 +62,7 @@ func _ready():
 	cboard.connect("cboard_connected", self, "cboard_connected")
 	cboard.connect("cboard_disconnected", self, "cboard_disconnected")
 	cboard.connect("simstat", self, "cboard_simstat")
+	btn_reset_vehicle.connect("pressed", self, "reset_vehicle")
 	
 	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()
@@ -74,6 +76,12 @@ func _process(delta):
 	lbl_euler.text = "(p=%+.2f, r=%+.2f, y=%+.2f)" % [euler.x, euler.y, euler.z]
 	lbl_quat.text = "(w=%+.4f, x=%+.4f, y=%+.4f, z=%+.4f)" %  [quat.w, quat.x, quat.y, quat.z]
 
+################################################################################
+
+
+
+################################################################################
+# Signal handlers
 ################################################################################
 
 # When user clicks Connect button in connect dialog
@@ -119,3 +127,12 @@ func cboard_simstat(mode: String, wdg_killed: bool, x: float, y: float, z: float
 	lbl_trans.text = "(x=%+.2f, y=%+.2f, z=%+.2f)" % [x, y, z]
 	lbl_rot.text = "(p=%+.2f, r=%+.2f, y=%+.2f)" % [p, r, h]
 	vehicle.move_local(x, y, z, p, r, h)
+
+# When user clicks reset vehicle button
+# TODO: Or reset command received from network interface
+func reset_vehicle():
+	vehicle.move_local(0, 0, 0, 0, 0, 0)
+	vehicle.translation = Vector3(0, 0, 0)
+	vehicle.rotation = Vector3(0, 0, 0)
+
+################################################################################
