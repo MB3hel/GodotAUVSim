@@ -74,6 +74,7 @@ func _ready():
 	btn_config_vehicle.connect("pressed", self, "config_vehicle")
 	config_vehicle_dialog.connect("applied", self, "apply_vehicle_config")
 	btn_disconnect_tcp.connect("pressed", netiface, "disconnect_client")
+	netiface.connect("cboard_data_received", cboard, "write_raw")
 	
 	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()

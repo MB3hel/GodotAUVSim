@@ -26,7 +26,7 @@ extends Node
 ################################################################################
 
 # Received a message from cboard client port (should be forwarded)
-signal msg_received(msg_full)
+signal cboard_data_received(data)
 
 ################################################################################
 
@@ -188,8 +188,14 @@ func _handle_cmd(line: String) -> String:
 	# Unknown command
 	return "2"
 
+# This is  not a parser. Bytes read from TCP are just written to the
+# control board directly.
+# Unlike data coming from the control board, the simulator never
+# needs to use any data being sent to the control board.
 func _process_cboard():
-	pass
+	if _cboard_client.get_available_bytes() > 0:
+		var res = _cboard_client.get_data(_cboard_client.get_available_bytes())
+		self.emit_signal("cboard_data_received", res[1])
 
 func disconnect_client():
 	if self._connected:
