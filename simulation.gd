@@ -25,6 +25,11 @@ onready var connect_cb_dialog = ui_root.find_node("ConnectCboardDialog")
 onready var btn_disconnect_cb = ui_root.find_node("DisconnectCboardButton")
 onready var lbl_mode = ui_root.find_node("ModeValue")
 onready var lbl_wdg = ui_root.find_node("MotorWDGValue")
+onready var lbl_trans = ui_root.find_node("TranslationValue")
+onready var lbl_rot = ui_root.find_node("RotationValue")
+onready var lbl_pos = ui_root.find_node("PosValue")
+onready var lbl_euler = ui_root.find_node("EulerValue")
+onready var lbl_quat = ui_root.find_node("QuatValue")
 
 # Used to send SIMDAT messages to control board periodically
 # Sends simulated sensor data (orientation and depth) to control board
@@ -60,7 +65,13 @@ func _ready():
 	connect_cb_dialog.show_dialog()
 
 func _process(delta):
-	pass
+	# Update UI labels for vehicle information
+	var pos = vehicle.translation
+	var quat = Angles.godot_euler_to_quat(vehicle.rotation)
+	var euler = Angles.quat_to_cboard_euler(quat) * 180.0 / PI
+	lbl_pos.text = "(x=%+.2f, y=%+.2f, z=%+.2f)" % [pos.x, pos.y, pos.z]
+	lbl_euler.text = "(p=%+.2f, r=%+.2f, y=%+.2f)" % [euler.x, euler.y, euler.z]
+	lbl_quat.text = "(w=%+.4f, x=%+.4f, y=%+.4f, z=%+.4f)" %  [quat.w, quat.x, quat.y, quat.z]
 
 ################################################################################
 
@@ -102,4 +113,6 @@ func cboard_simstat(mode: String, wdg_killed: bool, x: float, y: float, z: float
 		lbl_wdg.text = "Killed"
 	else:
 		lbl_wdg.text = "Not Killed"
+	lbl_trans.text = "(x=%+.2f, y=%+.2f, z=%+.2f)" % [x, y, z]
+	lbl_rot.text = "(p=%+.2f, r=%+.2f, y=%+.2f)" % [p, r, h]
 	vehicle.move_local(x, y, z, p, r, h)
