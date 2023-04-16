@@ -34,6 +34,8 @@ onready var lbl_cboard_conn = ui_root.find_node("CboardConnLabel")
 onready var btn_reset_vehicle = ui_root.find_node("ResetVehicleButton")
 onready var btn_copy_status = ui_root.find_node("CopyStatusButton")
 onready var status_panel = ui_root.find_node("StatusPanel")
+onready var btn_config_vehicle = ui_root.find_node("ConfigVehicleButton")
+onready var config_vehicle_dialog = ui_root.find_node("VehicleConfigDialog")
 
 # Used to send SIMDAT messages to control board periodically
 # Sends simulated sensor data (orientation and depth) to control board
@@ -66,6 +68,8 @@ func _ready():
 	cboard.connect("simstat", self, "cboard_simstat")
 	btn_reset_vehicle.connect("pressed", self, "reset_vehicle")
 	btn_copy_status.connect("pressed", self, "copy_to_clipboard")
+	btn_config_vehicle.connect("pressed", self, "config_vehicle")
+	config_vehicle_dialog.connect("applied", self, "apply_vehicle_config")
 	
 	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()
@@ -146,5 +150,16 @@ func copy_to_clipboard():
 		var value = status_panel.get_child(i+1)
 		data += label.text + " " + value.text + "\n"
 	OS.set_clipboard(data)
+
+# When user clicks configure vehicle button
+func config_vehicle():
+	var trans = vehicle.translation
+	var rot = Angles.godot_euler_to_cboard_euler(vehicle.rotation) * 180.0 / PI
+	config_vehicle_dialog.show_dialog(trans.x, trans.y, trans.z, rot.x, rot.y, rot.z)
+
+# When user applies (ok button) vehicle config
+func apply_vehicle_config(x, y, z, p, r, h):
+	vehicle.translation = Vector3(x, y, z)
+	vehicle.rotation = Angles.cboard_euler_to_godot_euler(Vector3(p, r, h) * PI / 180.0)
 
 ################################################################################
