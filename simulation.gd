@@ -116,6 +116,9 @@ func cboard_connected():
 
 # When cboard disconnected (comm lost or due to user request)
 func cboard_disconnected():
+	# Make vehicle stop on disconnect from control board
+	cboard_simstat("RAW", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	
 	lbl_cboard_conn.text = "Control Board: Not Connected"
 	self.connect_cb_dialog.show_dialog()
 
