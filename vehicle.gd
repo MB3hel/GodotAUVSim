@@ -105,7 +105,7 @@ func _ready():
 func _process(delta):
 	# Apply forces & torques at center of the vehicle
 	for i in range(8):
-		self.add_force(to_global(_thr_forces[i]) - global_transform.origin, _thr_force_pos[i])
+		self.add_force(to_global(_thr_forces[i]) - global_transform.origin, to_global(_thr_force_pos[i]) - global_transform.origin)
 
 ################################################################################
 
