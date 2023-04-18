@@ -105,7 +105,12 @@ func _ready():
 func _process(delta):
 	# Apply forces & torques at center of the vehicle
 	for i in range(8):
-		self.add_force(to_global(_thr_forces[i]) - global_transform.origin, to_global(_thr_force_pos[i]) - global_transform.origin)
+		var pos = _thr_force_pos[i]
+		var force = _thr_forces[i]
+		var pos_local = self.transform.basis.xform(pos)
+		var force_local = self.transform.basis.xform(force)
+		self.add_force(force_local, pos_local)
+		# self.add_force(to_global(_thr_forces[i]) - global_transform.origin, to_global(_thr_force_pos[i]) - global_transform.origin)
 
 ################################################################################
 
@@ -127,6 +132,6 @@ func move_raw(speeds: Array):
 		if speeds[i] > 0.0:
 			_thr_forces[i] *= speeds[i] * _thr_force_pos_mag[i]
 		else:
-			_thr_forces[i] *= speeds[i] * _thr_force_neg_mag[i]
+			_thr_forces[i] *= speeds[i] * _thr_force_pos_mag[i]
 
 ################################################################################
