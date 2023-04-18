@@ -71,6 +71,11 @@ var _thr_force_neg_mag = [
 	4.1										# T8
 ]
 
+# Set to true to use positive direction forces, even in negative direction
+# Results in a slightly more ideal model (which can be useful for math
+# validation)
+var _thr_always_pos = true
+
 ################################################################################
 
 
@@ -129,9 +134,9 @@ func move_raw(speeds: Array):
 		return
 	for i in range(8):
 		_thr_forces[i] = _thr_force_vec[i]
-		if speeds[i] > 0.0:
+		if _thr_always_pos or speeds[i] > 0.0:
 			_thr_forces[i] *= speeds[i] * _thr_force_pos_mag[i]
 		else:
-			_thr_forces[i] *= speeds[i] * _thr_force_pos_mag[i]
+			_thr_forces[i] *= speeds[i] * _thr_force_neg_mag[i]
 
 ################################################################################
