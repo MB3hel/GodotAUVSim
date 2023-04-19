@@ -30,4 +30,50 @@
 
 extends Node
 
-# TODO: Implement this and add support in cboard.gd
+################################################################################
+# Globals
+################################################################################
+
+# Data to be written out from simcb
+var _write_buf = PoolByteArray()
+
+# Data waiting to be read by simcb
+var _read_buf = PoolByteArray()
+
+################################################################################
+
+
+
+################################################################################
+# Godot Engine functions
+################################################################################
+
+func _ready():
+	pass
+
+func _process(delta):
+	pass
+
+################################################################################
+
+
+
+################################################################################
+# EXTERNAL Communication (called by cboard)
+################################################################################
+
+# EXTERNAL write
+# write data TO simcb
+# this data will later be read by simcb
+func ext_write(data: PoolByteArray):
+	_read_buf.append_array(data)
+
+# EXTERNAL read
+# read data FROM simcb
+# this data must first be written by simcb
+func ext_read() -> PoolByteArray:
+	var res = _write_buf
+	_write_buf = PoolByteArray()
+	return res
+
+################################################################################
