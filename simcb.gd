@@ -26,6 +26,11 @@
 # control board or with simcb. It also means that no simcb logic or data
 # data handling need to be in cboard. This makes the simulator more maintainable
 # and shouldn't impact simulator performance too much.
+#
+# Note that simcb ONLY operates in SIMHIJACK mode
+# However, it will still acknowledge SIMHIJACK commands.
+# It will always be sending SIMSTAT commands and always process SIMDAT
+# commands as a control board in SIMHIJACK mode would.
 ################################################################################
 
 extends Node
