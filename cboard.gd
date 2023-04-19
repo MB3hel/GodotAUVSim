@@ -126,6 +126,12 @@ func connect_uart(port: String):
 	elif self._uart_connected:
 		self.disconnect_uart()
 	
+	# Reset parser data and state
+	self._read_data = PoolByteArray()
+	self._read_msg = PoolByteArray()
+	self._parse_started = false
+	self._parse_escaped = false
+	
 	# Connect to UART (8N1; baud != 1200)
 	_ser.setPort(port)
 	_ser.setBaudrate(115200)
