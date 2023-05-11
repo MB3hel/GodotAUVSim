@@ -27,6 +27,14 @@ func _ready():
 	self.btn_connect.connect("pressed", self, "do_connect")
 	self.btn_exit.connect("pressed", self, "do_exit")
 
+func ports_list_matches(a: PoolStringArray, b: PoolStringArray) -> bool:
+	if len(a) != len(b):
+		return false
+	for a_item in a:
+		if not a_item in b:
+			return false
+	return true
+
 func update_ports():
 	var ports = ser.list_ports()
 	for i in range(ports.size()-1, 0, -1):
@@ -38,7 +46,7 @@ func update_ports():
 	
 	# Update dropdown if number of ports changed
 	# keep the same selection unless that port is no longer present
-	if len(ports) != len(self.curr_ports):
+	if ports_list_matches(ports, self.curr_ports):
 		var selIdx = obtn_uart.get_selected_id()
 		var sel = ""
 		if selIdx >= 0:
