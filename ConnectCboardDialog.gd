@@ -37,7 +37,7 @@ func ports_list_matches(a: PoolStringArray, b: PoolStringArray) -> bool:
 
 func update_ports():
 	var ports = ser.list_ports()
-	for i in range(ports.size()-1, 0, -1):
+	for i in range(ports.size()-1, -1, -1):
 		var port = ports[i]
 		if port.begins_with("/dev/ttyS"):
 			ports.remove(i)
@@ -46,7 +46,7 @@ func update_ports():
 	
 	# Update dropdown if number of ports changed
 	# keep the same selection unless that port is no longer present
-	if ports_list_matches(ports, self.curr_ports):
+	if not ports_list_matches(ports, self.curr_ports):
 		var selIdx = obtn_uart.get_selected_id()
 		var sel = ""
 		if selIdx >= 0:
