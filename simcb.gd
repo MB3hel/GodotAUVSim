@@ -122,6 +122,8 @@ const CMDCTRL_MODE_GLOBAL = 2
 const CMDCTRL_MODE_SASSIST = 3
 const CMDCTRL_MODE_DHOLD = 4
 
+var cmdctrl_motors_enabled = false
+
 # State tracking similar to cmdctrl in firmware
 var cmdctrl_mode = CMDCTRL_MODE_RAW
 
@@ -192,17 +194,48 @@ func cmdctrl_apply_saved_speed():
 		mc_set_dhold(cmdctrl_dhold_x, cmdctrl_dhold_y, cmdctrl_dhold_pitch_spd, cmdctrl_dhold_roll_spd, cmdctrl_dhold_yaw_spd, cmdctrl_dhold_depth, cmdctrl_curr_quat, cmdctrl_curr_depth)
 
 func cmdctrl_acknowledge(msg_id: int, error_code: int, result: PoolByteArray):
-	pass
+	var data = StreamPeerBuffer.new()
+	data.big_endian = false
+	data.put_data("ACK".to_ascii())
+	data.put_16(msg_id)
+	data.put_u8(error_code)
+	if result != null:
+		if result.size() > 0:
+			data.put_data(result)
+	pccomm_write(data.data_array)
 
 func cmdctrl_handle_message(msg: PoolByteArray):
 	# TODO: When processing simhijack command make sure to reset things properly
 	pass
 
 func cmdctrl_mwdog_change(motors_enabled: bool):
-	pass
-
+	cmdctrl_motors_enabled = motors_enabled
+	var msg = StreamPeerBuffer.new()
+	msg.put_data("WDGS".to_ascii())
+	if motors_enabled:
+		msg.put_u8(1)
+	else:
+		msg.put_u8(0)
+	pccomm_write(msg.data_array)
+	
 func cmdctrl_send_simstat():
-	pass
+	var msg = StreamPeerBuffer.new()
+	msg.big_endian = false
+	msg.put_data("SIMSTAT".to_ascii())
+	msg.put_float(sim_speeds[0])
+	msg.put_float(sim_speeds[1])
+	msg.put_float(sim_speeds[2])
+	msg.put_float(sim_speeds[3])
+	msg.put_float(sim_speeds[4])
+	msg.put_float(sim_speeds[5])
+	msg.put_float(sim_speeds[6])
+	msg.put_float(sim_speeds[7])
+	msg.put_u8(cmdctrl_mode)
+	if cmdctrl_motors_enabled:
+		msg.put_u8(1)
+	else:
+		msg.put_u8(0)
+	pccomm_write(msg.data_array)
 
 ################################################################################
 
