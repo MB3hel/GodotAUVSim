@@ -35,6 +35,17 @@
 # Note that most functions in this class closely match the names of functions
 # used in the actual control board firmware. This should allow quicly porting
 # changes between control board firmware and simcb
+#
+# Important differences of simcb (important for implementation of simcb)
+# - Sensors are alwasy simulated, and thus are always ready
+# - Always acts as if it is in sim hijack. It will acknowledge simhijack commands
+#   but will not ever leave simhijack. Thus, it will always send simstat messages.
+# - No attempt is made to emulate correct timings of math. But the timers
+#   performing periodic tasks do use the same times as the actual firmware.
+# - Everything here is implemented using signals, and thus this is all single
+#   threaded. Thus, unlike in the actual firmware, there are no mutexes.
+# - Reset command will not be handled (it will do nothing)
+# - Why reset will always return code 0
 ################################################################################
 
 extends Node
@@ -58,7 +69,12 @@ var _read_buf = PoolByteArray()
 ################################################################################
 
 func _ready():
-	# TODO: cmdctrl_send_sensor_data timer
+	var sensor_read_timer = Timer.new()
+	add_child(sensor_read_timer)
+	sensor_read_timer.one_shot = false
+	sensor_read_timer.connect("timeout", self, "cmdctrl_send_sensor_data")
+	sensor_read_timer.start(0.020)
+	
 	var periodic_speed_timer = Timer.new()
 	add_child(periodic_speed_timer)
 	periodic_speed_timer.one_shot = false
@@ -122,6 +138,9 @@ const CMDCTRL_MODE_GLOBAL = 2
 const CMDCTRL_MODE_SASSIST = 3
 const CMDCTRL_MODE_DHOLD = 4
 
+var cmdctrl_periodic_bno055 = false
+var cmdctrl_periodic_ms5837 = false
+
 var cmdctrl_motors_enabled = false
 
 # State tracking similar to cmdctrl in firmware
@@ -168,11 +187,31 @@ var cmdctrl_dhold_depth = 0.0
 # NOTE: simcb is always in SIMHIJACK, thus no need to track sensor states or full sets of data
 #       only the data from SIMDAT will ever be used
 #       Thus these are equivalents of sim_quat and sim_depth in the actual firmware
-var cmdctrl_curr_quat = Quat()
+var cmdctrl_curr_quat = Quat(0, 0, 0, 1)
 var cmdctrl_curr_depth = 0.0
 
 func cmdctrl_send_sensor_data():
-	pass
+	if cmdctrl_periodic_bno055:
+		var msg = StreamPeerBuffer.new()
+		msg.big_endian = false
+		msg.put_data("BNO055D".to_ascii())
+		msg.put_float(cmdctrl_curr_quat.w)
+		msg.put_float(cmdctrl_curr_quat.x)
+		msg.put_float(cmdctrl_curr_quat.y)
+		msg.put_float(cmdctrl_curr_quat.z)
+		
+		# TODO: Implement acumulated euler angles
+		msg.put_float(0)
+		msg.put_float(0)
+		msg.put_float(0)
+		
+		pccomm_write(msg.data_array)
+	if cmdctrl_periodic_ms5837:
+		var msg = StreamPeerBuffer.new()
+		msg.big_endian = false
+		msg.put_data("MS5837D".to_ascii())
+		msg.put_float(cmdctrl_curr_depth)
+		pccomm_write(msg.data_array)
 
 func cmdctrl_periodic_reapply_speed():
 	if cmdctrl_mode == CMDCTRL_MODE_GLOBAL or cmdctrl_mode == CMDCTRL_MODE_SASSIST or cmdctrl_mode == CMDCTRL_MODE_DHOLD:
