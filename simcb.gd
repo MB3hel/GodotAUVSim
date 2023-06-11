@@ -59,8 +59,11 @@ var _read_buf = PoolByteArray()
 
 func _ready():
 	# TODO: cmdctrl_send_sensor_data timer
-	# TODO: periodic_reapply_speed timer
-	pass
+	var periodic_speed_timer = Timer.new()
+	add_child(periodic_speed_timer)
+	periodic_speed_timer.one_shot = false
+	periodic_speed_timer.connect("timeout", self, "cmdctrl_periodic_reapply_speed")
+	periodic_speed_timer.start(0.020)
 
 func _process(delta):
 	self.pccomm_read_and_parse()
@@ -123,7 +126,7 @@ const CMDCTRL_MODE_DHOLD = 4
 var cmdctrl_mode = CMDCTRL_MODE_RAW
 
 # Last used raw mode target
-var cmdctrl_raw_target = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+var cmdctrl_raw_target = PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
 # Last used local mode target
 var cmdctrl_local_x = 0.0
@@ -163,17 +166,30 @@ var cmdctrl_dhold_depth = 0.0
 # NOTE: simcb is always in SIMHIJACK, thus no need to track sensor states or full sets of data
 #       only the data from SIMDAT will ever be used
 #       Thus these are equivalents of sim_quat and sim_depth in the actual firmware
-var curr_quat = Quat()
-var curr_depth = 0.0
+var cmdctrl_curr_quat = Quat()
+var cmdctrl_curr_depth = 0.0
 
 func cmdctrl_send_sensor_data():
 	pass
 
-func periodic_reapply_speed():
-	pass
+func cmdctrl_periodic_reapply_speed():
+	if cmdctrl_mode == CMDCTRL_MODE_GLOBAL or cmdctrl_mode == CMDCTRL_MODE_SASSIST or cmdctrl_mode == CMDCTRL_MODE_DHOLD:
+		cmdctrl_apply_saved_speed()
 
 func cmdctrl_apply_saved_speed():
-	pass
+	if cmdctrl_mode == CMDCTRL_MODE_RAW:
+		mc_set_raw(cmdctrl_raw_target)
+	elif cmdctrl_mode == CMDCTRL_MODE_LOCAL:
+		mc_set_local(cmdctrl_local_x, cmdctrl_local_y, cmdctrl_local_z, cmdctrl_local_xrot, cmdctrl_local_yrot, cmdctrl_local_zrot)
+	elif cmdctrl_mode == CMDCTRL_MODE_GLOBAL:
+		mc_set_global(cmdctrl_global_x, cmdctrl_global_y, cmdctrl_global_z, cmdctrl_global_pitch_spd, cmdctrl_global_roll_spd, cmdctrl_global_yaw_spd, cmdctrl_curr_quat)
+	elif cmdctrl_mode == CMDCTRL_MODE_SASSIST:
+		if cmdctrl_sassist_valid and cmdctrl_sassist_variant == 1:
+			mc_set_sassist(cmdctrl_sassist_x, cmdctrl_sassist_y, cmdctrl_sassist_yaw_spd, cmdctrl_sassist_target_euler, cmdctrl_sassist_depth_target, cmdctrl_curr_quat, cmdctrl_curr_depth, false)
+		elif cmdctrl_sassist_valid and cmdctrl_sassist_variant == 2:
+			mc_set_sassist(cmdctrl_sassist_x, cmdctrl_sassist_y, 0.0, cmdctrl_sassist_target_euler, cmdctrl_sassist_depth_target, cmdctrl_curr_quat, cmdctrl_curr_depth, true)
+	elif cmdctrl_mode == CMDCTRL_MODE_DHOLD:
+		mc_set_dhold(cmdctrl_dhold_x, cmdctrl_dhold_y, cmdctrl_dhold_pitch_spd, cmdctrl_dhold_roll_spd, cmdctrl_dhold_yaw_spd, cmdctrl_dhold_depth, cmdctrl_curr_quat, cmdctrl_curr_depth)
 
 func cmdctrl_acknowledge(msg_id: int, error_code: int, result: PoolByteArray):
 	pass
@@ -214,6 +230,19 @@ func mc_recalc():
 
 # TODO: PID controller tune
 
-# TODO: Motor control speed set functions
+func mc_set_raw(speeds: PoolRealArray):
+	pass
+
+func mc_set_local(x: float, y: float, z: float, xrot: float, yrot: float, zrot: float):
+	pass
+
+func mc_set_global(x: float, y: float, z: float, pitch_spd: float, roll_spd: float, yaw_spd: float, curr_quat: Quat):
+	pass
+
+func mc_set_sassist(x: float, y: float, yaw_spd: float, target_euler: Vector3, target_depth: float, curr_quat: Quat, curr_depth: float, yaw_target: bool):
+	pass
+
+func mc_set_dhold(x: float, y: float, pitch_spd: float, roll_spd: float, yaw_spd: float, target_depth: float, curr_quat: Quat, curr_depth: float):
+	pass
 
 ################################################################################
