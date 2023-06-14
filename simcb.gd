@@ -127,11 +127,13 @@ func ext_read() -> PoolByteArray:
 # Construct a properly formatted message and write it from simcb
 # This is equivalent to writing from control board to PC
 func pccomm_write(msg: PoolByteArray):
+	# TODO
 	pass
 
 # Read messages sent to simcb
 # This is equivalent of reading messages from PC on control board
 func pccomm_read_and_parse():
+	# TODO
 	pass
 
 ################################################################################
@@ -254,6 +256,7 @@ func cmdctrl_acknowledge(msg_id: int, error_code: int, result: PoolByteArray):
 	pccomm_write(data.data_array)
 
 func cmdctrl_handle_message(msg: PoolByteArray):
+	# TODO: Implement handling of all messages
 	# TODO: When processing simhijack command make sure to reset things properly
 	pass
 
@@ -301,9 +304,11 @@ var sim_speeds = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 # TODO: PID controllers
 
 func mc_set_dof_matrix(tnum: int, row_data: PoolRealArray):
+	# TODO
 	pass
 
 func mc_recalc():
+	# TODO
 	pass
 
 
@@ -411,18 +416,23 @@ func vec_max_mag(v: Vector3):
 # TODO: PID controller tune
 
 func mc_set_raw(speeds: PoolRealArray):
+	# TODO
 	pass
 
 func mc_set_local(x: float, y: float, z: float, xrot: float, yrot: float, zrot: float):
+	# TODO
 	pass
 
 func mc_set_global(x: float, y: float, z: float, pitch_spd: float, roll_spd: float, yaw_spd: float, curr_quat: Quat):
+	# TODO
 	pass
 
 func mc_set_sassist(x: float, y: float, yaw_spd: float, target_euler: Vector3, target_depth: float, curr_quat: Quat, curr_depth: float, yaw_target: bool):
+	# TODO
 	pass
 
 func mc_set_dhold(x: float, y: float, pitch_spd: float, roll_spd: float, yaw_spd: float, target_depth: float, curr_quat: Quat, curr_depth: float):
+	# TODO
 	pass
 
 ################################################################################
