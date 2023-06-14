@@ -323,7 +323,88 @@ func mc_wdog_feed() -> bool:
 	return ret
 
 
-# TODO: Implement math helper code (as needed using Godot quaternion library)
+# Rotate v by q
+func rotate_vector(v: Vector3, q: Quat) -> Vector3:
+	var qv = Quat(v.x, v.y, v.z, 0)
+	var qconj = q.inverse()
+	var qr = q * qv * qconj
+	return Vector3(qr.x, qr.y, qr.z)
+
+# Rotate v by q.inverse()
+func rotate_vector_inv(v: Vector3, q: Quat) -> Vector3:
+	var qv = Quat(v.x, v.y, v.z, 0)
+	var qconj = q.inverse()
+	var qr = qconj * qv * q
+	return Vector3(qr.x, qr.y, qr.z)
+
+# Minimum rotation from a to b (as quaternion)
+func quat_diff(a: Quat, b: Quat) -> Quat:
+	var dot = a.dot(b)
+	var b_inv = b.inverse()
+	if(dot < 0.0):
+		b_inv = -1 * b_inv
+	return a * b_inv
+
+# Quaternion rotation from vector a to vector b
+func quat_between(a: Vector3, b: Vector3) -> Quat:
+	var dot = a.dot(b)
+	var a_len2 = a.length_squared()
+	var b_len2 = b.length_squared()
+	var p = sqrt(a_len2 * b_len2)
+	var cross = a.cross(b)
+	if(dot / p == -1):
+		# 180 degree
+		return Quat(cross.x, cross.y, cross.z, 0).normalized()
+	else:
+		return Quat(cross.x, cross.y, cross.z, dot + p).normalized()
+
+# Twist part of swing-twist decomposition
+# Calculates twist of q around axis described by vector d
+# d must be normalized!
+func quat_twist(q: Quat, d: Vector3) -> Quat:
+	var r = Vector3(q.x, q.y, q.z)
+	var dot = r.dot(d)
+	var p = dot * d
+	var twist = Quat(q.w, p.x, p.y, p.z).normalized()
+	if(dot < 0.0):
+		return -twist
+	else:
+		return twist
+
+# Resitrict angle to -PI to PI rad or -180 to 180 deg
+func restrict_angle(angle: float, isdeg: bool):
+	if isdeg:
+		while angle > 180.0:
+			angle -= 360.0
+		while angle < -180.0:
+			angle += 360.0
+	else:
+		while angle > PI:
+			angle -= 2.0 * PI
+		while angle < -PI:
+			angle += 2.0 * PI
+	return angle
+
+# Get alternate (equivalent, but imprpper) euler angle
+func euler_alt(src: Vector3, isdeg: bool) -> Vector3:
+	var dest = Vector3(0, 0, 0)
+	if isdeg:
+		dest.x = 180.0 - src.x
+		dest.y = src.y - 180.0
+		dest.z = src.z - 180.0
+	else:
+		dest.x = PI - src.x
+		dest.y = src.y - PI
+		dest.z = src.z - PI
+	dest.x = restrict_angle(dest.x, isdeg)
+	dest.y = restrict_angle(dest.y, isdeg)
+	dest.z = restrict_angle(dest.z, isdeg)
+	return dest
+
+# Get magnitude of largest magnitude element of vector
+func vec_max_mag(v: Vector3):
+	return max(abs(v.x), max(abs(v.y), abs(v.z)))
+
 
 # TODO: mc_downscale_reldof, mc_upscale_vec, mc_downscale_if_needed, mc_grav_rot, mc_baseline_euler, mc_euler_to_split_quat
 
