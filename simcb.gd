@@ -300,8 +300,14 @@ var mc_motors_killed = true
 var sim_speeds = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 var mc_relscale = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
 # TODO: invert, all the matrices and math support stuff
-# TODO: PID controllers
+
+var xrot_pid = PIDController.new()
+var yrot_pid = PIDController.new()
+var zrot_pid = PIDController.new()
+var depth_pid = PIDController.new()
+
 
 func mc_set_dof_matrix(tnum: int, row_data: PoolRealArray):
 	# TODO
@@ -486,7 +492,38 @@ func mc_euler_to_split_quat(e: Vector3) -> Array:
 	return [q_pitch, q_roll, q_yaw]
 
 
-# TODO: PID controller tune
+func mc_sassist_tune_xrot(kp: float, ki: float, kd: float, limit: float, invert: bool):
+	xrot_pid.kP = kp
+	xrot_pid.kI = ki
+	xrot_pid.kD = kd
+	xrot_pid.omin = -limit
+	xrot_pid.omax = limit
+	xrot_pid.invert = invert
+
+func mc_sassist_tune_yrot(kp: float, ki: float, kd: float, limit: float, invert: bool):
+	yrot_pid.kP = kp
+	yrot_pid.kI = ki
+	yrot_pid.kD = kd
+	yrot_pid.omin = -limit
+	yrot_pid.omax = limit
+	yrot_pid.invert = invert
+
+func mc_sassist_tune_zrot(kp: float, ki: float, kd: float, limit: float, invert: bool):
+	zrot_pid.kP = kp
+	zrot_pid.kI = ki
+	zrot_pid.kD = kd
+	zrot_pid.omin = -limit
+	zrot_pid.omax = limit
+	zrot_pid.invert = invert
+
+func mc_sassist_tune_depth(kp: float, ki: float, kd: float, limit: float, invert: bool):
+	depth_pid.kP = kp
+	depth_pid.kI = ki
+	depth_pid.kD = kd
+	depth_pid.omin = -limit
+	depth_pid.omax = limit
+	depth_pid.invert = invert
+
 
 func mc_set_raw(speeds: PoolRealArray):
 	# TODO

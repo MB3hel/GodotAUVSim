@@ -13,9 +13,15 @@ _global_script_classes=[ {
 "class": "Matrix",
 "language": "GDScript",
 "path": "res://matrix.gd"
+}, {
+"base": "Reference",
+"class": "PIDController",
+"language": "GDScript",
+"path": "res://pid.gd"
 } ]
 _global_script_class_icons={
-"Matrix": ""
+"Matrix": "",
+"PIDController": ""
 }
 
 [application]
