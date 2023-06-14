@@ -8,6 +8,8 @@ onready var lbl_error = find_node("ErrorLabel")
 onready var obtn_uart = find_node("PortsSelector")
 onready var btn_connect = find_node("ConnectButton")
 onready var btn_exit = find_node("ExitButton")
+onready var cbx_uart = find_node("UartCheckbox")
+onready var cbx_sim = find_node("SimCheckbox")
 
 # GDSerial instance used to list serial ports for dropdown
 var ser = load("res://GDSerial/GDSerial.gdns").new()
@@ -26,6 +28,10 @@ func _ready():
 	
 	self.btn_connect.connect("pressed", self, "do_connect")
 	self.btn_exit.connect("pressed", self, "do_exit")
+	self.cbx_uart.connect("toggled", self, "update_ui_radiobtn")
+
+func update_ui_radiobtn(uart_pressed: bool):
+	obtn_uart.disabled = not uart_pressed
 
 func ports_list_matches(a: PoolStringArray, b: PoolStringArray) -> bool:
 	if len(a) != len(b):
@@ -62,7 +68,11 @@ func update_ports():
 
 func do_connect():
 	self.btn_connect.disabled = true
-	self.emit_signal("connect_cboard", self.obtn_uart.get_item_text(self.obtn_uart.selected))
+	var cb = "SIM"
+	if cbx_uart.is_pressed():
+		cb = self.obtn_uart.get_item_text(self.obtn_uart.selected)
+
+	self.emit_signal("connect_cboard", cb)
 
 func do_exit():
 	get_tree().quit()
