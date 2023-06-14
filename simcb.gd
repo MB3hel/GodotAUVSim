@@ -90,6 +90,8 @@ func _ready():
 	
 	add_child(_wdog_timer)
 	_wdog_timer.one_shot = true
+	
+	# TODO: SIMSTAT timer
 
 func _process(delta):
 	self.pccomm_read_and_parse()
