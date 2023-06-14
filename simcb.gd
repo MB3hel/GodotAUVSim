@@ -245,6 +245,11 @@ const CMDCTRL_MODE_GLOBAL = 2
 const CMDCTRL_MODE_SASSIST = 3
 const CMDCTRL_MODE_DHOLD = 4
 
+const ACK_ERR_NONE = 0
+const ACK_ERR_UNKNOWN_MSG = 1
+const ACK_ERR_INVALID_ARGS = 2
+const ACK_ERR_INVALID_CMD = 3
+
 var cmdctrl_periodic_bno055 = false
 var cmdctrl_periodic_ms5837 = false
 
@@ -341,20 +346,111 @@ func cmdctrl_apply_saved_speed():
 
 func cmdctrl_acknowledge(msg_id: int, error_code: int, result: PoolByteArray):
 	var data = StreamPeerBuffer.new()
-	data.big_endian = false
+	data.big_endian = true
 	data.put_data("ACK".to_ascii())
 	data.put_16(msg_id)
 	data.put_u8(error_code)
-	if result != null:
-		if result.size() > 0:
-			data.put_data(result)
+	if result.size() > 0:
+		data.put_data(result)
 	pccomm_write(data.data_array)
 
-func cmdctrl_handle_message(msg: PoolByteArray):
+func cmdctrl_handle_message(data: PoolByteArray):
+	# Construct StreamPeerBuffer using data
+	var buf = StreamPeerBuffer.new()
+	buf.put_data(data)
+	buf.seek(0)
+	
+	# Get message id from buffer
+	buf.big_endian = true
+	var msg_id = buf.get_u16()
+	
+	# Get both string and byte representations of message
+	var msg_len = buf.get_size() - 4
+	buf.seek(2)
+	var msg_str = buf.get_string(msg_len)
+	buf.seek(2)
+	var msg = buf.get_data(msg_len)[1]
+	
+	# Return to start of buffer (after CRC)
+	buf.seek(2)
+	
+	# Arguments for commands are usually little endian
+	buf.big_endian = false
+	
+	var reset_cmd = PoolByteArray([])
+	reset_cmd.append_array("RESET".to_ascii())
+	reset_cmd.append(0x0D)
+	reset_cmd.append(0x1E)
+	
+	# TODO: Handle all messages
+	if msg_str.begins_with("RAW"):
+		pass
+	elif msg_str.begins_with("TINV"):
+		pass
+	elif msg_str.begins_with("RELDOF"):
+		pass
+	elif msg_str == "WDGF":
+		pass
+	elif msg_str.begins_with("MMATS"):
+		pass
+	elif msg_str == "MMATU":
+		pass
+	elif msg_str.begins_with("LOCAL"):
+		pass
+	elif msg_str == "SSTAT":
+		pass
+	elif msg_str.begins_with("BNO055A"):
+		pass
+	elif msg_str.begins_with("GLOBAL"):
+		pass
+	elif msg_str == "BNO055R":
+		pass
+	elif msg_str.begins_with("BNO055P"):
+		pass
+	elif msg_str.begins_with("MS5837R"):
+		pass
+	elif msg_str.begins_with("MS5837P"):
+		pass
+	elif msg_str.begins_with("SASSISTTN"):
+		pass
+	elif msg_str.begins_with("SASSIST1"):
+		pass
+	elif msg_str.begins_with("SASSIST2"):
+		pass
+	elif msg == reset_cmd:
+		pass
+	elif msg_str.begins_with("DHOLD"):
+		pass
+	elif msg_str == "RSTWHY":
+		pass
+	elif msg_str.begins_with("SIMHIJACK"):
+		if msg_len != 10:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 9)
+			cmdctrl_simhijack(buf.get_u8())
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
+	elif msg_str.begins_with("SIMDAT"):
+		pass
+	else:
+		cmdctrl_acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG, PoolByteArray([]))
 
-	# TODO: Implement handling of all messages
-	# TODO: When processing simhijack command make sure to reset things properly
-	pass
+
+func cmdctrl_simhijack(hijack: bool):
+	if hijack:
+		cmdctrl_curr_quat = Quat(0, 0, 0, 0)
+		cmdctrl_curr_depth = 0.0
+		for i in range(8):
+			sim_speeds[i] = 0.0
+		cmdctrl_mode = CMDCTRL_MODE_RAW
+		for i in range(8):
+			cmdctrl_raw_target[i] = 0.0
+		mc_set_raw(cmdctrl_raw_target)
+		# TODO: bno055_reset_accum_euler()
+	else:
+		# Doesn't actually support this.
+		# Just do nothing.
+		pass
 
 func cmdctrl_mwdog_change(motors_enabled: bool):
 	cmdctrl_motors_enabled = motors_enabled
