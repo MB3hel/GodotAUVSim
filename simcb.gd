@@ -124,16 +124,111 @@ func ext_read() -> PoolByteArray:
 # Sim pccomm
 ################################################################################
 
+var _pccomm_parse_started = false
+var _pccomm_parse_escaped = false
+var _pccomm_read_buf = StreamPeerBuffer.new()
+
+var _curr_msg_id = 0
+
+const START_BYTE = 253
+const END_BYTE = 254
+const ESCAPE_BYTE = 255
+
+func crc16_ccitt_false(data: Array, length: int, initial: int = 0xFFFF) -> int:
+	var crc = initial
+	var pos = 0
+	while pos < length:
+		var b = data[pos]
+		for i in range(8):
+			var bit = int((b >> (7 - i) & 1) == 1)
+			var c15 = int((crc >> 15 & 1) == 1)
+			crc <<= 1
+			crc &= 0xFFFF
+			if c15 ^ bit:
+				crc ^= 0x1021
+				crc &= 0xFFFF
+		pos += 1
+	return crc & 0xFFFF
+
 # Construct a properly formatted message and write it from simcb
 # This is equivalent to writing from control board to PC
 func pccomm_write(msg: PoolByteArray):
-	_write_buf.append_array(msg)
+	var write_buffer = StreamPeerBuffer.new()
+	
+	# Write start byte
+	write_buffer.put_u8(START_BYTE)
+	
+	# Write message id (big endian) escape as needed
+	var msg_id = _curr_msg_id
+	_curr_msg_id += 1
+	var tmp = StreamPeerBuffer.new()
+	tmp.big_endian = true
+	tmp.put_u16(msg_id)
+	tmp.seek(0)
+	for _i in range(tmp.get_size()):
+		var b = tmp.get_u8()
+		if b == START_BYTE or b == END_BYTE or b == ESCAPE_BYTE:
+			write_buffer.put_u8(ESCAPE_BYTE)
+		write_buffer.put_u8(b)
+	
+	 # Write each byte escaping it as needed
+	for i in range(msg.size()):
+		var b = msg[i]
+		if b == START_BYTE or b == END_BYTE or b == ESCAPE_BYTE:
+			write_buffer.put_u8(ESCAPE_BYTE)
+		write_buffer.put_u8(b)
+	
+	# Calculate crc and write it. CRC includes message id bytes
+	var crc = crc16_ccitt_false(tmp.data_array, 2)
+	crc = crc16_ccitt_false(msg, msg.size(), crc)
+	var high_byte = (crc >> 8) & 0xFF
+	var low_byte = crc & 0xFF
+	if high_byte == START_BYTE or high_byte == END_BYTE or high_byte == ESCAPE_BYTE:
+		write_buffer.put_u8(ESCAPE_BYTE)
+	write_buffer.put_u8(high_byte)
+	if low_byte == START_BYTE or low_byte == END_BYTE or low_byte == ESCAPE_BYTE:
+		write_buffer.put_u8(ESCAPE_BYTE)
+	write_buffer.put_u8(low_byte)
+	
+	# Write end byte
+	write_buffer.put_u8(END_BYTE)
+	
+	# Add to actual buffer
+	_write_buf.append_array(write_buffer.data_array)
+	
 
 # Read messages sent to simcb
 # This is equivalent of reading messages from PC on control board
 func pccomm_read_and_parse():
-	# TODO
-	pass
+	while not _read_buf.empty():
+		var byte = _read_buf[0]
+		_read_buf.remove(0)
+		
+		if _pccomm_parse_escaped:
+			if byte == START_BYTE or byte == END_BYTE or byte == END_BYTE:
+				_pccomm_read_buf.put_u8(byte)
+			_pccomm_parse_escaped = false
+		elif _pccomm_parse_started:
+			if byte == START_BYTE:
+				_pccomm_read_buf.clear()
+			elif byte == END_BYTE:
+				_pccomm_parse_started = false
+				if _pccomm_read_buf.get_size() >= 4:
+					var calc_crc = crc16_ccitt_false(_pccomm_read_buf.data_array, _pccomm_read_buf.get_size() - 2)
+					_pccomm_read_buf.seek(_pccomm_read_buf.get_size() - 2)
+					_pccomm_read_buf.big_endian = true
+					var read_crc = _pccomm_read_buf.get_u16()
+					if read_crc == calc_crc:
+						_pccomm_read_buf.seek(0)
+						cmdctrl_handle_message(_pccomm_read_buf)
+						_pccomm_read_buf.clear()
+			elif byte == ESCAPE_BYTE:
+				_pccomm_parse_escaped = true
+			else:
+				_pccomm_read_buf.put_u8(byte)
+		elif byte == START_BYTE:
+			_pccomm_parse_started = true
+			_pccomm_read_buf.clear()
 
 ################################################################################
 
