@@ -325,9 +325,23 @@ func mc_set_dof_matrix(tnum: int, row_data: PoolRealArray):
 	dof_matrix.set_row(tnum - 1, row_data)
 
 func mc_recalc():
-	# TODO
-	pass
-
+	# Construct contribution matrix
+	var contribution_matrix = Matrix.new(8, 6)
+	for row in range(contribution_matrix.rows):
+		for col in range(contribution_matrix.cols):
+			var dof_item = dof_matrix.get_item(row, col)
+			contribution_matrix.set_item(row, col, 1 if dof_item != 0 else 0)
+	
+	# Construct overlap vectors
+	for r in range(contribution_matrix.rows):
+		var rowdata = contribution_matrix.get_row(r)
+		var v = Matrix.new(6, 1)
+		v.set_row(0, rowdata)
+		overlap_vectors[r] = contribution_matrix.mul(v)
+		for row in range(overlap_vectors[r].rows):
+			for col in range(overlap_vectors[r].cols):
+				var item = overlap_vectors.get_item(row, col)
+				overlap_vectors[r].set_item(row, col, 1 if item != 0 else 0)
 
 func mc_wdog_timeout():
 	mc_motors_killed = true
