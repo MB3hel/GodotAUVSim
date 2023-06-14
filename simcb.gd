@@ -322,8 +322,7 @@ var depth_pid = PIDController.new()
 
 
 func mc_set_dof_matrix(tnum: int, row_data: PoolRealArray):
-	# TODO
-	pass
+	dof_matrix.set_row(tnum - 1, row_data)
 
 func mc_recalc():
 	# TODO
