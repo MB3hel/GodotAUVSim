@@ -127,8 +127,7 @@ func ext_read() -> PoolByteArray:
 # Construct a properly formatted message and write it from simcb
 # This is equivalent to writing from control board to PC
 func pccomm_write(msg: PoolByteArray):
-	# TODO
-	pass
+	_write_buf.append_array(msg)
 
 # Read messages sent to simcb
 # This is equivalent of reading messages from PC on control board
@@ -300,7 +299,8 @@ var mc_motors_killed = true
 
 var sim_speeds = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-# TODO: MC_RELSCALE, invert, all the matrices and math support stuff
+var mc_relscale = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+# TODO: invert, all the matrices and math support stuff
 # TODO: PID controllers
 
 func mc_set_dof_matrix(tnum: int, row_data: PoolRealArray):
@@ -411,7 +411,80 @@ func vec_max_mag(v: Vector3):
 	return max(abs(v.x), max(abs(v.y), abs(v.z)))
 
 
-# TODO: mc_downscale_reldof, mc_upscale_vec, mc_downscale_if_needed, mc_grav_rot, mc_baseline_euler, mc_euler_to_split_quat
+# Use mc_relscale factors to scale speeds down as needed
+func mc_downscale_reldof(src: Vector3, angular: bool) -> Vector3:
+	var scale_x = mc_relscale[3] if angular else mc_relscale[0]
+	var scale_y = mc_relscale[4] if angular else mc_relscale[1]
+	var scale_z = mc_relscale[5] if angular else mc_relscale[2]
+	
+	# If a component of the input is zero, no reason to consider that component when downscaling
+	if abs(src.x) < 1e-4:
+		scale_x = 0.0
+	if abs(src.y) < 1e-4:
+		scale_y = 0.0
+	if abs(src.z) < 1e-4:
+		scale_z = 0.0
+	
+	# Rebalance so largest factor is 1.0
+	var maxscale = max(scale_x, max(scale_y, scale_z))
+	scale_x /= maxscale
+	scale_y /= maxscale
+	scale_z /= maxscale
+	
+	# Do scaling
+	return Vector3(src.x * scale_x, src.y * scale_y, src.z * scale_z)
+
+# Scale src proportionally so largest element is v
+func mc_upscale_vec(src: Vector3, v: float) -> Vector3:
+	if abs(v) < 1e-4:
+		return Vector3(0, 0, 0)
+	else:
+		var max_mag = vec_max_mag(src)
+		return Vector3(
+			(src.x / max_mag) * abs(v),
+			(src.y / max_mag) * abs(v),
+			(src.z / max_mag) * abs(v)
+		)
+
+# Ensure all elements of src have magnitude less than or equal to 1
+func mc_downscale_if_needed(src: Vector3) -> Vector3:
+	var maxmag = vec_max_mag(src)
+	if(maxmag > 1.0):
+		return src / maxmag
+	else:
+		return src
+
+# Use quat to construct pitch / roll compensation using gravity vectors
+func mc_grav_rot(qcurr: Quat) -> Quat:
+	var grav = Vector3(
+		2.0 * (-qcurr.x*qcurr.z + qcurr.w*qcurr.y),
+		2.0 * (-qcurr.w*qcurr.x - qcurr.y*qcurr.z),
+		-qcurr.w*qcurr.w + qcurr.x*qcurr.x + qcurr.y*qcurr.y - qcurr.z*qcurr.z
+	).normalized()
+	return quat_between(Vector3(0, 0, -1), grav)
+
+# Convert quat to euler angles. Choose euler angle with minimal roll
+# RETURNED EULER ANGLES WILL BE IN RADIANS!
+func mc_baseline_euler(qcurr: Quat) -> Vector3:
+	var e_orig = Angles.quat_to_cboard_euler(qcurr)
+	var e_alt = euler_alt(e_orig, false)
+	if abs(e_orig.y) < abs(e_alt.y):
+		return e_orig
+	else:
+		return e_alt
+
+# Split euler e into three quaternions for pitch, roll, yaw
+# Euler angles must be in RADIANS!
+# returns [q_pitch, q_roll, q_yaw]
+func mc_euler_to_split_quat(e: Vector3) -> Array:
+	var e_pitch = Vector3(e.x, 0, 0)
+	var e_roll = Vector3(0, e.y, 0)
+	var e_yaw = Vector3(0, 0, e.z)
+	var q_pitch = Angles.cboard_euler_to_quat(e_pitch)
+	var q_roll = Angles.cboard_euler_to_quat(e_roll)
+	var q_yaw = Angles.cboard_euler_to_quat(e_yaw)
+	return [q_pitch, q_roll, q_yaw]
+
 
 # TODO: PID controller tune
 
