@@ -46,6 +46,11 @@
 #   threaded. Thus, unlike in the actual firmware, there are no mutexes.
 # - Reset command will not be handled (it will do nothing)
 # - Why reset will always return code 0
+# - matrix.gd is a port of my custom matrix library used with the control board
+#   to gdscript. 
+# - There is no port of angles.c to gdscript. Native godot Quat data type is
+#   used instead. angles.gd is a conversion helper to convert between
+#   formats and euler angle conventions (godot convention vs cboard convention)
 ################################################################################
 
 extends Node
@@ -68,6 +73,8 @@ var _read_buf = PoolByteArray()
 # Godot Engine functions
 ################################################################################
 
+var _wdog_timer = Timer.new()
+
 func _ready():
 	var sensor_read_timer = Timer.new()
 	add_child(sensor_read_timer)
@@ -80,6 +87,9 @@ func _ready():
 	periodic_speed_timer.one_shot = false
 	periodic_speed_timer.connect("timeout", self, "cmdctrl_periodic_reapply_speed")
 	periodic_speed_timer.start(0.020)
+	
+	add_child(_wdog_timer)
+	_wdog_timer.one_shot = true
 
 func _process(delta):
 	self.pccomm_read_and_parse()
@@ -283,6 +293,8 @@ func cmdctrl_send_simstat():
 # Sim motor_control
 ################################################################################
 
+var mc_motors_killed = true
+
 var sim_speeds = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 # TODO: MC_RELSCALE, invert, all the matrices and math support stuff
@@ -294,7 +306,22 @@ func mc_set_dof_matrix(tnum: int, row_data: PoolRealArray):
 func mc_recalc():
 	pass
 
-# TODO: Motor watchdog logic (either using timer or process function)
+
+func mc_wdog_timeout():
+	mc_motors_killed = true
+	for i in range(8):
+		sim_speeds[i] = 0.0
+	cmdctrl_mwdog_change(false)
+
+func mc_wdog_feed() -> bool:
+	var ret = mc_motors_killed
+	_wdog_timer.stop()
+	_wdog_timer.start(1.5)
+	if(mc_motors_killed):
+		cmdctrl_mwdog_change(true)
+	mc_motors_killed = false
+	return ret
+
 
 # TODO: Implement math helper code (as needed using Godot quaternion library)
 
