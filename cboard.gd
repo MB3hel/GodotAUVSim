@@ -80,6 +80,8 @@ var _ser = load("res://GDSerial/GDSerial.gdns").new()
 # "" (empty string) means not connected
 var _portname = ""
 
+var _scb = null
+
 ################################################################################
 
 
@@ -175,13 +177,49 @@ func disconnect_uart(sig: bool = true):
 
 # Connect to simulated control board (internal)
 func connect_sim():
-	# TODO: Implement
-	pass
+	# Disconnect if already connected
+	if self._sim_connected:
+		self.disconnect_sim()
+	elif self._uart_connected:
+		self.disconnect_uart()
+	
+	# Reset parser data and state
+	self._read_data = PoolByteArray()
+	self._read_msg = PoolByteArray()
+	self._parse_started = false
+	self._parse_escaped = false
+	
+	# Connect to UART (8N1; baud != 1200)
+	_scb = load("res://simcb.gd").new()
+
+	self._sim_connected = true
+	self._portname = "SIM"
+	
+	# Send SIMHIJACK preparing to wait for ACK
+	var cmd = "SIMHIJACK".to_ascii()
+	cmd.append(1)
+	self._simhijack_id = self._next_msg_id()
+	self._write_msg(self._simhijack_id, cmd)
+	
+	# Start SIMHIJACK timeout timer
+	self._simhijack_timer.start(1)
 
 # Disconnect from simulated control board (internal)
 func disconnect_sim(sig: bool = true):
-	# TODO: Implement
-	pass
+	if not self._sim_connected:
+		return
+	
+	# Cancel simhijack timer
+	self._simhijack_timer.stop()
+	
+	# Disconnect UART
+	_scb = null
+	self._sim_connected = false
+	self._portname = ""
+	
+	# Emit signal if required
+	if sig:
+		self.emit_signal("cboard_disconnected")
 
 # Called when timeout while waiting on SIMHIJACK command
 func _simhijack_timeout():
@@ -289,8 +327,7 @@ func write_raw(data: PoolByteArray):
 	if _uart_connected:
 		self._ser.write(data)
 	elif _sim_connected:
-		# TODO: Write to simcb
-		pass
+		_scb.ext_write(data)
 
 # Read any available bytes from connected control board
 # Returns true when a complete message is in _read_buf
@@ -304,8 +341,10 @@ func _read_task():
 			return # Probably an error. Let _process handle it.
 		self._parse_msg(data)
 	elif _sim_connected:
-		# TODO: Read from simcb until no bytes available
-		pass
+		var data = self._scb.ext_read()
+		if data.size() == 0:
+			return 
+		self._parse_msg(data)
 
 # Parse some bytes as a control board message
 # Modified version of the parser used on cboard and in iface scripts
