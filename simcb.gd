@@ -301,7 +301,19 @@ var sim_speeds = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 var mc_relscale = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-# TODO: invert, all the matrices and math support stuff
+var mc_invert = [false, false, false, false, false, false, false, false]
+
+var dof_matrix = Matrix.new(8, 6)
+var overlap_vectors = [
+	Matrix.new(8, 1),
+	Matrix.new(8, 1),
+	Matrix.new(8, 1),
+	Matrix.new(8, 1),
+	Matrix.new(8, 1),
+	Matrix.new(8, 1),
+	Matrix.new(8, 1),
+	Matrix.new(8, 1)
+]
 
 var xrot_pid = PIDController.new()
 var yrot_pid = PIDController.new()
