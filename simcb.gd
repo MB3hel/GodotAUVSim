@@ -551,12 +551,45 @@ func mc_sassist_tune_depth(kp: float, ki: float, kd: float, limit: float, invert
 
 
 func mc_set_raw(speeds: PoolRealArray):
-	# TODO
-	pass
+	if not mc_motors_killed:
+		for i in range(8):
+			if mc_invert[i]:
+				speeds[i] *= -1
+		for i in range(8):
+			sim_speeds[i] = speeds[i]
 
 func mc_set_local(x: float, y: float, z: float, xrot: float, yrot: float, zrot: float):
-	# TODO
-	pass
+	# Limit speeds to valid range
+	x = min(1, max(x, -1))
+	y = min(1, max(y, -1))
+	z = min(1, max(z, -1))
+	xrot = min(1, max(xrot, -1))
+	yrot = min(1, max(yrot, -1))
+	zrot = min(1, max(zrot, -1))
+	
+	var target = Matrix.new(6, 1)
+	target.set_col(0, [x, y, z, xrot, yrot, zrot])
+	
+	# Base speed calculation
+	var speed_vec = dof_matrix.mul(target)
+	
+	# Scale motor speeds down as needed
+	while true:
+		var res = speed_vec.absmax()
+		var mval = res[0]
+		var idxrow = res[1]
+		var idxcol = res[2]
+		if mval <= 1:
+			break
+		for i in range(overlap_vectors[idxrow].rows):
+			var cval = overlap_vectors[idxrow].get_item(i, 0)
+			if cval == 1:
+				cval = speed_vec.get_item(i, 0)
+				cval /= mval
+				speed_vec.set_item(i, 0, cval)
+	
+	var speeds = speed_vec.get_col(0)
+	mc_set_raw(speeds)
 
 func mc_set_global(x: float, y: float, z: float, pitch_spd: float, roll_spd: float, yaw_spd: float, curr_quat: Quat):
 	# TODO
