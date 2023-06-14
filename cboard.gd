@@ -191,6 +191,7 @@ func connect_sim():
 	
 	# Connect to UART (8N1; baud != 1200)
 	_scb = load("res://simcb.gd").new()
+	add_child(_scb)
 
 	self._sim_connected = true
 	self._portname = "SIM"
@@ -213,6 +214,7 @@ func disconnect_sim(sig: bool = true):
 	self._simhijack_timer.stop()
 	
 	# Disconnect UART
+	remove_child(_scb)
 	_scb = null
 	self._sim_connected = false
 	self._portname = ""
@@ -343,7 +345,7 @@ func _read_task():
 	elif _sim_connected:
 		var data = self._scb.ext_read()
 		if data.size() == 0:
-			return 
+			return
 		self._parse_msg(data)
 
 # Parse some bytes as a control board message

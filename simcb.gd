@@ -205,7 +205,6 @@ func pccomm_read_and_parse():
 	while not _read_buf.empty():
 		var byte = _read_buf[0]
 		_read_buf.remove(0)
-		
 		if _pccomm_parse_escaped:
 			if byte == START_BYTE or byte == END_BYTE or byte == END_BYTE:
 				_pccomm_read_buf.put_u8(byte)
@@ -222,7 +221,7 @@ func pccomm_read_and_parse():
 					var read_crc = _pccomm_read_buf.get_u16()
 					if read_crc == calc_crc:
 						_pccomm_read_buf.seek(0)
-						cmdctrl_handle_message(_pccomm_read_buf)
+						cmdctrl_handle_message(_pccomm_read_buf.data_array)
 						_pccomm_read_buf.clear()
 			elif byte == ESCAPE_BYTE:
 				_pccomm_parse_escaped = true
@@ -352,6 +351,7 @@ func cmdctrl_acknowledge(msg_id: int, error_code: int, result: PoolByteArray):
 	pccomm_write(data.data_array)
 
 func cmdctrl_handle_message(msg: PoolByteArray):
+
 	# TODO: Implement handling of all messages
 	# TODO: When processing simhijack command make sure to reset things properly
 	pass
