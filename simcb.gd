@@ -44,7 +44,7 @@
 #   performing periodic tasks do use the same times as the actual firmware.
 # - Everything here is implemented using signals, and thus this is all single
 #   threaded. Thus, unlike in the actual firmware, there are no mutexes.
-# - Reset command will not be handled (it will do nothing)
+# - Reset command will not be handled (it will be acknowledge with INVALID_CMD)
 # - Why reset will always return code 0
 # - matrix.gd is a port of my custom matrix library used with the control board
 #   to gdscript. 
@@ -401,7 +401,6 @@ func cmdctrl_handle_message(data: PoolByteArray):
 	reset_cmd.append(0x0D)
 	reset_cmd.append(0x1E)
 	
-	# TODO: Handle all messages
 	if msg_str.begins_with("RAW"):
 		if msg_len != 35:
 			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
@@ -598,15 +597,21 @@ func cmdctrl_handle_message(data: PoolByteArray):
 				mc_sassist_tune_depth(kp, ki, kd, lim, inv)
 			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("SASSIST1"):
+		# TODO
 		pass
 	elif msg_str.begins_with("SASSIST2"):
+		# TODO
 		pass
 	elif msg == reset_cmd:
-		pass
+		# Not supported in simulation
+		cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_CMD, PoolByteArray([]))
 	elif msg_str.begins_with("DHOLD"):
+		# TODO
 		pass
 	elif msg_str == "RSTWHY":
-		pass
+		var response = StreamPeerBuffer.new()
+		response.put_32(0)
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, response.data_array)
 	elif msg_str.begins_with("SIMHIJACK"):
 		if msg_len != 10:
 			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
@@ -615,7 +620,16 @@ func cmdctrl_handle_message(data: PoolByteArray):
 			cmdctrl_simhijack(buf.get_u8())
 			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("SIMDAT"):
-		pass
+		if msg_len != 26:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 6)
+			cmdctrl_curr_quat.w = buf.get_float()
+			cmdctrl_curr_quat.x = buf.get_float()
+			cmdctrl_curr_quat.y = buf.get_float()
+			cmdctrl_curr_quat.z = buf.get_float()
+			cmdctrl_curr_depth = buf.get_float()
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	else:
 		cmdctrl_acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG, PoolByteArray([]))
 
