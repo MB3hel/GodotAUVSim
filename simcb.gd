@@ -590,8 +590,9 @@ func cmdctrl_handle_message(data: PoolByteArray):
 		if msg_len != 27:
 			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
 		else:
-			buf.seek(buf.get_position() + (10))
+			buf.seek(buf.get_position() + 9)
 			var which = buf.get_data(1)[1].get_string_from_ascii()
+			print(which)
 			var kp = buf.get_float()
 			var ki = buf.get_float()
 			var kd = buf.get_float()
@@ -751,6 +752,10 @@ func cmdctrl_send_simstat():
 ################################################################################
 # Sim motor_control
 ################################################################################
+
+var pid_last_target = Vector3(0, 0, 0)
+var pid_last_yaw_target = false
+var pid_last_depth = -999.0
 
 var mc_motors_killed = true
 
@@ -1085,7 +1090,11 @@ func mc_set_sassist(x: float, y: float, yaw_spd: float, target_euler: Vector3, t
 	pass
 
 func mc_set_dhold(x: float, y: float, pitch_spd: float, roll_spd: float, yaw_spd: float, target_depth: float, curr_quat: Quat, curr_depth: float):
-	# TODO
-	pass
+	if abs(pid_last_depth - target_depth) > 0.01:
+		depth_pid.reset()
+	var z = -depth_pid.calculate(curr_depth - target_depth)
+	pid_last_depth = target_depth
+	mc_set_global(x, y, z, pitch_spd, roll_spd, yaw_spd, curr_quat)
+	
 
 ################################################################################
