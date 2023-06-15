@@ -497,6 +497,7 @@ func cmdctrl_handle_message(data: PoolByteArray):
 		if msg_len != 29:
 			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
 		else:
+			buf.seek(buf.get_position() + 5)
 			cmdctrl_local_x = buf.get_float()
 			cmdctrl_local_y = buf.get_float()
 			cmdctrl_local_z = buf.get_float()
@@ -698,7 +699,6 @@ func cmdctrl_handle_message(data: PoolByteArray):
 			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	else:
 		cmdctrl_acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG, PoolByteArray([]))
-
 
 func cmdctrl_simhijack(hijack: bool):
 	if hijack:
