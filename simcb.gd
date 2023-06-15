@@ -100,6 +100,12 @@ func _ready():
 	simstat_timer.one_shot = false
 	simstat_timer.connect("timeout", self, "cmdctrl_send_simstat")
 	simstat_timer.start(0.020)
+	
+	var euler_accum_timer = Timer.new()
+	add_child(euler_accum_timer)
+	euler_accum_timer.one_shot = false
+	euler_accum_timer.connect("timeout", self, "bno055_do_accum")
+	euler_accum_timer.start(0.015) # Same as firmware's sample rate for bno055
 
 func _process(delta):
 	self.pccomm_read_and_parse()
@@ -319,12 +325,9 @@ func cmdctrl_send_sensor_data():
 		msg.put_float(cmdctrl_curr_quat.x)
 		msg.put_float(cmdctrl_curr_quat.y)
 		msg.put_float(cmdctrl_curr_quat.z)
-		
-		# TODO: Implement acumulated euler angles
-		msg.put_float(0)
-		msg.put_float(0)
-		msg.put_float(0)
-		
+		msg.put_float(bno055_accum.x)
+		msg.put_float(bno055_accum.y)
+		msg.put_float(bno055_accum.z)
 		pccomm_write(msg.data_array)
 	if cmdctrl_periodic_ms5837:
 		var msg = StreamPeerBuffer.new()
@@ -562,10 +565,9 @@ func cmdctrl_handle_message(data: PoolByteArray):
 		response.put_float(cmdctrl_curr_quat.x)
 		response.put_float(cmdctrl_curr_quat.y)
 		response.put_float(cmdctrl_curr_quat.z)
-		# TODO: Implement accumulated euler angles
-		response.put_float(0)
-		response.put_float(0)
-		response.put_float(0)
+		msg.put_float(bno055_accum.x)
+		msg.put_float(bno055_accum.y)
+		msg.put_float(bno055_accum.z)
 		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, response.data_array)
 	elif msg_str.begins_with("BNO055P"):
 		if msg_len != 8:
@@ -710,7 +712,7 @@ func cmdctrl_simhijack(hijack: bool):
 		for i in range(8):
 			cmdctrl_raw_target[i] = 0.0
 		mc_set_raw(cmdctrl_raw_target)
-		# TODO: bno055_reset_accum_euler()
+		bno055_reset_accum_euler()
 	else:
 		# Doesn't actually support this.
 		# Just do nothing.
@@ -1163,3 +1165,37 @@ func mc_set_dhold(x: float, y: float, pitch_spd: float, roll_spd: float, yaw_spd
 	
 
 ################################################################################
+
+
+################################################################################
+# BNO055 (accumulated angle stuff only)
+################################################################################
+
+var bno055_accum = Vector3(0, 0, 0)
+var bno055_prev_quat_valid = false
+var bno055_prev_quat = Quat(0, 0, 0, 0)
+
+
+func bno055_do_accum():
+	var curr_quat = cmdctrl_curr_quat
+	var quat_same = (curr_quat.w == bno055_prev_quat.w) and \
+		(curr_quat.x == bno055_prev_quat.x) and \
+		(curr_quat.y == bno055_prev_quat.y) and \
+		(curr_quat.z == bno055_prev_quat.z)
+	if bno055_prev_quat_valid and not quat_same:
+		var dot = curr_quat.dot(bno055_prev_quat)
+		var diff_quat = Quat(0, 0, 0, 0)
+		if dot < 0.0:
+			diff_quat = -bno055_prev_quat
+		else:
+			diff_quat = bno055_prev_quat
+		diff_quat = diff_quat.inverse()
+		diff_quat = curr_quat * diff_quat
+		var diff_euler = Angles.quat_to_cboard_euler(diff_quat) * 180.0 / PI
+		bno055_accum += diff_euler
+	bno055_prev_quat = curr_quat
+	bno055_prev_quat_valid = curr_quat.w != 0 or curr_quat.x != 0 or curr_quat.y != 0 or curr_quat.z != 0
+	
+func bno055_reset_accum_euler():
+	bno055_accum = Vector3(0, 0, 0)
+	bno055_prev_quat_valid = false
