@@ -51,6 +51,8 @@
 # - There is no port of angles.c to gdscript. Native godot Quat data type is
 #   used instead. angles.gd is a conversion helper to convert between
 #   formats and euler angle conventions (godot convention vs cboard convention)
+# - Because sensors are all simulated, BNO055 axis config does nothing (but is
+#   properly acknowledged)
 ################################################################################
 
 extends Node
@@ -74,6 +76,7 @@ var _read_buf = PoolByteArray()
 ################################################################################
 
 var _wdog_timer = Timer.new()
+var _periodic_speed_timer = Timer.new()
 
 func _ready():
 	var sensor_read_timer = Timer.new()
@@ -82,11 +85,11 @@ func _ready():
 	sensor_read_timer.connect("timeout", self, "cmdctrl_send_sensor_data")
 	sensor_read_timer.start(0.020)
 	
-	var periodic_speed_timer = Timer.new()
-	add_child(periodic_speed_timer)
-	periodic_speed_timer.one_shot = false
-	periodic_speed_timer.connect("timeout", self, "cmdctrl_periodic_reapply_speed")
-	periodic_speed_timer.start(0.020)
+	
+	add_child(_periodic_speed_timer)
+	_periodic_speed_timer.one_shot = false
+	_periodic_speed_timer.connect("timeout", self, "cmdctrl_periodic_reapply_speed")
+	_periodic_speed_timer.start(0.020)
 	
 	add_child(_wdog_timer)
 	_wdog_timer.one_shot = true
@@ -354,6 +357,22 @@ func cmdctrl_acknowledge(msg_id: int, error_code: int, result: PoolByteArray):
 		data.put_data(result)
 	pccomm_write(data.data_array)
 
+func limit(v: float) -> float:
+	# Limit to -1.0 to 1.0
+	if v > 1.0:
+		return 1.0
+	if v < -1.0:
+		return -1.0
+	return v 
+
+func limit_pos(v: float) -> float:
+	# Limit to 0.0 to 1.0
+	if v > 1.0:
+		return 1.0
+	if v < 0.0:
+		return 0.0
+	return v 
+
 func cmdctrl_handle_message(data: PoolByteArray):
 	# Construct StreamPeerBuffer using data
 	var buf = StreamPeerBuffer.new()
@@ -384,23 +403,126 @@ func cmdctrl_handle_message(data: PoolByteArray):
 	
 	# TODO: Handle all messages
 	if msg_str.begins_with("RAW"):
-		pass
+		if msg_len != 35:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 3)
+			cmdctrl_raw_target[0] = buf.get_float()
+			cmdctrl_raw_target[1] = buf.get_float()
+			cmdctrl_raw_target[2] = buf.get_float()
+			cmdctrl_raw_target[3] = buf.get_float()
+			cmdctrl_raw_target[4] = buf.get_float()
+			cmdctrl_raw_target[5] = buf.get_float()
+			cmdctrl_raw_target[6] = buf.get_float()
+			cmdctrl_raw_target[7] = buf.get_float()
+			for i in range(8):
+				if cmdctrl_raw_target[i] < -1.0:
+					cmdctrl_raw_target[i] = -1.0
+				elif cmdctrl_raw_target[i] > 1.0:
+					cmdctrl_raw_target = 1.0
+			_periodic_speed_timer.stop()
+			_periodic_speed_timer.start()
+			cmdctrl_mode = CMDCTRL_MODE_RAW
+			mc_wdog_feed()
+			mc_set_raw(cmdctrl_raw_target)		
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("TINV"):
-		pass
+		if msg_len != 5:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 4)
+			var inv = buf.get_u8()
+			for i in range(8):
+				mc_invert[i] = true if (inv & 1) else false
+				inv >>= 1
+			cmdctrl_apply_saved_speed()
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("RELDOF"):
-		pass
+		if msg_len != 30:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 6)
+			var x = buf.get_float()
+			var y = buf.get_float()
+			var z = buf.get_float()
+			var xrot = buf.get_float()
+			var yrot = buf.get_float()
+			var zrot = buf.get_float()
+			x = limit_pos(x)
+			y = limit_pos(y)
+			z = limit_pos(y)
+			xrot = limit_pos(xrot)
+			yrot = limit_pos(yrot)
+			zrot = limit_pos(zrot)
+			mc_relscale[0] = 1.0 if x == 0.0 else min(x, min(y, z)) / x
+			mc_relscale[1] = 1.0 if y == 0.0 else min(x, min(y, z)) / y
+			mc_relscale[2] = 1.0 if z == 0.0 else min(x, min(y, z)) / z
+			mc_relscale[3] = 1.0 if xrot == 0.0 else min(xrot, min(yrot, zrot)) / xrot
+			mc_relscale[4] = 1.0 if yrot == 0.0 else min(xrot, min(yrot, zrot)) / yrot
+			mc_relscale[5] = 1.0 if zrot == 0.0 else min(xrot, min(yrot, zrot)) / zrot
+			cmdctrl_apply_saved_speed()
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str == "WDGF":
-		pass
+		var was_killed = mc_wdog_feed()
+		if was_killed:
+			cmdctrl_apply_saved_speed()
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("MMATS"):
-		pass
+		if msg_len != 30:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 5)
+			var thr = buf.get_u8()
+			var d = PoolRealArray([])
+			d.append(buf.get_float())
+			d.append(buf.get_float())
+			d.append(buf.get_float())
+			d.append(buf.get_float())
+			d.append(buf.get_float())
+			d.append(buf.get_float())
+			mc_set_dof_matrix(thr, d)
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str == "MMATU":
-		pass
+		mc_recalc()
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("LOCAL"):
-		pass
+		if msg_len != 29:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			cmdctrl_local_x = buf.get_float()
+			cmdctrl_local_y = buf.get_float()
+			cmdctrl_local_z = buf.get_float()
+			cmdctrl_local_xrot = buf.get_float()
+			cmdctrl_local_yrot = buf.get_float()
+			cmdctrl_local_zrot = buf.get_float()
+			cmdctrl_local_x = limit(cmdctrl_local_x)
+			cmdctrl_local_y = limit(cmdctrl_local_y)
+			cmdctrl_local_z = limit(cmdctrl_local_z)
+			cmdctrl_local_xrot = limit(cmdctrl_local_xrot)
+			cmdctrl_local_yrot = limit(cmdctrl_local_yrot)
+			cmdctrl_local_zrot = limit(cmdctrl_local_zrot)
+			_periodic_speed_timer.stop()
+			_periodic_speed_timer.start()
+			cmdctrl_mode = CMDCTRL_MODE_LOCAL
+			mc_wdog_feed()
+			mc_set_local(cmdctrl_local_x, cmdctrl_local_y, cmdctrl_local_z, cmdctrl_local_xrot, cmdctrl_local_yrot, cmdctrl_local_zrot)
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str == "SSTAT":
-		pass
+		var response = PoolByteArray([])
+		response.append(0)
+		response[0] |= 1
+		response[0] |= (1 << 1)
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, response)
 	elif msg_str.begins_with("BNO055A"):
-		pass
+		# This has no effect in simulation, but will be acknowledged correctly
+		if msg_len != 8:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 7)
+			if buf.get_u8() > 7:
+				cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+			else:
+				cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("GLOBAL"):
 		pass
 	elif msg_str == "BNO055R":
