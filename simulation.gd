@@ -102,7 +102,6 @@ func _process(delta):
 # When user clicks Connect button in connect dialog
 func connect_cboard(port):
 	if port == "SIM":
-
 		self.cboard.connect_sim()
 	else:
 		self.cboard.connect_uart(port)

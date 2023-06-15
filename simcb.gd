@@ -458,7 +458,7 @@ func cmdctrl_handle_message(data: PoolByteArray):
 			var zrot = buf.get_float()
 			x = limit_pos(x)
 			y = limit_pos(y)
-			z = limit_pos(y)
+			z = limit_pos(z)
 			xrot = limit_pos(xrot)
 			yrot = limit_pos(yrot)
 			zrot = limit_pos(zrot)
@@ -915,6 +915,8 @@ func mc_downscale_reldof(src: Vector3, angular: bool) -> Vector3:
 	
 	# Rebalance so largest factor is 1.0
 	var maxscale = max(scale_x, max(scale_y, scale_z))
+	if maxscale == 0.0:
+		maxscale = 1.0
 	scale_x /= maxscale
 	scale_y /= maxscale
 	scale_z /= maxscale
@@ -1049,8 +1051,34 @@ func mc_set_local(x: float, y: float, z: float, xrot: float, yrot: float, zrot: 
 	mc_set_raw(speeds)
 
 func mc_set_global(x: float, y: float, z: float, pitch_spd: float, roll_spd: float, yaw_spd: float, curr_quat: Quat):
-	# TODO
-	pass
+	var qrot = mc_grav_rot(curr_quat)
+	var tx = mc_upscale_vec(rotate_vector(Vector3(x, 0, 0), qrot), x)
+	var ty = mc_upscale_vec(rotate_vector(Vector3(0, y, 0), qrot), y)
+	var tz = mc_upscale_vec(rotate_vector(Vector3(0, 0, z), qrot), z)
+	
+	var l = tx + ty + tz
+	l = mc_downscale_reldof(l, false)
+	l = mc_downscale_if_needed(l)
+	
+	var e_base = mc_baseline_euler(curr_quat)
+	var res = mc_euler_to_split_quat(e_base)
+	var q_pitch = res[0]
+	var q_roll = res[1]
+	var q_yaw = res[2]
+	
+	var w_roll = Vector3(0, roll_spd, 0)
+	var s_pitch = Vector3(pitch_spd, 0, 0)
+	var w_pitch = rotate_vector_inv(s_pitch, q_roll)
+	var s_yaw = Vector3(0, 0, yaw_spd)
+	var w_yaw = rotate_vector_inv(rotate_vector_inv(s_yaw, q_pitch), q_roll)
+	w_pitch = mc_upscale_vec(w_pitch, pitch_spd)
+	w_yaw = mc_upscale_vec(w_yaw, yaw_spd)
+	
+	var rot = w_pitch + w_roll + w_yaw
+	rot = mc_downscale_reldof(rot, true)
+	rot = mc_downscale_if_needed(rot)
+	
+	mc_set_local(l.x, l.y, l.z, rot.x, rot.y, rot.z)
 
 func mc_set_sassist(x: float, y: float, yaw_spd: float, target_euler: Vector3, target_depth: float, curr_quat: Quat, curr_depth: float, yaw_target: bool):
 	# TODO
