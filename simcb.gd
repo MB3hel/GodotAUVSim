@@ -524,17 +524,79 @@ func cmdctrl_handle_message(data: PoolByteArray):
 			else:
 				cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("GLOBAL"):
-		pass
+		if msg_len != 30:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 6)
+			cmdctrl_global_x = buf.get_float()
+			cmdctrl_global_y = buf.get_float()
+			cmdctrl_global_z = buf.get_float()
+			cmdctrl_global_pitch_spd = buf.get_float()
+			cmdctrl_global_roll_spd = buf.get_float()
+			cmdctrl_global_yaw_spd = buf.get_float()
+			cmdctrl_global_x = limit(cmdctrl_global_x)
+			cmdctrl_global_y = limit(cmdctrl_global_y)
+			cmdctrl_global_z = limit(cmdctrl_global_z)
+			cmdctrl_global_pitch_spd = limit(cmdctrl_global_pitch_spd)
+			cmdctrl_global_roll_spd = limit(cmdctrl_global_roll_spd)
+			cmdctrl_global_yaw_spd = limit(cmdctrl_global_yaw_spd)
+			_periodic_speed_timer.stop()
+			_periodic_speed_timer.start()
+			cmdctrl_mode = CMDCTRL_MODE_GLOBAL
+			mc_wdog_feed()
+			mc_set_global(cmdctrl_global_x, cmdctrl_global_y, cmdctrl_global_z, cmdctrl_global_pitch_spd, cmdctrl_global_roll_spd, cmdctrl_global_yaw_spd, cmdctrl_curr_quat)
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str == "BNO055R":
-		pass
+		var response = StreamPeerBuffer.new()
+		response.big_endian = false
+		response.put_float(cmdctrl_curr_quat.w)
+		response.put_float(cmdctrl_curr_quat.x)
+		response.put_float(cmdctrl_curr_quat.y)
+		response.put_float(cmdctrl_curr_quat.z)
+		# TODO: Implement accumulated euler angles
+		response.put_float(0)
+		response.put_float(0)
+		response.put_float(0)
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, response.data_array)
 	elif msg_str.begins_with("BNO055P"):
-		pass
+		if msg_len != 8:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 7)
+			cmdctrl_periodic_bno055 = true if buf.get_u8() != 0 else false
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("MS5837R"):
-		pass
+		var response = StreamPeerBuffer.new()
+		response.big_endian = false
+		response.put_float(cmdctrl_curr_depth)
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, response.data_array)
 	elif msg_str.begins_with("MS5837P"):
-		pass
+		if msg_len != 8:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 7)
+			cmdctrl_periodic_ms5837 = true if buf.get_u8() != 0 else false
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("SASSISTTN"):
-		pass
+		if msg_len != 27:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + (10))
+			var which = buf.get_data(1)[1].get_string_from_ascii()
+			var kp = buf.get_float()
+			var ki = buf.get_float()
+			var kd = buf.get_float()
+			var lim = buf.get_float()
+			var inv = true if buf.get_u8() != 0 else false
+			if which == "X":
+				mc_sassist_tune_xrot(kp, ki, kd, lim, inv)
+			elif which == "Y":
+				mc_sassist_tune_yrot(kp, ki, kd, lim, inv)
+			elif which == "Z":
+				mc_sassist_tune_zrot(kp, ki, kd, lim, inv)
+			elif which == "D":
+				mc_sassist_tune_depth(kp, ki, kd, lim, inv)
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("SASSIST1"):
 		pass
 	elif msg_str.begins_with("SASSIST2"):
