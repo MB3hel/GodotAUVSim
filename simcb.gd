@@ -93,8 +93,13 @@ func _ready():
 	
 	add_child(_wdog_timer)
 	_wdog_timer.one_shot = true
+	_wdog_timer.connect("timeout", self, "mc_wdog_timeout")
 	
-	# TODO: SIMSTAT timer
+	var simstat_timer = Timer.new()
+	add_child(simstat_timer)
+	simstat_timer.one_shot = false
+	simstat_timer.connect("timeout", self, "cmdctrl_send_simstat")
+	simstat_timer.start(0.020)
 
 func _process(delta):
 	self.pccomm_read_and_parse()
@@ -735,9 +740,9 @@ func cmdctrl_send_simstat():
 	msg.put_float(sim_speeds[7])
 	msg.put_u8(cmdctrl_mode)
 	if cmdctrl_motors_enabled:
-		msg.put_u8(1)
-	else:
 		msg.put_u8(0)
+	else:
+		msg.put_u8(1)
 	pccomm_write(msg.data_array)
 
 ################################################################################
@@ -792,7 +797,7 @@ func mc_recalc():
 		overlap_vectors[r] = contribution_matrix.mul(v)
 		for row in range(overlap_vectors[r].rows):
 			for col in range(overlap_vectors[r].cols):
-				var item = overlap_vectors.get_item(row, col)
+				var item = overlap_vectors[r].get_item(row, col)
 				overlap_vectors[r].set_item(row, col, 1 if item != 0 else 0)
 
 func mc_wdog_timeout():
