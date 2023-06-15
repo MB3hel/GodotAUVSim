@@ -2,10 +2,17 @@
 
 Simulator used for testing [AUVControlBoard](https://github.com/MB3hel/AUVControlBoard) designed using [Godot Engine](https://godotengine.org/).
 
-The simulator implements motion at a LOCAL mode level (not RAW mode) and relies on a real control board to actually perform any movement.
+The simulator can either use a physical control board (allows testing proper firmware and is considered more correct), or a simulated control board can be used (experimental!).
 
 
-## TCP Commands
+## Simulator Interface
+
+The simulated is interfaced with over two TCP ports. One port is used to send commands to the simulator itself (the "command port") and one is used to communicate with the control board (physical or simulated) via the simulator (the "control board port").
+
+**Note: When using the simulator (even with a physical control board) you must communicate with the simulator, NOT directly with the control board.**
+
+
+## Command Port
 
 The command port is used to control the simulation. This is port `5011`. The command port uses a string-based command interface in the following format.
 
@@ -28,18 +35,34 @@ Response are also newline (ASCII 10) delimited. EC is an error code (0 = no erro
 The following commands are implemented
 
 
-- Set robot position in simulator: `set_pos x y z -> EC`
-- Get robot position in simulator: `get_pos -> EC [x y z]`
-- Set robot rotation in simulator: `set_rot w x y z -> EC`
-- Get robot rotation in simulator: `get_rot -> EC [w x y z]`
-- Reset simulator: `reset_sim -> EC`
+- Set vehicle position in simulator: `set_pos x y z -> EC`
+- Get vehicle position in simulator: `get_pos -> EC [x y z]`
+- Set vehicle rotation in simulator: `set_rot w x y z -> EC`
+- Get vehicle rotation in simulator: `get_rot -> EC [w x y z]`
+- Reset vehicle: `reset_vehicle -> EC`
 
 
 *Note that get commands may not return with all arguments if the error code is non-zero*.
 
+
+## Control Board Port
+
+Instead of communicating directly with a control board, you must communicate with the simulator via TCP on port `5012`. This port will forward messages to / from the actual control board (or simulated control board).
+
+The messages sent to this port should be constructed exactly the same as if they were sent to an actual control board over UART. Just send over TCP instead of UART when using the simulator.
+
+
+
+## Modeling Vehicles
+
+TODO: About SW8 model
+
+TODO: Modeling a different vehicle
+
+
 ## Development
 
-The simulator was built using v3.5.1 of Godot. There is a single scene (`pool.tscn`) using the default world environment (`default_env.tres`) as configured. Currently, no environment for the robot to operate in is configured. The simulator currently includes a simplified model of SeaWolf 8 (a robot designed and built by AquaPack Robotics at NC State University).
+The simulator was built using v3.5.2 of Godot. There is a single scene (`pool.tscn`) using the default world environment (`default_env.tres`) as configured. Currently, no environment for the vehicle to operate in is configured. The simulator currently includes a simplified model of SeaWolf 8 (a robot designed and built by AquaPack Robotics at NC State University).
 
 Important to note is that Godot's world system differs from the coordinate system defined by the control board. Both use a right hand coordinate system, however Godot uses a "y up" convention and the control board uses a "z up" convention. The robot and cameras are setup for a control board system. This doesn't really impact much in the engine, however it is best to be explicit about directions (ie don't use named directions in the engine, always explicitly specify x, y, and z components).
 
@@ -48,6 +71,10 @@ Additionally, Godot uses a different euler angle convention that the control boa
 Script Files:
 
 - `angles.gd`: Angle conversion helper. Converts from either euler convention to/from quaternions or to/from each other.
-- `robot.gd`: Script attached to the robot object itself. Handles motion at a local level.
-- `simulation.gd`: Simulation manager / "entry level" script. Manges TCP communication and primary data flow. Consider this the "entry point" of the simulator.
-- `ui.gd`: Handles the on-screen UI.
+- `cboard.gd`: Interface to either a physical control board (via uart) or to the simulated control board. Abstracts the difference between sim and real control board. Also handles simulator-side cboard communication.
+- `matrix.gd`: GDScript port of the matrix.c library used in the control board firmware
+- `netiface.gd`: Handle simulator networking and external interface (TCP)
+- `pid.gd`: PID controller implementation (similar to what is used in control board firmware)
+- `simcb.gd`: Simulated control board implementation. Acts like an actual control board would. Used via the cboard layer just as a physical control board would be.
+- `simulation.gd`: Simulation manager / "entry level" script. Consider this the "entry point" of the simulator. Also handles UI.
+- `vehicle.gd`: Script attached to the robot object itself. Handles modeling of thruster forces
