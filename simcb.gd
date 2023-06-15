@@ -401,6 +401,10 @@ func cmdctrl_handle_message(data: PoolByteArray):
 	reset_cmd.append(0x0D)
 	reset_cmd.append(0x1E)
 	
+	# Note: command processing is mostly a direct port of what is 
+	#       contained in the control board firmware's cmdctrl.c
+	#       But, I was too lazy to copy the comments. So, see the
+	#       actual firmware for comments.
 	if msg_str.begins_with("RAW"):
 		if msg_len != 35:
 			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
@@ -597,17 +601,74 @@ func cmdctrl_handle_message(data: PoolByteArray):
 				mc_sassist_tune_depth(kp, ki, kd, lim, inv)
 			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("SASSIST1"):
-		# TODO
-		pass
+		if msg_len != 32:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 8)
+			cmdctrl_sassist_valid = true
+			cmdctrl_sassist_variant = 1
+			cmdctrl_sassist_x = buf.get_float()
+			cmdctrl_sassist_y = buf.get_float()
+			cmdctrl_sassist_yaw_spd = buf.get_float()
+			cmdctrl_sassist_target_euler.x = buf.get_float()
+			cmdctrl_sassist_target_euler.y = buf.get_float()
+			cmdctrl_sassist_depth_target = buf.get_float()
+			cmdctrl_sassist_x = limit(cmdctrl_sassist_x)
+			cmdctrl_sassist_y = limit(cmdctrl_sassist_y)
+			cmdctrl_sassist_yaw_spd = limit(cmdctrl_sassist_yaw_spd)
+			_periodic_speed_timer.stop()
+			_periodic_speed_timer.start()
+			cmdctrl_mode = CMDCTRL_MODE_SASSIST
+			mc_wdog_feed()
+			mc_set_sassist(cmdctrl_sassist_x, cmdctrl_sassist_y, cmdctrl_sassist_yaw_spd, cmdctrl_sassist_target_euler, cmdctrl_sassist_depth_target, cmdctrl_curr_quat, cmdctrl_curr_depth, false)
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str.begins_with("SASSIST2"):
-		# TODO
-		pass
+		if msg_len != 32:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 8)
+			cmdctrl_sassist_valid = true
+			cmdctrl_sassist_variant = 2
+			cmdctrl_sassist_x = buf.get_float()
+			cmdctrl_sassist_y = buf.get_float()
+			cmdctrl_sassist_target_euler.x = buf.get_float()
+			cmdctrl_sassist_target_euler.y = buf.get_float()
+			cmdctrl_sassist_target_euler.z = buf.get_float()
+			cmdctrl_sassist_depth_target = buf.get_float()
+			cmdctrl_sassist_x = limit(cmdctrl_sassist_x)
+			cmdctrl_sassist_y = limit(cmdctrl_sassist_y)
+			cmdctrl_sassist_yaw_spd = limit(cmdctrl_sassist_yaw_spd)
+			_periodic_speed_timer.stop()
+			_periodic_speed_timer.start()
+			cmdctrl_mode = CMDCTRL_MODE_SASSIST
+			mc_wdog_feed()
+			mc_set_sassist(cmdctrl_sassist_x, cmdctrl_sassist_y, 0.0, cmdctrl_sassist_target_euler, cmdctrl_sassist_depth_target, cmdctrl_curr_quat, cmdctrl_curr_depth, true)
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg == reset_cmd:
 		# Not supported in simulation
 		cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_CMD, PoolByteArray([]))
 	elif msg_str.begins_with("DHOLD"):
-		# TODO
-		pass
+		if msg_len != 29:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 5)
+			cmdctrl_dhold_x = buf.get_float()
+			cmdctrl_dhold_y = buf.get_float()
+			cmdctrl_dhold_pitch_spd = buf.get_float()
+			cmdctrl_dhold_roll_spd = buf.get_float()
+			cmdctrl_dhold_yaw_spd = buf.get_float()
+			cmdctrl_dhold_depth = buf.get_float()
+			cmdctrl_dhold_x = limit(cmdctrl_dhold_x)
+			cmdctrl_dhold_y = limit(cmdctrl_dhold_y)
+			cmdctrl_dhold_pitch_spd = limit(cmdctrl_dhold_pitch_spd)
+			cmdctrl_dhold_roll_spd = limit(cmdctrl_dhold_roll_spd)
+			cmdctrl_dhold_yaw_spd = limit(cmdctrl_dhold_yaw_spd)
+			_periodic_speed_timer.stop()
+			_periodic_speed_timer.start()
+			cmdctrl_mode = CMDCTRL_MODE_DHOLD
+			mc_wdog_feed()
+			mc_set_dhold(cmdctrl_dhold_x, cmdctrl_dhold_y, cmdctrl_dhold_pitch_spd, cmdctrl_dhold_roll_spd, cmdctrl_dhold_yaw_spd, cmdctrl_dhold_depth, cmdctrl_curr_quat, cmdctrl_curr_depth)
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str == "RSTWHY":
 		var response = StreamPeerBuffer.new()
 		response.put_32(0)
