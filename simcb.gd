@@ -574,7 +574,7 @@ func cmdctrl_handle_message(data: PoolByteArray):
 			buf.seek(buf.get_position() + 7)
 			cmdctrl_periodic_bno055 = true if buf.get_u8() != 0 else false
 			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
-	elif msg_str.begins_with("MS5837R"):
+	elif msg_str == "MS5837R":
 		var response = StreamPeerBuffer.new()
 		response.big_endian = false
 		response.put_float(cmdctrl_curr_depth)
