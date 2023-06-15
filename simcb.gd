@@ -592,7 +592,6 @@ func cmdctrl_handle_message(data: PoolByteArray):
 		else:
 			buf.seek(buf.get_position() + 9)
 			var which = buf.get_data(1)[1].get_string_from_ascii()
-			print(which)
 			var kp = buf.get_float()
 			var ki = buf.get_float()
 			var kd = buf.get_float()
@@ -863,7 +862,7 @@ func quat_twist(q: Quat, d: Vector3) -> Quat:
 	var r = Vector3(q.x, q.y, q.z)
 	var dot = r.dot(d)
 	var p = dot * d
-	var twist = Quat(q.w, p.x, p.y, p.z).normalized()
+	var twist = Quat(p.x, p.y, p.z, q.w).normalized()
 	if(dot < 0.0):
 		return -twist
 	else:
@@ -1086,8 +1085,74 @@ func mc_set_global(x: float, y: float, z: float, pitch_spd: float, roll_spd: flo
 	mc_set_local(l.x, l.y, l.z, rot.x, rot.y, rot.z)
 
 func mc_set_sassist(x: float, y: float, yaw_spd: float, target_euler: Vector3, target_depth: float, curr_quat: Quat, curr_depth: float, yaw_target: bool):
-	# TODO
-	pass
+	var base_rot = Vector3(0, 0, 0)
+	var qrot = mc_grav_rot(curr_quat)
+	
+	if not yaw_target:
+		var curr_twist = quat_twist(curr_quat, Vector3(0, 0, 1))
+		var curr_yaw = atan2(-2.0 * (curr_twist.x*curr_twist.y - curr_twist.w*curr_twist.z), 1.0 - 2.0 * (curr_twist.x*curr_twist.x + curr_twist.z*curr_twist.z))
+		curr_yaw *= 180.0 / PI
+		target_euler.z = curr_yaw
+		base_rot = rotate_vector(Vector3(0, 0, yaw_spd), qrot)
+		base_rot = mc_upscale_vec(base_rot, yaw_spd)
+	
+	var target_quat = Angles.cboard_euler_to_quat(target_euler * PI / 180.0)
+	var dot = curr_quat.dot(target_quat)
+	var q_c_conj = Quat(0, 0, 0, 0)
+	if dot < 0.0:
+		var temp = -curr_quat
+		q_c_conj = temp.inverse()
+	else:
+		q_c_conj = curr_quat.inverse()
+	var q_d = q_c_conj * target_quat
+	var mag = sqrt(q_d.x*q_d.x + q_d.y*q_d.y + q_d.z*q_d.z)
+	var theta = 2.0 * atan2(mag, q_d.w)
+	var a = Vector3(q_d.x, q_d.y, q_d.z)
+	if mag > 0.001:
+		a = a / mag
+	var e = a * theta
+	
+	if abs(pid_last_depth - target_depth) > 0.01:
+		depth_pid.reset()
+	var do_reset = false
+	if yaw_target != pid_last_yaw_target:
+		do_reset = true
+	elif yaw_target and \
+			(abs(target_euler.x - pid_last_target.x) > 1e-2 or \
+			abs(target_euler.y - pid_last_target.y) > 1e-2 or \
+			abs(target_euler.z - pid_last_target.z) > 1e-2):
+		do_reset = true
+	elif not yaw_target and \
+			(abs(target_euler.x - pid_last_target.x) > 1e-2 or \
+			abs(target_euler.y - pid_last_target.y) > 1e-2):
+		do_reset = true
+	if do_reset:
+		xrot_pid.reset()
+		yrot_pid.reset()
+		zrot_pid.reset()
+	
+	var z = -depth_pid.calculate(curr_depth - target_depth)
+	var xrot = xrot_pid.calculate(e.x)
+	var yrot = yrot_pid.calculate(e.y)
+	var zrot = zrot_pid.calculate(e.z)
+	
+	pid_last_depth = target_depth
+	pid_last_target = target_euler
+	pid_last_yaw_target = yaw_target
+	
+	var rot = Vector3(xrot, yrot, zrot) + base_rot
+	rot = mc_downscale_reldof(rot, true)
+	rot = mc_downscale_if_needed(rot)
+	
+	var tx = mc_upscale_vec(rotate_vector(Vector3(x, 0, 0), qrot), x)
+	var ty = mc_upscale_vec(rotate_vector(Vector3(0, y, 0), qrot), y)
+	var tz = mc_upscale_vec(rotate_vector(Vector3(0, 0, z), qrot), z)
+	
+	var l = tx + ty + tz
+	l = mc_downscale_reldof(l, false)
+	l = mc_downscale_if_needed(l)
+	
+	mc_set_local(l.x, l.y, l.z, rot.x, rot.y, rot.z)
 
 func mc_set_dhold(x: float, y: float, pitch_spd: float, roll_spd: float, yaw_spd: float, target_depth: float, curr_quat: Quat, curr_depth: float):
 	if abs(pid_last_depth - target_depth) > 0.01:
