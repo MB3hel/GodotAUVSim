@@ -315,6 +315,8 @@ var cmdctrl_dhold_depth = 0.0
 #       Thus these are equivalents of sim_quat and sim_depth in the actual firmware
 var cmdctrl_curr_quat = Quat(0, 0, 0, 1)
 var cmdctrl_curr_depth = 0.0
+var cmdctrl_curr_pressure = 0.0		# MS5837 Pressure reading (calculated from depth in sim)
+var cmdctrl_curr_temp = 25.0		# MS5837 Temperature (constant in sim)
 
 func cmdctrl_send_sensor_data():
 	if cmdctrl_periodic_bno055:
@@ -334,6 +336,8 @@ func cmdctrl_send_sensor_data():
 		msg.big_endian = false
 		msg.put_data("MS5837D".to_ascii())
 		msg.put_float(cmdctrl_curr_depth)
+		msg.put_float(cmdctrl_curr_pressure)
+		msg.put_float(cmdctrl_curr_temp)
 		pccomm_write(msg.data_array)
 
 func cmdctrl_periodic_reapply_speed():
@@ -580,6 +584,8 @@ func cmdctrl_handle_message(data: PoolByteArray):
 		var response = StreamPeerBuffer.new()
 		response.big_endian = false
 		response.put_float(cmdctrl_curr_depth)
+		response.put_float(cmdctrl_curr_pressure)
+		response.put_float(cmdctrl_curr_temp)
 		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, response.data_array)
 	elif msg_str.begins_with("MS5837P"):
 		if msg_len != 8:
@@ -698,6 +704,7 @@ func cmdctrl_handle_message(data: PoolByteArray):
 			cmdctrl_curr_quat.y = buf.get_float()
 			cmdctrl_curr_quat.z = buf.get_float()
 			cmdctrl_curr_depth = buf.get_float()
+			cmdctrl_curr_pressure = 101325.0 - (9777.23005 * cmdctrl_curr_depth)
 			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	else:
 		cmdctrl_acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG, PoolByteArray([]))
