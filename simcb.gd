@@ -706,6 +706,62 @@ func cmdctrl_handle_message(data: PoolByteArray):
 			cmdctrl_curr_depth = buf.get_float()
 			cmdctrl_curr_pressure = 101325.0 - (9777.23005 * cmdctrl_curr_depth)
 			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
+	elif msg_str == "SCBNO055R":
+		# CALIBRATION DOES NOT MAKE SENSE & IS NOT SUPPORTED IN SIMUALTION
+		# THIS IS A DUMMY IMPLEMENTATION JUST SO THE COMMAND IS ACKNOWLEDGED PROPERLY!
+		var res = StreamPeerBuffer.new()
+		res.big_endian = false
+		res.put_16(0)
+		res.put_16(0)
+		res.put_16(0)
+		res.put_16(0)
+		res.put_16(0)
+		res.put_16(0)
+		res.put_16(0)
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, res.data_array)
+	elif msg_str == "SCBNO055E":
+		# CALIBRATION DOES NOT MAKE SENSE & IS NOT SUPPORTED IN SIMUALTION
+		# THIS IS A DUMMY IMPLEMENTATION JUST SO THE COMMAND IS ACKNOWLEDGED PROPERLY!
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
+	elif msg_str.begins_with("SCBNO055S"):
+		# CALIBRATION DOES NOT MAKE SENSE & IS NOT SUPPORTED IN SIMUALTION
+		# THIS IS A DUMMY IMPLEMENTATION JUST SO THE COMMAND IS ACKNOWLEDGED PROPERLY!
+		if msg_len != 23:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
+	elif msg_str == "BNO055CS":
+		# CALIBRATION DOES NOT MAKE SENSE & IS NOT SUPPORTED IN SIMUALTION
+		# THIS IS A DUMMY IMPLEMENTATION JUST SO THE COMMAND IS ACKNOWLEDGED PROPERLY!
+		var res = PoolByteArray([])
+		res.append(0xFF)
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, res)
+	elif msg_str == "BNO055CV":
+		# CALIBRATION DOES NOT MAKE SENSE & IS NOT SUPPORTED IN SIMUALTION
+		# THIS IS A DUMMY IMPLEMENTATION JUST SO THE COMMAND IS ACKNOWLEDGED PROPERLY!
+		var res = StreamPeerBuffer.new()
+		res.big_endian = false
+		res.put_16(0)
+		res.put_16(0)
+		res.put_16(0)
+		res.put_16(0)
+		res.put_16(0)
+		res.put_16(0)
+		res.put_16(0)
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, res.data_array)
+	elif msg_str == "MS5837CALG":
+		# CALIBRATION DOES NOT MAKE SENSE & IS NOT SUPPORTED IN SIMUALTION
+		# THIS IS A DUMMY IMPLEMENTATION JUST SO THE COMMAND IS ACKNOWLEDGED PROPERLY!
+		var res = StreamPeerBuffer.new()
+		res.big_endian = false
+		res.put_float(101325.0)
+		res.put_float(997.0)
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, res.data_array)
+	elif msg_str.begins_with("MS5837CALS"):
+		if msg_len != 28:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	else:
 		cmdctrl_acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG, PoolByteArray([]))
 
