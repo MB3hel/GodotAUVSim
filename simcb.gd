@@ -730,6 +730,10 @@ func cmdctrl_handle_message(data: PoolByteArray):
 			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
 		else:
 			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
+	elif msg_str == "BNO055RST":
+		# DOES NOT MAKE SENSE & IS NOT SUPPORTED IN SIMUALTION
+		# THIS IS A DUMMY IMPLEMENTATION JUST SO THE COMMAND IS ACKNOWLEDGED PROPERLY!
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str == "BNO055CS":
 		# CALIBRATION DOES NOT MAKE SENSE & IS NOT SUPPORTED IN SIMUALTION
 		# THIS IS A DUMMY IMPLEMENTATION JUST SO THE COMMAND IS ACKNOWLEDGED PROPERLY!
