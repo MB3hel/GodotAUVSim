@@ -432,7 +432,7 @@ margin_right = 664.0
 margin_bottom = 228.0
 custom_fonts/font = ExtResource( 3 )
 group = SubResource( 6 )
-text = "Simulated Control Board (Experimental!)"
+text = "Simulated Control Board (v1.0.2)"
 
 [node name="SpacerLabel2" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
 margin_top = 251.0
