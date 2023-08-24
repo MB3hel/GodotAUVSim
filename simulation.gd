@@ -168,10 +168,15 @@ func config_vehicle():
 	var vehicle = vehicles.vehicle_body
 	var trans = vehicle.translation
 	var rot = Angles.godot_euler_to_cboard_euler(vehicle.rotation) * 180.0 / PI
-	config_vehicle_dialog.show_dialog(trans.x, trans.y, trans.z, rot.x, rot.y, rot.z)
+	config_vehicle_dialog.show_dialog(vehicles.all_vehicle_ids(), vehicles.get_vehicle(), trans.x, trans.y, trans.z, rot.x, rot.y, rot.z)
 
 # When user applies (ok button) vehicle config
-func apply_vehicle_config(x, y, z, p, r, h):
+func apply_vehicle_config(vehicle_id, x, y, z, p, r, h):
+	# Switch the vehicle first (if it has changed). Changing vehicles resets position and rotation.
+	if vehicle_id != vehicles.get_vehicle():
+		vehicles.set_vehicle(vehicle_id)
+	
+	# Apply translation and rotation
 	var vehicle = vehicles.vehicle_body
 	vehicle.translation = Vector3(x, y, z)
 	vehicle.rotation = Angles.cboard_euler_to_godot_euler(Vector3(p, r, h) * PI / 180.0)

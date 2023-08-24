@@ -42,6 +42,7 @@ skeleton = NodePath("")
 [node name="CollisionShape" type="CollisionShape" parent="Vehicles/SW8"]
 transform = Transform( 1, -8.74228e-08, -8.74228e-08, -8.74228e-08, -1, 0, -8.74228e-08, 7.64274e-15, -1, 0, 0, 0 )
 shape = SubResource( 5 )
+disabled = true
 
 [node name="UIRoot" type="ColorRect" parent="."]
 anchor_right = 1.0
@@ -474,9 +475,9 @@ text = "Exit"
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 300.0
-margin_top = 150.0
+margin_top = 135.0
 margin_right = -300.0
-margin_bottom = -150.0
+margin_bottom = -135.0
 popup_exclusive = true
 script = ExtResource( 8 )
 
@@ -499,17 +500,30 @@ margin_top = 49.0
 margin_right = 664.0
 margin_bottom = 53.0
 
-[node name="Label" type="Label" parent="UIRoot/VehicleConfigDialog/VBoxContainer"]
+[node name="Label3" type="Label" parent="UIRoot/VehicleConfigDialog/VBoxContainer"]
 margin_top = 57.0
 margin_right = 664.0
 margin_bottom = 80.0
 custom_fonts/font = ExtResource( 2 )
+text = "Current Vehicle"
+
+[node name="VehicleSelector" type="OptionButton" parent="UIRoot/VehicleConfigDialog/VBoxContainer"]
+margin_top = 84.0
+margin_right = 664.0
+margin_bottom = 113.0
+theme = SubResource( 2 )
+
+[node name="Label" type="Label" parent="UIRoot/VehicleConfigDialog/VBoxContainer"]
+margin_top = 117.0
+margin_right = 664.0
+margin_bottom = 140.0
+custom_fonts/font = ExtResource( 2 )
 text = "Vehicle Position"
 
 [node name="GridContainer" type="GridContainer" parent="UIRoot/VehicleConfigDialog/VBoxContainer"]
-margin_top = 84.0
+margin_top = 144.0
 margin_right = 664.0
-margin_bottom = 191.0
+margin_bottom = 251.0
 columns = 3
 
 [node name="Label4" type="Label" parent="UIRoot/VehicleConfigDialog/VBoxContainer/GridContainer"]
@@ -584,16 +598,16 @@ max_value = 1000.0
 step = 0.1
 
 [node name="Label2" type="Label" parent="UIRoot/VehicleConfigDialog/VBoxContainer"]
-margin_top = 195.0
+margin_top = 255.0
 margin_right = 664.0
-margin_bottom = 218.0
+margin_bottom = 278.0
 custom_fonts/font = ExtResource( 2 )
 text = "Vehicle Orientation"
 
 [node name="GridContainer2" type="GridContainer" parent="UIRoot/VehicleConfigDialog/VBoxContainer"]
-margin_top = 222.0
+margin_top = 282.0
 margin_right = 664.0
-margin_bottom = 329.0
+margin_bottom = 389.0
 columns = 3
 
 [node name="Label4" type="Label" parent="UIRoot/VehicleConfigDialog/VBoxContainer/GridContainer2"]
@@ -667,15 +681,15 @@ max_value = 1000.0
 step = 0.1
 
 [node name="SpacerLabel2" type="Label" parent="UIRoot/VehicleConfigDialog/VBoxContainer"]
-margin_top = 345.0
+margin_top = 393.0
 margin_right = 664.0
-margin_bottom = 359.0
+margin_bottom = 407.0
 size_flags_vertical = 6
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UIRoot/VehicleConfigDialog/VBoxContainer"]
-margin_top = 375.0
+margin_top = 411.0
 margin_right = 664.0
-margin_bottom = 404.0
+margin_bottom = 440.0
 
 [node name="OkButton" type="Button" parent="UIRoot/VehicleConfigDialog/VBoxContainer/HBoxContainer"]
 margin_right = 330.0

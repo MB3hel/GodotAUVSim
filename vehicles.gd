@@ -90,6 +90,17 @@ class Vehicle:
 # Define a subclass of "Vehicle" here for each vehicle
 # MAKE SURE TO ADD EACH VEHICLE TO THE _vehicle_dict!
 # See base "Vehicle" calss above for required functions and descriptions
+#
+# Steps to create new vehicle:
+# - Create 3D RigidBody (give this a name matching the vehicle key)
+# - Add mesh instance under RigidBody
+# - Create CollisionShape
+# - Disable the collision shape (the name MUST stay CollisionShape)
+# - Set gravity of rigidbody to zero
+# - Set mass and weight of rigidbody as needed (note: use mass = weight / 9.8)
+# - Hide the rigidbody in the scene
+# - Create a new vehicle class below
+# - Add vehicle class to vehicle dictionary
 ################################################################################
 
 # AquaPack Robotics's SeaWolf VIII
@@ -153,11 +164,6 @@ var _vehicle_dict = {
 	"SW8": SW8.new()
 }
 
-# User readable names (key must match key for _vehicle_dict)
-var vehicle_names = {
-	"SW8": "SeaWolf VIII"
-}
-
 var _default_vehicle = "SW8"
 
 ################################################################################
@@ -169,7 +175,7 @@ var _default_vehicle = "SW8"
 var vehicle_body: RigidBody = null
 var vehicle_def: Vehicle = null
 
-var _selected_vehicle_name = ""
+var _selected_vehicle_id = ""
 
 # Cached thruster forces
 var _thr_forces = [
@@ -244,15 +250,23 @@ func move_raw(speeds: Array):
 ################################################################################
 
 func get_vehicle() -> String:
-	return _selected_vehicle_name
+	return _selected_vehicle_id
 
 func set_vehicle(veh_id: String):
+	print("SET VEHICLE: %s" % veh_id)
 	if vehicle_body != null:
+		print("HIDE")
 		vehicle_body.visible = false
+		var cshape = vehicle_body.get_node("CollisionShape")
+		cshape.disabled = true
+	_selected_vehicle_id = veh_id
 	vehicle_def = _vehicle_dict[veh_id]
 	vehicle_body = get_node(vehicle_def.node_name())
 	reset_vehicle()
 	vehicle_body.visible = true
+	print("SHOW")
+	var cshape = vehicle_body.get_node("CollisionShape")
+	cshape.disabled = false
 
 func all_vehicle_ids() -> Array:
 	return _vehicle_dict.keys()
