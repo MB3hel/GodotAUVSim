@@ -40,6 +40,8 @@ The following commands are implemented
 - Set vehicle rotation in simulator: `set_rot w x y z -> EC`
 - Get vehicle rotation in simulator: `get_rot -> EC [w x y z]`
 - Reset vehicle: `reset_vehicle -> EC`
+- Set current vehicle model: `set_vehicle vehicle_id -> EC`
+- Get current vehicle model: `get_vehicle -> EC [vehicle_id]`
 
 
 *Note that get commands may not return with all arguments if the error code is non-zero*.

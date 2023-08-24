@@ -28,6 +28,7 @@ script = ExtResource( 7 )
 script = ExtResource( 6 )
 
 [node name="SW8" type="RigidBody" parent="Vehicles"]
+visible = false
 mass = 7.65306
 gravity_scale = 0.0
 linear_damp = 1.2

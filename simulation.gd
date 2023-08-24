@@ -152,12 +152,7 @@ func cboard_simstat(mode: String, wdg_killed: bool, speeds: Array):
 # When user clicks reset vehicle button
 # Can also be called direclty from netiface
 func reset_vehicle():
-	var vehicle = vehicles.vehicle_body
-	vehicle.move_raw([0, 0, 0, 0, 0, 0, 0, 0])
-	vehicle.linear_velocity = Vector3(0, 0, 0)
-	vehicle.angular_velocity = Vector3(0, 0, 0)
-	vehicle.translation = Vector3(0, 0, 0)
-	vehicle.rotation = Vector3(0, 0, 0)
+	vehicles.reset_vehicle()
 
 # When user clicks copy to clipboard button
 func copy_to_clipboard():
@@ -196,6 +191,16 @@ func set_rot(w:float, x: float, y: float, z: float):
 # Called by netiface
 func get_rot() -> Quat:
 	return Angles.godot_euler_to_quat(vehicles.vehicle_body.rotation)
+
+# Called by netiface
+func set_current_vehicle(veh_id: String) -> bool:
+	if veh_id in vehicles.all_vehicle_ids():
+		vehicles.set_vehicle(veh_id)
+		return true
+	return false
+
+func get_current_vehicle() -> String:
+	return vehicles.get_vehicle()
 
 # When client connects to TCP interface
 func net_client_connected():

@@ -209,6 +209,22 @@ func _handle_cmd(line: String) -> String:
 		_sim.reset_vehicle()
 		return "0"
 	
+	# set_vehicle -> vehicle_id EC
+	if parts[0] == "set_vehicle":
+		if len(parts) != 2:
+			return "1"
+		var res = _sim.set_current_vehicle(parts[1])
+		if not res:
+			return "1"
+		return "0"
+	
+	# get_vehicle -> EC [vehicle_id]
+	if parts[0] == "get_vehicle":
+		if len(parts) != 1:
+			return "1"
+		_sim.get_current_vehicle(parts[1])
+		return "0"
+	
 	# Unknown command
 	return "2"
 

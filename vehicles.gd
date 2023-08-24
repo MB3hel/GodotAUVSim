@@ -148,11 +148,17 @@ class SW8 extends Vehicle:
 			4.1										# T8
 		]
 
+# NOTE: Vehicle ids (key) must not contain spaces!
 var _vehicle_dict = {
-	"SeaWolf VIII": SW8.new()
+	"SW8": SW8.new()
 }
 
-var _default_vehicle = "SeaWolf VIII"
+# User readable names (key must match key for _vehicle_dict)
+var vehicle_names = {
+	"SW8": "SeaWolf VIII"
+}
+
+var _default_vehicle = "SW8"
 
 ################################################################################
 
@@ -198,8 +204,7 @@ func _ready():
 			assert(false, msg)
 	
 	# Setup default vehicle
-	vehicle_def = _vehicle_dict[_default_vehicle]
-	vehicle_body = get_node(vehicle_def.node_name())
+	set_vehicle(_default_vehicle)
 
 func _process(delta):
 	# Apply forces & torques at center of the vehicle
@@ -237,3 +242,24 @@ func move_raw(speeds: Array):
 			_thr_forces[i] *= speeds[i] * thr_force_neg_mag[i]
 
 ################################################################################
+
+func get_vehicle() -> String:
+	return _selected_vehicle_name
+
+func set_vehicle(veh_id: String):
+	if vehicle_body != null:
+		vehicle_body.visible = false
+	vehicle_def = _vehicle_dict[veh_id]
+	vehicle_body = get_node(vehicle_def.node_name())
+	reset_vehicle()
+	vehicle_body.visible = true
+
+func all_vehicle_ids() -> Array:
+	return _vehicle_dict.keys()
+
+func reset_vehicle():
+	move_raw([0, 0, 0, 0, 0, 0, 0, 0])
+	vehicle_body.linear_velocity = Vector3(0, 0, 0)
+	vehicle_body.angular_velocity = Vector3(0, 0, 0)
+	vehicle_body.translation = Vector3(0, 0, 0)
+	vehicle_body.rotation = Vector3(0, 0, 0)
