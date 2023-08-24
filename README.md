@@ -87,3 +87,4 @@ Script Files:
 - Take previous release archives from releases page
 - Export a pck file with Godot
 - Replace the old pck files
+- In the macos app, the pck file is in GodotAUVSim.app/Contents/Resources/
