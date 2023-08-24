@@ -80,3 +80,10 @@ Script Files:
 - `simcb.gd`: Simulated control board implementation. Acts like an actual control board would. Used via the cboard layer just as a physical control board would be.
 - `simulation.gd`: Simulation manager / "entry level" script. Consider this the "entry point" of the simulator. Also handles UI.
 - `vehicle.gd`: Script attached to the robot object itself. Handles modeling of thruster forces
+
+
+## Releasing a New Version
+
+- Take previous release archives from releases page
+- Export a pck file with Godot
+- Replace the old pck files
