@@ -220,7 +220,7 @@ func pccomm_read_and_parse():
 		var byte = _read_buf[0]
 		_read_buf.remove(0)
 		if _pccomm_parse_escaped:
-			if byte == START_BYTE or byte == END_BYTE or byte == END_BYTE:
+			if byte == START_BYTE or byte == END_BYTE or byte == ESCAPE_BYTE:
 				_pccomm_read_buf.put_u8(byte)
 			_pccomm_parse_escaped = false
 		elif _pccomm_parse_started:
@@ -229,7 +229,7 @@ func pccomm_read_and_parse():
 			elif byte == END_BYTE:
 				_pccomm_parse_started = false
 				if _pccomm_read_buf.get_size() >= 4:
-					var calc_crc = crc16_ccitt_false(_pccomm_read_buf.data_array, _pccomm_read_buf.get_size() - 2)
+					var calc_crc = crc16_ccitt_false(_pccomm_read_buf.data_array, _pccomm_read_buf.data_array.size() - 2)
 					_pccomm_read_buf.seek(_pccomm_read_buf.get_size() - 2)
 					_pccomm_read_buf.big_endian = true
 					var read_crc = _pccomm_read_buf.get_u16()

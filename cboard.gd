@@ -319,8 +319,7 @@ func _write_msg(msg_id: int, data: PoolByteArray):
 	
 	# Write end byte
 	msg_full.put_u8(END_BYTE)
-	
-	# Actually write the message
+		
 	self.write_raw(msg_full.data_array)
 
 # Write to the control board
