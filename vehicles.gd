@@ -253,9 +253,7 @@ func get_vehicle() -> String:
 	return _selected_vehicle_id
 
 func set_vehicle(veh_id: String):
-	print("SET VEHICLE: %s" % veh_id)
 	if vehicle_body != null:
-		print("HIDE")
 		vehicle_body.visible = false
 		var cshape = vehicle_body.get_node("CollisionShape")
 		cshape.disabled = true
@@ -264,7 +262,6 @@ func set_vehicle(veh_id: String):
 	vehicle_body = get_node(vehicle_def.node_name())
 	reset_vehicle()
 	vehicle_body.visible = true
-	print("SHOW")
 	var cshape = vehicle_body.get_node("CollisionShape")
 	cshape.disabled = false
 
