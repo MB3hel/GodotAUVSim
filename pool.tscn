@@ -5,7 +5,7 @@
 [ext_resource path="res://fonts/status_value_font.tres" type="DynamicFont" id=3]
 [ext_resource path="res://ConnectCboardDialog.gd" type="Script" id=4]
 [ext_resource path="res://mesh/SeaWolf8-Simplified.obj" type="ArrayMesh" id=5]
-[ext_resource path="res://vehicle.gd" type="Script" id=6]
+[ext_resource path="res://vehicles.gd" type="Script" id=6]
 [ext_resource path="res://simulation.gd" type="Script" id=7]
 [ext_resource path="res://VehicleConfigDialog.gd" type="Script" id=8]
 [ext_resource path="res://fonts/status_value_font_italic.tres" type="DynamicFont" id=10]
@@ -24,19 +24,21 @@ default_font = ExtResource( 3 )
 [node name="root" type="Spatial"]
 script = ExtResource( 7 )
 
-[node name="Vehicle" type="RigidBody" parent="."]
+[node name="Vehicles" type="Spatial" parent="."]
+script = ExtResource( 6 )
+
+[node name="SW8" type="RigidBody" parent="Vehicles"]
 mass = 7.65306
 gravity_scale = 0.0
 linear_damp = 1.2
 angular_damp = 1.2
-script = ExtResource( 6 )
 
-[node name="MeshInstance" type="MeshInstance" parent="Vehicle"]
+[node name="MeshInstance" type="MeshInstance" parent="Vehicles/SW8"]
 transform = Transform( 1, -8.74228e-08, -8.74228e-08, -8.74228e-08, -1, 0, -8.74228e-08, 7.64274e-15, -1, 0, 0, 0 )
 mesh = ExtResource( 5 )
 skeleton = NodePath("")
 
-[node name="CollisionShape" type="CollisionShape" parent="Vehicle"]
+[node name="CollisionShape" type="CollisionShape" parent="Vehicles/SW8"]
 transform = Transform( 1, -8.74228e-08, -8.74228e-08, -8.74228e-08, -1, 0, -8.74228e-08, 7.64274e-15, -1, 0, 0, 0 )
 shape = SubResource( 5 )
 

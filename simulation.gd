@@ -15,7 +15,7 @@ extends Node
 ################################################################################
 
 # Simulation objects
-onready var vehicle = get_node("Vehicle")
+onready var vehicles = get_node("Vehicles")
 var cboard = load("res://cboard.gd").new()
 var netiface = load("res://netiface.gd").new()
 
@@ -83,6 +83,7 @@ func _ready():
 	connect_cb_dialog.show_dialog()
 
 func _process(delta):
+	var vehicle = vehicles.vehicle_body
 	# Update UI labels for vehicle information
 	var pos = vehicle.translation
 	var quat = Angles.godot_euler_to_quat(vehicle.rotation)
@@ -135,6 +136,7 @@ func cboard_disconnected():
 # Called by timer to send SIMDAT periodically
 func send_simdat():
 	if self.cboard.get_portname() != "":
+		var vehicle = vehicles.vehicle_body
 		self.cboard.send_simdat(Angles.godot_euler_to_quat(vehicle.rotation), vehicle.translation.z)
 
 # When control board interface receives SIMSTAT (periodic)
@@ -145,11 +147,12 @@ func cboard_simstat(mode: String, wdg_killed: bool, speeds: Array):
 	else:
 		lbl_wdg.text = "Not Killed"
 	lbl_speed.text = "[%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f]" % speeds
-	vehicle.move_raw(speeds)
+	vehicles.move_raw(speeds)
 
 # When user clicks reset vehicle button
 # Can also be called direclty from netiface
 func reset_vehicle():
+	var vehicle = vehicles.vehicle_body
 	vehicle.move_raw([0, 0, 0, 0, 0, 0, 0, 0])
 	vehicle.linear_velocity = Vector3(0, 0, 0)
 	vehicle.angular_velocity = Vector3(0, 0, 0)
@@ -167,30 +170,32 @@ func copy_to_clipboard():
 
 # When user clicks configure vehicle button
 func config_vehicle():
+	var vehicle = vehicles.vehicle_body
 	var trans = vehicle.translation
 	var rot = Angles.godot_euler_to_cboard_euler(vehicle.rotation) * 180.0 / PI
 	config_vehicle_dialog.show_dialog(trans.x, trans.y, trans.z, rot.x, rot.y, rot.z)
 
 # When user applies (ok button) vehicle config
 func apply_vehicle_config(x, y, z, p, r, h):
+	var vehicle = vehicles.vehicle_body
 	vehicle.translation = Vector3(x, y, z)
 	vehicle.rotation = Angles.cboard_euler_to_godot_euler(Vector3(p, r, h) * PI / 180.0)
 
 # Called by netiface
 func set_pos(x: float, y: float, z: float):
-	vehicle.translation = Vector3(x, y, z)
+	vehicles.vehicle_body.translation = Vector3(x, y, z)
 
 # Called by netiface
 func get_pos() -> Vector3:
-	return vehicle.translation
+	return vehicles.vehicle_body.translation
 
 # Called by netiface
 func set_rot(w:float, x: float, y: float, z: float):
-	vehicle.rotation = Angles.quat_to_godot_euler(Quat(x, y, z, w))
+	vehicles.vehicle_body.rotation = Angles.quat_to_godot_euler(Quat(x, y, z, w))
 
 # Called by netiface
 func get_rot() -> Quat:
-	return Angles.godot_euler_to_quat(vehicle.rotation)
+	return Angles.godot_euler_to_quat(vehicles.vehicle_body.rotation)
 
 # When client connects to TCP interface
 func net_client_connected():
