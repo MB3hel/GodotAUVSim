@@ -79,8 +79,41 @@ func _ready():
 	netiface.connect("client_connected", self, "net_client_connected")
 	netiface.connect("client_disconnected", self, "net_client_disconnected")	
 	
+	# Parse command line arguments:
+	# Supported arguments:
+	#   --simcb:         Connect to simulated control board on startup
+	#   --uart port:     Connect to real control board (via uart) on startup. Connect to specified port.
+	#                    Note that errors are not handled. If it fails to connect, the dialog will be shown.
+	var cli_cb = ""
+	var args = OS.get_cmdline_args()
+	var i = 0
+	while i < len(args):
+		if args[i] == "--simcb":
+			# Connect to simcb on startup: --simcb
+			cli_cb = "SIM"
+			i += 1
+		elif args[i] == "--uart":
+			# Connect to uart control board on startup: --uart port
+			if (i+1) >= len(args):
+				# No port provided
+				print("--uart requires a port.")
+				get_tree().quit(1)
+				return
+			cli_cb = args[i+1]
+			i += 2
+		else:
+			# Unknown argument.
+			print("Unknown argument: '%s'" % args[i])
+			get_tree().quit(1)
+			return
+	
 	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()
+	
+	# Connect to a control board if told to by CLI
+	# Note that once connect is successful, the dialog is shown
+	if cli_cb != "":
+		self.connect_cboard(cli_cb)
 
 func _process(delta):
 	var vehicle = vehicles.vehicle_body
