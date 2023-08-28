@@ -159,9 +159,64 @@ class SW8 extends Vehicle:
 			4.1										# T8
 		]
 
+# Project CUR vehicle
+class ProjCUR extends Vehicle:
+	func node_name() -> String:
+		return "ProjCUR"
+
+	func thr_force_pos() -> Array:
+		return [
+			Vector3(0, 0.237, -0.07),				# T1
+			Vector3(-0.168, -0.089, -0.07),			# T2
+			Vector3(0.168, -0.089, -0.07),			# T3
+			Vector3(-0.088, -0.21, -0.082),			# T4
+			Vector3(0.088, -0.21, -0.082),			# T5
+			Vector3(0, 0.076, -0.088),				# T6
+			Vector3(0, 0, 0),						# T7
+			Vector3(0, 0, 0)						# T8
+		]
+
+	func thr_force_vec() -> Array:
+		return [
+			Vector3(0, 0, -1).normalized(),			# T1
+			Vector3(0, 0, -1).normalized(),			# T2
+			Vector3(0, 0, -1).normalized(),			# T3
+			Vector3(0, 1, 0).normalized(),			# T4
+			Vector3(0, 1, 0).normalized(),			# T5
+			Vector3(-1, 0, 0).normalized(),			# T6
+			Vector3(0, 0, 0),						# T7
+			Vector3(0, 0, 0),						# T8
+		]
+
+	func thr_force_pos_mag() -> Array:
+		return [
+			1.00,									# T1
+			1.00,									# T2
+			1.00,									# T3
+			1.00,									# T4
+			1.00,									# T5
+			1.00,									# T6
+			0.00,									# T7
+			0.00									# T8
+		]
+
+	func thr_force_neg_mag() -> Array:
+		return [
+			1.00,									# T1
+			1.00,									# T2
+			1.00,									# T3
+			1.00,									# T4
+			1.00,									# T5
+			1.00,									# T6
+			0.00,									# T7
+			0.00									# T8
+		]
+
+
 # NOTE: Vehicle ids (key) must not contain spaces!
 var _vehicle_dict = {
-	"SW8": SW8.new()
+	"SW8": SW8.new(),
+	"ProjCUR": ProjCUR.new()
 }
 
 var _default_vehicle = "SW8"

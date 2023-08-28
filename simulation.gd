@@ -79,7 +79,6 @@ func _ready():
 	netiface.connect("client_connected", self, "net_client_connected")
 	netiface.connect("client_disconnected", self, "net_client_disconnected")	
 	
-	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()
 
 func _process(delta):
