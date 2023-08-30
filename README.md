@@ -5,6 +5,19 @@ Simulator used for testing [AUVControlBoard](https://github.com/MB3hel/AUVContro
 The simulator can either use a physical control board (allows testing proper firmware and is considered more correct), or a simulated control board can be used (experimental!).
 
 
+## Launching the Simulator
+
+Download the release for your OS and
+
+- For windows: run the exe file
+- For macOS: run the .app file (right click and choose open since the app is not signed)
+- For Linux: run the `.x86_64` file.
+
+The following command line arguments are supported (can be useful to automate some testing using the simulator)
+
+- `--simcb`: connect to the simulated control board on startup. This will cause the simulator to connect to the simulated control board after launching. Thus, no user interaction with the connect dialog will be required before use.
+- `--uart port`: connect to the control board on the given uart port on startup. Note that this works like the simcb argument. If connection fails, there will be no error code or any indication of failure to connect to the control board. The connect dialog will simply be shown as usual.
+
 ## Simulator Interface
 
 The simulated is interfaced with over two TCP ports. One port is used to send commands to the simulator itself (the "command port") and one is used to communicate with the control board (physical or simulated) via the simulator (the "control board port").
@@ -12,7 +25,7 @@ The simulated is interfaced with over two TCP ports. One port is used to send co
 **Note: When using the simulator (even with a physical control board) you must communicate with the simulator, NOT directly with the control board.**
 
 
-## Command Port
+### Command Port
 
 The command port is used to control the simulation. This is port `5011`. The command port uses a string-based command interface in the following format.
 
@@ -47,7 +60,7 @@ The following commands are implemented
 *Note that get commands may not return with all arguments if the error code is non-zero*.
 
 
-## Control Board Port
+### Control Board Port
 
 Instead of communicating directly with a control board, you must communicate with the simulator via TCP on port `5012`. This port will forward messages to / from the actual control board (or simulated control board).
 
