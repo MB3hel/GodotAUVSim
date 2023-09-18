@@ -470,6 +470,8 @@ func _mode_name(mode: int) -> String:
 		return "SASSIST"
 	elif mode == 4:
 		return "DHOLD"
+	elif mode == 5:
+		return "OHOLD"
 	else:
 		return "UNKNOWN"
 
