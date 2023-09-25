@@ -70,8 +70,8 @@ var _read_buf = PoolByteArray()
 # Version variables (sould match the version of the real firmware this mimics)
 const FW_VER_MAJOR = 1;
 const FW_VER_MINOR = 0;
-const FW_VER_REVISION = 2;
-const FW_VER_TYPE = " ";
+const FW_VER_REVISION = 3;
+const FW_VER_TYPE = "b";
 const FW_VER_BUILD = 0;
 
 ################################################################################
@@ -265,6 +265,7 @@ const CMDCTRL_MODE_LOCAL = 1
 const CMDCTRL_MODE_GLOBAL = 2
 const CMDCTRL_MODE_SASSIST = 3
 const CMDCTRL_MODE_DHOLD = 4
+const CMDCTRL_MODE_OHOLD = 5
 
 const ACK_ERR_NONE = 0
 const ACK_ERR_UNKNOWN_MSG = 1
@@ -315,6 +316,16 @@ var cmdctrl_dhold_roll_spd = 0.0
 var cmdctrl_dhold_yaw_spd = 0.0
 var cmdctrl_dhold_depth = 0.0
 
+# Last used orientation hold mode target
+var cmdctrl_ohold_valid = false
+var cmdctrl_ohold_variant = 1
+var cmdctrl_ohold_x = 0.0
+var cmdctrl_ohold_y = 0.0
+var cmdctrl_ohold_z = 0.0
+var cmdctrl_ohold_yaw_spd = 0.0
+var cmdctrl_ohold_target_euler = Vector3(0.0, 0.0, 0.0)
+
+
 
 # Store received from SIMDAT
 # NOTE: simcb is always in SIMHIJACK, thus no need to track sensor states or full sets of data
@@ -348,7 +359,7 @@ func cmdctrl_send_sensor_data():
 		pccomm_write(msg.data_array)
 
 func cmdctrl_periodic_reapply_speed():
-	if cmdctrl_mode == CMDCTRL_MODE_GLOBAL or cmdctrl_mode == CMDCTRL_MODE_SASSIST or cmdctrl_mode == CMDCTRL_MODE_DHOLD:
+	if cmdctrl_mode == CMDCTRL_MODE_GLOBAL or cmdctrl_mode == CMDCTRL_MODE_SASSIST or cmdctrl_mode == CMDCTRL_MODE_DHOLD or cmdctrl_mode == CMDCTRL_MODE_OHOLD:
 		cmdctrl_apply_saved_speed()
 
 func cmdctrl_apply_saved_speed():
@@ -365,6 +376,11 @@ func cmdctrl_apply_saved_speed():
 			mc_set_sassist(cmdctrl_sassist_x, cmdctrl_sassist_y, 0.0, cmdctrl_sassist_target_euler, cmdctrl_sassist_depth_target, cmdctrl_curr_quat, cmdctrl_curr_depth, true)
 	elif cmdctrl_mode == CMDCTRL_MODE_DHOLD:
 		mc_set_dhold(cmdctrl_dhold_x, cmdctrl_dhold_y, cmdctrl_dhold_pitch_spd, cmdctrl_dhold_roll_spd, cmdctrl_dhold_yaw_spd, cmdctrl_dhold_depth, cmdctrl_curr_quat, cmdctrl_curr_depth)
+	elif cmdctrl_mode == CMDCTRL_MODE_OHOLD:
+		if cmdctrl_ohold_valid and cmdctrl_ohold_variant == 1:
+			mc_set_ohold(cmdctrl_ohold_x, cmdctrl_ohold_y, cmdctrl_ohold_z, cmdctrl_ohold_yaw_spd, cmdctrl_ohold_target_euler, cmdctrl_curr_quat, false)
+		elif cmdctrl_ohold_valid and cmdctrl_ohold_variant == 2:
+			mc_set_ohold(cmdctrl_ohold_x, cmdctrl_ohold_y, cmdctrl_ohold_z, 0.0, cmdctrl_ohold_target_euler, cmdctrl_curr_quat, true)
 
 func cmdctrl_acknowledge(msg_id: int, error_code: int, result: PoolByteArray):
 	var data = StreamPeerBuffer.new()
@@ -772,6 +788,51 @@ func cmdctrl_handle_message(data: PoolByteArray):
 		if msg_len != 28:
 			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
 		else:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
+	elif msg_str.begins_with("OHOLD1"):
+		if msg_len != 30:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 6)
+			cmdctrl_ohold_valid = true
+			cmdctrl_ohold_variant = 1
+			cmdctrl_ohold_x = buf.get_float()
+			cmdctrl_ohold_y = buf.get_float()
+			cmdctrl_ohold_z = buf.get_float()
+			cmdctrl_ohold_yaw_spd = buf.get_float()
+			cmdctrl_ohold_target_euler.x = buf.get_float()
+			cmdctrl_ohold_target_euler.y = buf.get_float()
+			cmdctrl_ohold_x = limit(cmdctrl_ohold_x)
+			cmdctrl_ohold_y = limit(cmdctrl_ohold_y)
+			cmdctrl_ohold_z = limit(cmdctrl_ohold_z)
+			cmdctrl_ohold_yaw_spd = limit(cmdctrl_ohold_yaw_spd)
+			_periodic_speed_timer.stop()
+			_periodic_speed_timer.start()
+			cmdctrl_mode = CMDCTRL_MODE_OHOLD
+			mc_wdog_feed()
+			mc_set_ohold(cmdctrl_ohold_x, cmdctrl_ohold_y, cmdctrl_ohold_z, cmdctrl_ohold_yaw_spd, cmdctrl_ohold_target_euler, cmdctrl_curr_quat, false)
+			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
+	elif msg_str.begins_with("OHOLD2"):
+		if msg_len != 30:
+			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
+		else:
+			buf.seek(buf.get_position() + 6)
+			cmdctrl_ohold_valid = true
+			cmdctrl_ohold_variant = 2
+			cmdctrl_ohold_x = buf.get_float()
+			cmdctrl_ohold_y = buf.get_float()
+			cmdctrl_ohold_z = buf.get_float()
+			cmdctrl_ohold_target_euler.x = buf.get_float()
+			cmdctrl_ohold_target_euler.y = buf.get_float()
+			cmdctrl_ohold_target_euler.z = buf.get_float()
+			cmdctrl_ohold_x = limit(cmdctrl_ohold_x)
+			cmdctrl_ohold_y = limit(cmdctrl_ohold_y)
+			cmdctrl_ohold_z = limit(cmdctrl_ohold_z)
+			_periodic_speed_timer.stop()
+			_periodic_speed_timer.start()
+			cmdctrl_mode = CMDCTRL_MODE_OHOLD
+			mc_wdog_feed()
+			mc_set_ohold(cmdctrl_ohold_x, cmdctrl_ohold_y, cmdctrl_ohold_z, 0.0, cmdctrl_ohold_target_euler, cmdctrl_curr_quat, true)
 			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
 	elif msg_str == "CBVER":
 		var res = StreamPeerBuffer.new()
@@ -1246,7 +1307,10 @@ func mc_set_dhold(x: float, y: float, pitch_spd: float, roll_spd: float, yaw_spd
 	var z = -depth_pid.calculate(curr_depth - target_depth)
 	pid_last_depth = target_depth
 	mc_set_global(x, y, z, pitch_spd, roll_spd, yaw_spd, curr_quat)
-	
+
+func mc_set_ohold(x: float, y: float, z: float, yaw_spd: float, target_euler: Vector3, curr_quat: Quat, yaw_target: bool):
+	pass
+
 
 ################################################################################
 
