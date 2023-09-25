@@ -67,6 +67,13 @@ var _write_buf = PoolByteArray()
 # Data waiting to be read by simcb
 var _read_buf = PoolByteArray()
 
+# Version variables (sould match the version of the real firmware this mimics)
+const FW_VER_MAJOR = 1;
+const FW_VER_MINOR = 0;
+const FW_VER_REVISION = 2;
+const FW_VER_TYPE = " ";
+const FW_VER_BUILD = 0;
+
 ################################################################################
 
 
@@ -766,6 +773,16 @@ func cmdctrl_handle_message(data: PoolByteArray):
 			cmdctrl_acknowledge(msg_id, ACK_ERR_INVALID_ARGS, PoolByteArray([]))
 		else:
 			cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, PoolByteArray([]))
+	elif msg_str == "CBVER":
+		var res = StreamPeerBuffer.new()
+		res.big_endian = false
+		res.put_u8(0)   # SimCB is version 0 not v1 or v2
+		res.put_u8(FW_VER_MAJOR)
+		res.put_u8(FW_VER_MINOR)
+		res.put_u8(FW_VER_REVISION)
+		res.put_u8(FW_VER_TYPE.to_ascii()[0])
+		res.put_u8(FW_VER_BUILD)
+		cmdctrl_acknowledge(msg_id, ACK_ERR_NONE, res.data_array)
 	else:
 		cmdctrl_acknowledge(msg_id, ACK_ERR_UNKNOWN_MSG, PoolByteArray([]))
 
