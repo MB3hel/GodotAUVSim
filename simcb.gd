@@ -1232,6 +1232,20 @@ func mc_set_global(x: float, y: float, z: float, pitch_spd: float, roll_spd: flo
 	mc_set_local(l.x, l.y, l.z, rot.x, rot.y, rot.z)
 
 func mc_set_sassist(x: float, y: float, yaw_spd: float, target_euler: Vector3, target_depth: float, curr_quat: Quat, curr_depth: float, yaw_target: bool):
+	if abs(pid_last_depth - target_depth) > 0.01:
+		depth_pid.reset()
+	var z = -depth_pid.calculate(curr_depth - target_depth)
+	pid_last_depth = target_depth
+	mc_set_ohold(x, y, z, yaw_spd, target_euler, curr_quat, yaw_target)
+
+func mc_set_dhold(x: float, y: float, pitch_spd: float, roll_spd: float, yaw_spd: float, target_depth: float, curr_quat: Quat, curr_depth: float):
+	if abs(pid_last_depth - target_depth) > 0.01:
+		depth_pid.reset()
+	var z = -depth_pid.calculate(curr_depth - target_depth)
+	pid_last_depth = target_depth
+	mc_set_global(x, y, z, pitch_spd, roll_spd, yaw_spd, curr_quat)
+
+func mc_set_ohold(x: float, y: float, z: float, yaw_spd: float, target_euler: Vector3, curr_quat: Quat, yaw_target: bool):
 	var base_rot = Vector3(0, 0, 0)
 	var qrot = mc_grav_rot(curr_quat)
 	
@@ -1259,8 +1273,6 @@ func mc_set_sassist(x: float, y: float, yaw_spd: float, target_euler: Vector3, t
 		a = a / mag
 	var e = a * theta
 	
-	if abs(pid_last_depth - target_depth) > 0.01:
-		depth_pid.reset()
 	var do_reset = false
 	if yaw_target != pid_last_yaw_target:
 		do_reset = true
@@ -1278,12 +1290,10 @@ func mc_set_sassist(x: float, y: float, yaw_spd: float, target_euler: Vector3, t
 		yrot_pid.reset()
 		zrot_pid.reset()
 	
-	var z = -depth_pid.calculate(curr_depth - target_depth)
 	var xrot = xrot_pid.calculate(e.x)
 	var yrot = yrot_pid.calculate(e.y)
 	var zrot = zrot_pid.calculate(e.z)
 	
-	pid_last_depth = target_depth
 	pid_last_target = target_euler
 	pid_last_yaw_target = yaw_target
 	
@@ -1300,16 +1310,6 @@ func mc_set_sassist(x: float, y: float, yaw_spd: float, target_euler: Vector3, t
 	l = mc_downscale_if_needed(l)
 	
 	mc_set_local(l.x, l.y, l.z, rot.x, rot.y, rot.z)
-
-func mc_set_dhold(x: float, y: float, pitch_spd: float, roll_spd: float, yaw_spd: float, target_depth: float, curr_quat: Quat, curr_depth: float):
-	if abs(pid_last_depth - target_depth) > 0.01:
-		depth_pid.reset()
-	var z = -depth_pid.calculate(curr_depth - target_depth)
-	pid_last_depth = target_depth
-	mc_set_global(x, y, z, pitch_spd, roll_spd, yaw_spd, curr_quat)
-
-func mc_set_ohold(x: float, y: float, z: float, yaw_spd: float, target_euler: Vector3, curr_quat: Quat, yaw_target: bool):
-	pass
 
 
 ################################################################################
