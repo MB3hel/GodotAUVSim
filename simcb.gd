@@ -71,7 +71,7 @@ var _read_buf = PoolByteArray()
 const FW_VER_MAJOR = 1;
 const FW_VER_MINOR = 0;
 const FW_VER_REVISION = 3;
-const FW_VER_TYPE = "b";
+const FW_VER_TYPE = " ";
 const FW_VER_BUILD = 0;
 
 ################################################################################
