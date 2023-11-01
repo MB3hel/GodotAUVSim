@@ -203,7 +203,7 @@ func connect_sim(port: int):
 	self._parse_escaped = false
 	
 	# Actually connect
-	if self._tcp.connect_to_host("localhost", port) != OK:
+	if self._tcp.connect_to_host("127.0.0.1", port) != OK:
 		# Connection failed
 		self.emit_signal("cboard_connect_fail", "Failed to connect to TCP server (SimCB).")
 		return
