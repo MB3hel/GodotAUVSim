@@ -21,25 +21,6 @@ var update_ports_timer = Timer.new()
 var curr_ports = PoolStringArray()
 
 func _ready():
-	var simcb_script = load("res://simcb.gd")
-	
-	var vertype = ""
-	if simcb_script.FW_VER_TYPE == "a":
-		vertype = "alpha"
-	elif simcb_script.FW_VER_TYPE == "b":
-		vertype = "beta"
-	if simcb_script.FW_VER_TYPE == "c":
-		vertype = "rc"
-	
-	var ver_str = ""
-	if vertype == "":
-		# Full release
-		ver_str = "%d.%d.%d" % [simcb_script.FW_VER_MAJOR, simcb_script.FW_VER_MINOR, simcb_script.FW_VER_REVISION]
-	else:
-		# Pre-release
-		ver_str = "%d.%d.%d-%s%d" % [simcb_script.FW_VER_MAJOR, simcb_script.FW_VER_MINOR, simcb_script.FW_VER_REVISION, vertype, simcb_script.FW_VER_BUILD]
-	cbx_sim.text = "%s (%s)" % [cbx_sim.text, ver_str]
-	
 	self.add_child(update_ports_timer)
 	self.update_ports_timer.one_shot = false
 	self.update_ports_timer.connect("timeout", self, "update_ports")

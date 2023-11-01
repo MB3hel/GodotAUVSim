@@ -136,13 +136,14 @@ func _process(delta):
 # When user clicks Connect button in connect dialog
 func connect_cboard(port):
 	if port == "SIM":
-		self.cboard.connect_sim()
+		# TODO: Don't hard code this
+		self.cboard.connect_sim(5014)
 	else:
 		self.cboard.connect_uart(port)
 
 # When user clicks disconnect control board button in UI
 func disconnect_cboard():
-	if self.cboard.get_portname() == "SIM":
+	if self.cboard.get_portname().startswith("SIM"):
 		self.cboard.disconnect_sim()
 	else:
 		self.cboard.disconnect_uart()

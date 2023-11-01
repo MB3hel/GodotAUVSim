@@ -108,6 +108,10 @@ func _process(delta):
 				self.emit_signal("cboard_connect_fail", "UART connection lost while hijacking control board.")
 			else:
 				self.disconnect_uart()
+	if self._sim_connected:
+		# TODO: Check for TCP connection drop
+		# Probably just a variable set if comms fail in read / write phase
+		pass
 	
 	# Read data if any
 	self._read_task()
@@ -175,8 +179,8 @@ func disconnect_uart(sig: bool = true):
 	if sig:
 		self.emit_signal("cboard_disconnected")
 
-# Connect to simulated control board (internal)
-func connect_sim():
+# Connect to simulated control board (via TCP)
+func connect_sim(port: int):
 	# Disconnect if already connected
 	if self._sim_connected:
 		self.disconnect_sim()
@@ -189,12 +193,10 @@ func connect_sim():
 	self._parse_started = false
 	self._parse_escaped = false
 	
-	# Connect to UART (8N1; baud != 1200)
-	_scb = load("res://simcb.gd").new()
-	add_child(_scb)
+	# TODO: Actually connect
 
 	self._sim_connected = true
-	self._portname = "SIM"
+	self._portname = "SIM(" + str(port) + ")"
 	
 	# Send SIMHIJACK preparing to wait for ACK
 	var cmd = "SIMHIJACK".to_ascii()
@@ -213,9 +215,8 @@ func disconnect_sim(sig: bool = true):
 	# Cancel simhijack timer
 	self._simhijack_timer.stop()
 	
-	# Disconnect UART
-	remove_child(_scb)
-	_scb = null
+	# TODO: Disconnect TCP
+	
 	self._sim_connected = false
 	self._portname = ""
 	
@@ -328,7 +329,8 @@ func write_raw(data: PoolByteArray):
 	if _uart_connected:
 		self._ser.write(data)
 	elif _sim_connected:
-		_scb.ext_write(data)
+		# TODO: Write over TCP
+		pass
 
 # Read any available bytes from connected control board
 # Returns true when a complete message is in _read_buf
@@ -342,7 +344,8 @@ func _read_task():
 			return # Probably an error. Let _process handle it.
 		self._parse_msg(data)
 	elif _sim_connected:
-		var data = self._scb.ext_read()
+		var data = null
+		# TODO: Read over TCP
 		if data.size() == 0:
 			return
 		self._parse_msg(data)
