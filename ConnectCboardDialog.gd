@@ -79,6 +79,7 @@ func do_exit():
 
 func show_dialog():
 	self.btn_connect.disabled = false
+	lbl_error.text = ""
 	self.update_ports()
 	self.popup()
 

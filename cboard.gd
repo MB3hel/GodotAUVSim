@@ -75,6 +75,10 @@ var _simdata_ids = []
 # read_task is not its own thread, but runs in _process instead.
 var _ser = load("res://GDSerial/GDSerial.gdns").new()
 
+# Stream used to connect to SimCB via TCP
+var _tcp = StreamPeerTCP.new()
+var _tcp_lost = false
+
 # Current serial port name
 # SIM means connected to simcb
 # "" (empty string) means not connected
@@ -109,9 +113,14 @@ func _process(delta):
 			else:
 				self.disconnect_uart()
 	if self._sim_connected:
-		# TODO: Check for TCP connection drop
-		# Probably just a variable set if comms fail in read / write phase
-		pass
+		if self._tcp_lost:
+			if self._simhijack_timer.time_left > 0:
+				# Conncetion lost while waiting for simhijack
+				# Emit connect fail signal, not disconnect signal
+				self.disconnect_sim(false)
+				self.emit_signal("cboard_connect_fail", "TCP connection lost while hijacking SimCB.")
+			else:
+				self.disconnect_sim()
 	
 	# Read data if any
 	self._read_task()
@@ -193,8 +202,26 @@ func connect_sim(port: int):
 	self._parse_started = false
 	self._parse_escaped = false
 	
-	# TODO: Actually connect
-
+	# Actually connect
+	if self._tcp.connect_to_host("localhost", port) != OK:
+		# Connection failed
+		self.emit_signal("cboard_connect_fail", "Failed to connect to TCP server (SimCB).")
+		return
+	while true:
+		var status = self._tcp.get_status()
+		if(status == StreamPeerTCP.STATUS_CONNECTING):
+			# Keep waiting
+			OS.delay_msec(5)
+			continue
+		if(status == StreamPeerTCP.STATUS_CONNECTED):
+			# Connected!
+			break
+		if(status == StreamPeerTCP.STATUS_ERROR):
+			# Connect failed
+			self.emit_signal("cboard_connect_fail", "Failed to connect to TCP server (SimCB).")
+			return
+	
+	self._tcp_lost = false
 	self._sim_connected = true
 	self._portname = "SIM(" + str(port) + ")"
 	
@@ -215,10 +242,11 @@ func disconnect_sim(sig: bool = true):
 	# Cancel simhijack timer
 	self._simhijack_timer.stop()
 	
-	# TODO: Disconnect TCP
-	
 	self._sim_connected = false
 	self._portname = ""
+	
+	# Disconnect TCP
+	self._tcp.disconnect_from_host()
 	
 	# Emit signal if required
 	if sig:
@@ -328,9 +356,9 @@ func _write_msg(msg_id: int, data: PoolByteArray):
 func write_raw(data: PoolByteArray):
 	if _uart_connected:
 		self._ser.write(data)
-	elif _sim_connected:
-		# TODO: Write over TCP
-		pass
+	elif _sim_connected and not self._tcp_lost:
+		if self._tcp.put_data(data) != OK:
+			self._tcp_lost = true
 
 # Read any available bytes from connected control board
 # Returns true when a complete message is in _read_buf
@@ -343,9 +371,16 @@ func _read_task():
 		if data.size() != avail:
 			return # Probably an error. Let _process handle it.
 		self._parse_msg(data)
-	elif _sim_connected:
-		var data = null
-		# TODO: Read over TCP
+	elif _sim_connected and not self._tcp_lost:
+		var avail = self._tcp.get_available_bytes()
+		if avail == 0:
+			return # Nothing to read
+		var res = self._tcp.get_data(avail)
+		var err = res[0]
+		var data = res[1]
+		if err != OK:
+			self._tcp_lost = true
+			return
 		if data.size() == 0:
 			return
 		self._parse_msg(data)

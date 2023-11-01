@@ -143,7 +143,7 @@ func connect_cboard(port):
 
 # When user clicks disconnect control board button in UI
 func disconnect_cboard():
-	if self.cboard.get_portname().startswith("SIM"):
+	if self.cboard.get_portname().begins_with("SIM"):
 		self.cboard.disconnect_sim()
 	else:
 		self.cboard.disconnect_uart()
