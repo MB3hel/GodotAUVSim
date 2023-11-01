@@ -477,6 +477,11 @@ func _handle_msg(read_id: int, msg: PoolByteArray, msg_full: PoolByteArray):
 
 		# Don't forward this message
 		return
+	elif _data_matches(msg, "HEARTBEAT".to_ascii()):
+		# Heartbeat message used by SimCB binary to test TCP connection
+		# Ignore it and don't forward to end users
+
+		return
 	
 	# All messages not handled above should be forwarded
 	self.emit_signal("msg_received", msg_full)
