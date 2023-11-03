@@ -207,7 +207,8 @@ func connect_sim(port: int):
 		# Connection failed
 		self.emit_signal("cboard_connect_fail", "Failed to connect to TCP server (SimCB).")
 		return
-	while true:
+	var start = OS.get_system_time_msecs()
+	while OS.get_system_time_msecs() - start < 750:
 		var status = self._tcp.get_status()
 		if(status == StreamPeerTCP.STATUS_CONNECTING):
 			# Keep waiting
@@ -220,6 +221,11 @@ func connect_sim(port: int):
 			# Connect failed
 			self.emit_signal("cboard_connect_fail", "Failed to connect to TCP server (SimCB).")
 			return
+	if self._tcp.get_status() != StreamPeerTCP.STATUS_CONNECTED:
+		# Connect timed out
+		self._tcp.disconnect_from_host()
+		self.emit_signal("cboard_connect_fail", "Failed to connect to TCP server (SimCB).")
+		return
 	
 	self._tcp_lost = false
 	self._sim_connected = true

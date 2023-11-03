@@ -89,9 +89,24 @@ func _ready():
 	var i = 0
 	while i < len(args):
 		if args[i] == "--simcb":
-			# Connect to simcb on startup: --simcb
-			cli_cb = "SIM"
-			i += 1
+			# Connect to simcb on startup: --simcb port
+			if (i+1) >= len(args):
+				# No port provided
+				print("--simcb requires a port.")
+				get_tree().quit(1)
+				return
+			var port_str = args[i+1]
+			if not port_str.is_valid_integer():
+				print("Invalid TCP port for simcb.")
+				get_tree().quit(1)
+				return
+			var port = int(port_str)
+			if port > 65535 or port < 0:
+				print("Invalid TCP port for simcb.")
+				get_tree().quit(1)
+				return
+			cli_cb = "SIM(" + port_str + ")"
+			i += 2
 		elif args[i] == "--uart":
 			# Connect to uart control board on startup: --uart port
 			if (i+1) >= len(args):
@@ -114,6 +129,7 @@ func _ready():
 	# Note that once connect is successful, the dialog is shown
 	if cli_cb != "":
 		self.connect_cboard(cli_cb)
+		connect_cb_dialog.btn_connect.disabled = true
 
 func _process(delta):
 	var vehicle = vehicles.vehicle_body
@@ -135,9 +151,9 @@ func _process(delta):
 
 # When user clicks Connect button in connect dialog
 func connect_cboard(port):
-	if port == "SIM":
-		# TODO: Don't hard code this
-		self.cboard.connect_sim(5014)
+	if port.begins_with("SIM("):
+		var p_str = port.substr(4,port.length()-5)
+		self.cboard.connect_sim(int(p_str))
 	else:
 		self.cboard.connect_uart(port)
 

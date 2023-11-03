@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://fonts/viewport_label_font.tres" type="DynamicFont" id=1]
 [ext_resource path="res://fonts/status_label_font.tres" type="DynamicFont" id=2]
@@ -16,6 +16,9 @@ points = PoolVector3Array( 0.0631065, 0.321562, 0.0548807, 0.0631065, 0.321562, 
 [sub_resource type="ButtonGroup" id=6]
 
 [sub_resource type="Theme" id=2]
+default_font = ExtResource( 3 )
+
+[sub_resource type="Theme" id=7]
 default_font = ExtResource( 3 )
 
 [sub_resource type="Theme" id=3]
@@ -395,53 +398,56 @@ margin_top = 49.0
 margin_right = 664.0
 margin_bottom = 53.0
 
-[node name="CboardSelDesc" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
+[node name="UartCheckbox" type="CheckBox" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
 margin_top = 57.0
 margin_right = 664.0
-margin_bottom = 80.0
-custom_fonts/font = ExtResource( 3 )
-text = "Select a control board to connect to"
-autowrap = true
-
-[node name="SpacerLabel" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
-margin_top = 84.0
-margin_right = 664.0
-margin_bottom = 98.0
-
-[node name="UartCheckbox" type="CheckBox" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
-margin_top = 102.0
-margin_right = 664.0
-margin_bottom = 133.0
+margin_bottom = 88.0
 custom_fonts/font = ExtResource( 3 )
 pressed = true
 group = SubResource( 6 )
 text = "Physical Control Board"
 
 [node name="UARTLabel" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
-margin_top = 137.0
+margin_top = 92.0
 margin_right = 664.0
-margin_bottom = 160.0
+margin_bottom = 115.0
 custom_fonts/font = ExtResource( 3 )
 text = "UART Ports:"
 
 [node name="PortsSelector" type="OptionButton" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
-margin_top = 164.0
+margin_top = 119.0
 margin_right = 664.0
-margin_bottom = 193.0
+margin_bottom = 148.0
 theme = SubResource( 2 )
 
 [node name="SimCheckbox" type="CheckBox" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
-margin_top = 197.0
+margin_top = 152.0
 margin_right = 664.0
-margin_bottom = 228.0
+margin_bottom = 183.0
 custom_fonts/font = ExtResource( 3 )
 group = SubResource( 6 )
 text = "Simulated Control Board"
 
-[node name="SpacerLabel2" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
-margin_top = 251.0
+[node name="Label" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
+margin_top = 187.0
 margin_right = 664.0
-margin_bottom = 265.0
+margin_bottom = 210.0
+custom_fonts/font = ExtResource( 3 )
+text = "TCP Port:"
+
+[node name="TCPPortField" type="SpinBox" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
+margin_top = 214.0
+margin_right = 664.0
+margin_bottom = 247.0
+theme = SubResource( 7 )
+max_value = 65535.0
+value = 5014.0
+editable = false
+
+[node name="SpacerLabel2" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
+margin_top = 260.0
+margin_right = 664.0
+margin_bottom = 274.0
 size_flags_vertical = 6
 
 [node name="ErrorLabel" type="Label" parent="UIRoot/ConnectCboardDialog/VBoxContainer"]
