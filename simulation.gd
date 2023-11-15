@@ -83,10 +83,13 @@ func _ready():
 	
 	# Parse command line arguments:
 	# Supported arguments:
-	#   --simcb:         Connect to simulated control board on startup
+	#   --simcb port:    Connect to simulated control board on startup using specified TCP port
 	#   --uart port:     Connect to real control board (via uart) on startup. Connect to specified port.
 	#                    Note that errors are not handled. If it fails to connect, the dialog will be shown.
+	#   --tcp cmd cb     Start network servers on the given ports.
 	var cli_cb = ""
+	var cli_cmd_tcp = -1
+	var cli_cb_tcp = -1
 	var args = OS.get_cmdline_args()
 	var i = 0
 	while i < len(args):
@@ -118,6 +121,32 @@ func _ready():
 				return
 			cli_cb = args[i+1]
 			i += 2
+		elif args[i] == "--tcp":
+			# Start network servers on specified ports instead of prompting in UI
+			if(i+2) >= len(args):
+				# Need to provide two ports
+				print("--tcp requires two ports (cmd, cb)")
+				get_tree().quit(1)
+				return
+			if not args[i+1].is_valid_integer():
+				print("tcp ports must be integers 0-65535")
+				get_tree().quit(1)
+				return
+			cli_cmd_tcp = int(args[i+1])
+			if cli_cmd_tcp > 65535 or cli_cmd_tcp < 0:
+				print("tcp ports must be integers 0-65535")
+				get_tree().quit(1)
+				return
+			if not args[i+2].is_valid_integer():
+				print("tcp ports must be integers 0-65535")
+				get_tree().quit(1)
+				return
+			cli_cb_tcp = int(args[i+2])
+			if cli_cb_tcp > 65535 or cli_cb_tcp < 0:
+				print("tcp ports must be integers 0-65535")
+				get_tree().quit(1)
+				return
+			i += 3
 		else:
 			# Unknown argument.
 			print("Unknown argument: '%s'" % args[i])
@@ -135,6 +164,10 @@ func _ready():
 	if cli_cb != "":
 		self.connect_cboard(cli_cb)
 		connect_cb_dialog.btn_connect.disabled = true
+	
+	if cli_cb_tcp != -1 and cli_cmd_tcp != -1:
+		self.start_servers(cli_cmd_tcp, cli_cb_tcp)
+		net_port_dialog.btn_start.disabled = true
 
 func _process(delta):
 	var vehicle = vehicles.vehicle_body
