@@ -59,12 +59,12 @@ var _connected = false
 var _client_addr = ""
 
 const listen_addr = "*"
-const cmd_port = 5011
-const cboard_port = 5012
 
 var _allow_connections = false
 
 var _cmd_buffer = ""
+
+var _started = false
 
 # This is always instantiated by and added as a child of simulation.gd
 onready var _sim = get_parent()
@@ -77,15 +77,18 @@ onready var _sim = get_parent()
 # Godot Engine functions
 ################################################################################
 
-func _ready():
+func start(cmd_port: int, cb_port: int) -> Array:
 	if _cmd_server.listen(cmd_port, listen_addr) != OK:
-		OS.alert("Failed to start command sever (%s:%d)" % [listen_addr, cmd_port], "Startup Error")
-		get_tree().quit()
-	if _cboard_server.listen(cboard_port, listen_addr) != OK:
-		OS.alert("Failed to start cboard sever (%s:%d)" % [listen_addr, cboard_port], "Startup Error")
-		get_tree().quit()
+		return [false, "Failed to start command server."]
+	if _cboard_server.listen(cb_port, listen_addr) != OK:
+		_cmd_server.stop()
+		return [false, "Failed to start control board server."]
+	_started = true
+	return [true, ""]
 
 func _process(delta):
+	if not _started:
+		return
 	if self._connected:
 		# Check for and handle disconnects
 		if _cmd_client.get_status() != StreamPeerTCP.STATUS_CONNECTED:

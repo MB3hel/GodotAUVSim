@@ -26,7 +26,7 @@ _global_script_class_icons={
 
 [application]
 
-config/name="Godot AUV Sim v1.2.2"
+config/name="Godot AUV Sim v1.3.0"
 config/description="AUV simulator for AUVControlBoard development & testing"
 run/main_scene="res://pool.tscn"
 boot_splash/show_image=false

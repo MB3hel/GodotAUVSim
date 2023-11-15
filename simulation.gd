@@ -35,6 +35,7 @@ onready var btn_copy_status = ui_root.find_node("CopyStatusButton")
 onready var status_panel = ui_root.find_node("StatusPanel")
 onready var btn_config_vehicle = ui_root.find_node("ConfigVehicleButton")
 onready var config_vehicle_dialog = ui_root.find_node("VehicleConfigDialog")
+onready var net_port_dialog = ui_root.find_node("NetServerDialog")
 onready var btn_disconnect_tcp = ui_root.find_node("DisconnectNetButton")
 onready var lbl_tcp_client = ui_root.find_node("NetConnLabel")
 
@@ -64,6 +65,7 @@ func _ready():
 	
 	# Connect signals
 	connect_cb_dialog.connect("connect_cboard", self, "connect_cboard")
+	net_port_dialog.connect("start_servers", self, "start_servers")
 	btn_disconnect_cb.connect("pressed", self, "disconnect_cboard")
 	cboard.connect("cboard_connect_fail", self, "cboard_connect_fail")
 	cboard.connect("cboard_connected", self, "cboard_connected")
@@ -125,8 +127,11 @@ func _ready():
 	# Show connect dialog at startup
 	connect_cb_dialog.show_dialog()
 	
+	# Show network select dialog at startup
+	net_port_dialog.show_dialog()
+	
 	# Connect to a control board if told to by CLI
-	# Note that once connect is successful, the dialog is shown
+	# Note that once connect is successful, the dialog is hidden
 	if cli_cb != "":
 		self.connect_cboard(cli_cb)
 		connect_cb_dialog.btn_connect.disabled = true
@@ -148,6 +153,16 @@ func _process(delta):
 ################################################################################
 # Signal handlers
 ################################################################################
+
+# When user clicks Start button in network port selector dialog
+func start_servers(cmd_port: int, cb_port: int):
+	var res = self.netiface.start(cmd_port, cb_port)
+	var success = res[0]
+	var msg = res[1]
+	if not success:
+		self.net_port_dialog.show_error(msg)
+	else:
+		self.net_port_dialog.hide_dialog()
 
 # When user clicks Connect button in connect dialog
 func connect_cboard(port):

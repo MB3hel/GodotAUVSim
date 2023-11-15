@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://fonts/viewport_label_font.tres" type="DynamicFont" id=1]
 [ext_resource path="res://fonts/status_label_font.tres" type="DynamicFont" id=2]
@@ -8,6 +8,7 @@
 [ext_resource path="res://vehicles.gd" type="Script" id=6]
 [ext_resource path="res://simulation.gd" type="Script" id=7]
 [ext_resource path="res://VehicleConfigDialog.gd" type="Script" id=8]
+[ext_resource path="res://NetServerDialog.gd" type="Script" id=9]
 [ext_resource path="res://fonts/status_value_font_italic.tres" type="DynamicFont" id=10]
 
 [sub_resource type="ConvexPolygonShape" id=5]
@@ -711,3 +712,107 @@ margin_bottom = 29.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
 text = "Cancel"
+
+[node name="NetServerDialog" type="PopupDialog" parent="UIRoot"]
+visible = true
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -240.0
+margin_top = -125.0
+margin_right = 240.0
+margin_bottom = 125.0
+popup_exclusive = true
+script = ExtResource( 9 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/NetServerDialog"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -8.0
+
+[node name="CboardSelLabel" type="Label" parent="UIRoot/NetServerDialog/VBoxContainer"]
+margin_right = 464.0
+margin_bottom = 45.0
+custom_fonts/font = ExtResource( 1 )
+text = "Select TCP Ports"
+
+[node name="HSeparator" type="HSeparator" parent="UIRoot/NetServerDialog/VBoxContainer"]
+margin_top = 49.0
+margin_right = 464.0
+margin_bottom = 53.0
+
+[node name="GridContainer" type="GridContainer" parent="UIRoot/NetServerDialog/VBoxContainer"]
+margin_top = 57.0
+margin_right = 464.0
+margin_bottom = 127.0
+columns = 2
+
+[node name="Label2" type="Label" parent="UIRoot/NetServerDialog/VBoxContainer/GridContainer"]
+margin_top = 5.0
+margin_right = 144.0
+margin_bottom = 28.0
+custom_fonts/font = ExtResource( 3 )
+text = "Command Port"
+
+[node name="CMDPortBox" type="SpinBox" parent="UIRoot/NetServerDialog/VBoxContainer/GridContainer"]
+margin_left = 148.0
+margin_right = 464.0
+margin_bottom = 33.0
+size_flags_horizontal = 3
+theme = SubResource( 7 )
+max_value = 65535.0
+value = 5011.0
+
+[node name="Label" type="Label" parent="UIRoot/NetServerDialog/VBoxContainer/GridContainer"]
+margin_top = 42.0
+margin_right = 144.0
+margin_bottom = 65.0
+custom_fonts/font = ExtResource( 3 )
+text = "Control Board Port"
+
+[node name="CBPortBox" type="SpinBox" parent="UIRoot/NetServerDialog/VBoxContainer/GridContainer"]
+margin_left = 148.0
+margin_top = 37.0
+margin_right = 464.0
+margin_bottom = 70.0
+size_flags_horizontal = 3
+theme = SubResource( 7 )
+max_value = 65535.0
+value = 5012.0
+
+[node name="SpacerLabel2" type="Label" parent="UIRoot/NetServerDialog/VBoxContainer"]
+margin_top = 145.0
+margin_right = 464.0
+margin_bottom = 159.0
+size_flags_vertical = 6
+
+[node name="ErrorLabel" type="Label" parent="UIRoot/NetServerDialog/VBoxContainer"]
+margin_top = 178.0
+margin_right = 464.0
+margin_bottom = 201.0
+custom_fonts/font = ExtResource( 10 )
+autowrap = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UIRoot/NetServerDialog/VBoxContainer"]
+margin_top = 205.0
+margin_right = 464.0
+margin_bottom = 234.0
+
+[node name="StartButton" type="Button" parent="UIRoot/NetServerDialog/VBoxContainer/HBoxContainer"]
+margin_right = 230.0
+margin_bottom = 29.0
+size_flags_horizontal = 3
+custom_fonts/font = ExtResource( 3 )
+text = "Start"
+
+[node name="ExitButton" type="Button" parent="UIRoot/NetServerDialog/VBoxContainer/HBoxContainer"]
+margin_left = 234.0
+margin_right = 464.0
+margin_bottom = 29.0
+size_flags_horizontal = 3
+custom_fonts/font = ExtResource( 3 )
+text = "Exit"
